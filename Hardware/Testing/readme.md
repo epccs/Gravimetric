@@ -25,7 +25,7 @@ TBD
 
 ## Assembly check
 
-After assembly check the circuit carefully to make sure all parts are soldered and correct, note that the device making is labeled on the schematic and assembly drawing.
+After assembly check the circuit carefully to make sure all parts are soldered and correct, the device marking is labeled on the schematic and assembly drawing.
     
 NOTE: U2 is not yet on the board, so everything with +5V will not have power.
 
