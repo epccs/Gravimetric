@@ -43,10 +43,10 @@ sudo apt-get install git gcc-avr binutils-avr gdb-avr avr-libc avrdude
 git clone https://github.com/epccs/RPUlux/
 ```
 
-* [gcc-avr](http://packages.ubuntu.com/search?keywords=gcc-avr)
-* [binutils-avr](http://packages.ubuntu.com/search?keywords=binutils-avr)
-* [gdb-avr](http://packages.ubuntu.com/search?keywords=gdb-avr)
-* [avr-libc](http://packages.ubuntu.com/search?keywords=avr-libc)
-* [avrdude](http://packages.ubuntu.com/search?keywords=avrdude)
+* [gcc-avr](https://packages.ubuntu.com/search?keywords=gcc-avr)
+* [binutils-avr](https://packages.ubuntu.com/search?keywords=binutils-avr)
+* [gdb-avr](https://packages.ubuntu.com/search?keywords=gdb-avr)
+* [avr-libc](https://packages.ubuntu.com/search?keywords=avr-libc)
+* [avrdude](https://packages.ubuntu.com/search?keywords=avrdude)
 
 The software is a guide, it is in C because that works for me.
