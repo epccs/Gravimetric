@@ -129,9 +129,7 @@ The SMD reflow is done in a Black & Decker Model NO. TO1303SB which has the heat
 
 A do it yourself approach to prevent overcharging a battery by using the alternate power input with a solar panel.
 
-![SolarPwrOptions](./Documents/SolarPwrOptions.png "RPUicp Solar Power Options")
-
-Use IO9 to open circuit the solar panel connected to the alternate power input. This input will only tolerate up to 2 amps so make sure the short circuit current is less than that.
+Use IO9 to open circuit the solar panel connected to the alternate power input. This input will only tolerate up to about 1 amp so make sure the short circuit current is less than that.
 
 
 ## A functional view
