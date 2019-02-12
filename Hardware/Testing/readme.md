@@ -1,6 +1,6 @@
 # Description
 
-This is a list of Test preformed on each RPUicp after assembly.
+This is a list of Test preformed on each Gravimetric board after assembly.
 
 # Table of References
 

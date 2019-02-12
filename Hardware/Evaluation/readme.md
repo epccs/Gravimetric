@@ -1,6 +1,6 @@
 # Description
 
-This shows the setup and method used for evaluation of RPUicp.
+This shows the setup and method used for evaluation of Gravimetric.
 
 # Table of References
 

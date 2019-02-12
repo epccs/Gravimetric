@@ -1,12 +1,12 @@
-# RPUicp
+# Gravimetric
 
-From <https://github.com/epccs/RPUicp/>
+From <https://github.com/epccs/Gravimetric/>
 
 ## Overview
 
-Board with ATmega328pb plumed for measuring event times using ICP1, ICP3, and ICP4 with headers for multi-drop serial Shields
+Board with ATmega324pb plumed for measuring event times using ICP1, ICP3, and ICP4 with headers for multi-drop serial Shields. ICP3 and ICP4 have one-shot pulse extenders. 
 
-This programmable ATmega328pb based board has headers for a [RPUpi] or [RPUadpt] mezzanine shield. User's firmware application can monitor the input current with a high side current sense (ZXCT1087) with ADC channel three, and the input voltage with a voltage divider on channel seven. Input capture is available on three timers from Timer1, Timer3, and Timer4.  
+This programmable ATmega324pb based board has headers for a [RPUpi] or [RPUadpt] mezzanine shield. User's firmware application can monitor the power used with a high side current sense (ZXCT1087) and a voltage divider. Flow diversion control is available that starts when ICP3 capture occurs and ends when ICP4 capture does. The ICP3 capture ISR needs to enable a pull-up and the ICP4 capture ISR disable the pull-up to make the diversion control work properly. Serial input (can be a bit bang input for HX711) is available on the board to connect a load cell amplifier.
 
 [RPUpi]: https://github.com/epccs/RPUpi/
 [RPUadpt]: https://github.com/epccs/RPUadpt/
@@ -25,22 +25,22 @@ Hardware files include a schematic, bill of materials, and various notes for tes
 
 ## Example
 
-This example shows an RS-422 serial bus that allows multiple microcontroller boards to be connected to a single host computer serial port. It has an [RPUpi] shield that allows the Raspberry Pi Zero's hardware UART to connect as the host. The Pi Zero W has on board WiFi which I use for SSH connections and Samba file sharing. The other controller boards use an [RPUadpt] shield to daisy-chain the RS-422 with CAT5 cables. 
+This example shows an serial bus that allows multiple microcontroller boards to be connected to a single host computer serial port. It has an [RPUpi] shield that allows a Raspberry Pi Zero's hardware UART to connect as the host. The Pi Zero W has on board WiFi which I use for SSH connections and file sharing. The other controller boards use an [RPUadpt] shield and are daisy-chain with CAT5 cables. 
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "RPUicp MultiDrop")
 
-In the above setup, the calibration meter has good correlation with the volume and should thus be a good calibration source for other meters. The calibration meter could run for longer times with meters that don't have a timing source that is shared with the test volume which could help to overcome the correlation uncertainty caused by using separate timing sources.
+In the above setup... welp that drawing needs updates.
 
 
 ## AVR toolchain
 
-This board uses the open source AVR toolchain found on Debian that has spread to most of the other Operating Systems. With the toolchain installed, the AVR application can compile locally (e.g. on a Raspberry Pi, Mac, or Windows 10 LSW). Make sure you understand that the hardware provider is not supplying the development tools and if they are broken then fixing them is a community effort. Also, it is worth noting that if the hardware provider changes its business model the tools will remain available from the community.
+This board uses the AVR toolchain, it is on Debian (e.g. Ubuntu and Raspbian), Windows, Mac and other Operating Systems. With the toolchain installed, the AVR application can compile locally (e.g. on a Raspberry Pi, Mac, or Windows 10 LSW). Make sure you understand that the hardware provider is not supplying the development tools and if they are broken then fixing them is a community effort. Also, it is worth noting that if the hardware provider changes its business model the tools will remain available from the community.
 
-The core files for this board are in the /lib folder. Each example has its files and a Makefile in its own folder. The toolchain is available as standard packages on Ubuntu and Raspbian. 
+The core files for this board are in the /lib folder. Each example application has its files and a Makefile in a seperat folder. The toolchain is available as standard packages on Ubuntu and Raspbian. 
 
 ```
-sudo apt-get install git gcc-avr binutils-avr gdb-avr avr-libc avrdude
-git clone https://github.com/epccs/RPUlux/
+sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
+git clone https://github.com/epccs/RPUicp
 ```
 
 * [gcc-avr](https://packages.ubuntu.com/search?keywords=gcc-avr)

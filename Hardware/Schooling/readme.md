@@ -1,6 +1,6 @@
 # Description
 
-Some lessons I learned doing RPUicp.
+Some lessons I learned doing Gravimetric.
 
 # Table Of Contents:
 
