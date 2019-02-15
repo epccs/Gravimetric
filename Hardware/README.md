@@ -27,7 +27,6 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
         Event capture interface has a 17mA current source for sensor (hall, VR, or just a limit switch)
         Event transition occures at about 6.5mA of current returned from the sensor to a 100 Ohm resistor on board.
         TBD controls a PMOS that enables an alternate power supply (e.g. battery charging).
-        SPI pins are dedicated for connection to the shield with the ICSP header.
 ```
 
 ## Uses
@@ -44,6 +43,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ```
         AREF from ATmega324pb is not connected to the header.
         3V3 is not present on the board, the header pin is not connected.
+        Using SPI will trigger ICP3 if it is enabled.
 ```
 
 
@@ -68,7 +68,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             use 324pb MCU not 328pb.
             add high side current sense connected to ADC5 for alternat input power.
             add serial1 (like Irrigate7) so an R-Pi can access a load cell (e.g. HX711) though the control board.
-            add two one-shot circuits trigered when ICP3 and ICP4 are.
+            add two one-shot pulse stretching circuits to fed ICP3 and ICP4.
             add current sources to signal SSR's that can power FAST_FLOW and DIVERSION valves for gravimetric proving.
             the FAST_FLOW current source should be self explaing enough, e.g. if it is off then flow is slow.
             the gravimetric DIVERSION control current source needs to turn on when ICP3 one-shot does (e.g. start flow onto scale).
@@ -77,6 +77,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             the event capture for ICP4 only occures if the diversion control pullup is active.
             add current sources to signal a prover LAUNCH.
             add digital input to signal when prover is READY and handshake when the launch occured (set for slow flow in 4, 3, 2, 1...).
+            problem note: ICP3 is on ISCP (MOSI pin) so take care not to block programing (RPUpi has a 3k pullup on MOSI).
 ```
 
 Debugging and fixing problems i.e. [Schooling](./Schooling/)

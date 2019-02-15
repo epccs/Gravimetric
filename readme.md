@@ -40,7 +40,7 @@ The core files for this board are in the /lib folder. Each example application h
 
 ```
 sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
-git clone https://github.com/epccs/RPUicp
+git clone https://github.com/epccs/Gravimetric
 ```
 
 * [gcc-avr](https://packages.ubuntu.com/search?keywords=gcc-avr)
