@@ -58,7 +58,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 
 # Status
 
-![Status](./status_icon.png "RPUicp Status")
+![Status](./status_icon.png "Gravimetric Status")
 
 ```
         ^0  Done:  
@@ -66,8 +66,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             Todo: Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
             use 324pb MCU not 328pb.
-            add high side current sense connected to ADC5 for alternat input power.
-            add serial1 (like Irrigate7) so an R-Pi can access a load cell (e.g. HX711) though the control board.
+            add high side current sense connected to ADC5 for alternat input.
+            add voltage sense connected to ADC4 for alternat input.
+            add serial1 and serial2 so an R-Pi can access things like a load cell (e.g. HX711) though the control board.
             add two one-shot pulse stretching circuits to fed ICP3 and ICP4.
             add current sources to signal SSR's that can power FAST_FLOW and DIVERSION valves for gravimetric proving.
             the FAST_FLOW current source should be self explaing enough, e.g. if it is off then flow is slow.
@@ -75,8 +76,8 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             the DIVERSION control current source needs to be held on by an MCU pin setup as a pullup that the ICP3 ISR can turn on.
             the DIVERSION current source needs to be forced off when the ICP4 one-shot is active (the ICP4 ISR can then turn off the pullup).
             the event capture for ICP4 only occures if the diversion control pullup is active.
-            add current sources to signal a prover LAUNCH.
-            add digital input to signal when prover is READY and handshake when the launch occured (set for slow flow in 4, 3, 2, 1...).
+            add current sources to signal a prover LAUNCH (CS4_EN can do this).
+            add digital input to signal when prover is READY and handshake when the launch occured (RX2 and/or TX2 can do this).
             problem note: ICP3 is on ISCP (MOSI pin) so take care not to block programing (RPUpi has a 3k pullup on MOSI).
 ```
 
@@ -89,10 +90,10 @@ Setup and methods used for [Evaluation](./Evaluation/)
 
 The board is 0.063 thick, FR4, two layer, 1 oz copper with ENIG (gold) finish.
 
-![Top](./Documents/17341,Top.png "RPUicp Top")
-![TAssy](./Documents/17341,TAssy.jpg "RPUicp Top Assy")
-![Bottom](./Documents/17341,Bottom.png "RPUicp Bottom")
-![BAssy](./Documents/17341,BAssy.jpg "RPUicp Bottom Assy")
+![Top](./Documents/17341,Top.png "Gravimetric Top")
+![TAssy](./Documents/17341,TAssy.jpg "Gravimetric Top Assy")
+![Bottom](./Documents/17341,Bottom.png "Gravimetric Bottom")
+![BAssy](./Documents/17341,BAssy.jpg "Gravimetric Bottom Assy")
 
 ## Electrical Parameters (Typical)
 
@@ -108,7 +109,9 @@ DIN rail
 
 ## Electrical Schematic
 
-![Schematic](./Documents/17341,Schematic.png "RPUicp Schematic")
+![Schematic](./Documents/17341,Schematic.png "Gravimetric Schematic")
+
+![Schematic2](./Documents/17341,Schematic2.png "Gravimetric Schematic2")
 
 ## Testing
 
