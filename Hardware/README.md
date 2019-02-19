@@ -19,21 +19,28 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
         High side current sense of alternat input power is connected to ADC5.
         High side current sense of input power is connected to ADC6.
         Input power voltage is divided down and connected to ADC7.
-        Five analog (CH 0..4) or digital (numbers TBD) connections with level conversion.
+        Alternat input voltage is divided down and connected to ADC4.
+        Four analog (CH 0..3) or digital connections with level conversion.
         Three inputs for event capture: ICP1, ICP3, ICP4.
-        Two of the event capture inputs have a 50mSec one shot pulse extender: ICP3, ICP4.
-        The event capture for ICP4 only occures if the diversion control pullup is active.
+        Two of the event capture inputs have a one shot pulse extender: ICP3, ICP4.
         Event timers have a common crystal which eliminates correlation errors.
         Event capture interface has a 17mA current source for sensor (hall, VR, or just a limit switch)
         Event transition occures at about 6.5mA of current returned from the sensor to a 100 Ohm resistor on board.
-        TBD controls a PMOS that enables an alternate power supply (e.g. battery charging).
+        Diversion control is nearly instantaneous, sustain with ICP3 and ICP4 ISR after one-shot.
+        Control of a PMOS enables an alternate power supply (e.g. battery charging).
+        Control of a PMOS disables power to the 40PIN SBC header.
+        SPI between SBC and ATmega324pb has a buffer with IOFF for SBC power off.
+        UART from SBC to transceivers has a buffer with IOFF for SBC power off.
+        I2C between SBC and bus manager is isolated so SBC can power off.
+        I2C between ATmega324pb and bus manager is isolated.
+        Serial (RPUbus) continues working when SBC is powered off.
 ```
 
 ## Uses
 
 ```
         Calibration of rotating hardware measured with input capture (ICP) hardware.
-        Use a start and stop sensor to capture a displacer while capturing flow meter pules.
+        Use a start and stop sensor to capture displacer events while capturing flow meter pules.
         Diversion and fast/slow flow control can be used for gravimetric calibration. 
         One-shot pulse extenders on ICP3 and ICP4 for clean switch event measurements (e.g. a start and stop).
 ```
@@ -43,7 +50,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ```
         AREF from ATmega324pb is not connected to the header.
         3V3 is not present on the board, the header pin is not connected.
-        Using SPI will trigger ICP3 if it is enabled.
+        Using SPI will trigger ICP3 if it is enabled and cut off CS_ICP3.
 ```
 
 
@@ -72,12 +79,13 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             add two one-shot pulse stretching circuits to fed ICP3 and ICP4.
             add current sources to signal SSR's that can power FAST_FLOW and DIVERSION valves for gravimetric proving.
             the FAST_FLOW current source should be self explaing enough, e.g. if it is off then flow is slow.
-            the gravimetric DIVERSION control current source needs to turn on when ICP3 one-shot does (e.g. start flow onto scale).
-            the DIVERSION control current source needs to be held on by an MCU pin setup as a pullup that the ICP3 ISR can turn on.
-            the DIVERSION current source needs to be forced off when the ICP4 one-shot is active (the ICP4 ISR can then turn off the pullup).
-            the event capture for ICP4 only occures if the diversion control pullup is active.
+            the gravimetric DIVERSION control current source turns on when ICP3 one-shot does (e.g. start flow onto scale).
+            the DIVERSION control current source needs held on by CS_DIVERSION when the ICP3 ISR runs.
+            the DIVERSION current source needs to be forced off when the ICP4 is active (the ICP4 ISR can then turn off CS_DIVERSION).
             add current sources to signal a prover LAUNCH (CS4_EN can do this).
             add digital input to signal when prover is READY and handshake when the launch occured (RX2 and/or TX2 can do this).
+            add RPUpi (e.g. the RPUbus manager and transceivers)
+            remove shield headers
             problem note: ICP3 is on ISCP (MOSI pin) so take care not to block programing (RPUpi has a 3k pullup on MOSI).
 ```
 
@@ -95,12 +103,6 @@ The board is 0.063 thick, FR4, two layer, 1 oz copper with ENIG (gold) finish.
 ![Bottom](./Documents/17341,Bottom.png "Gravimetric Bottom")
 ![BAssy](./Documents/17341,BAssy.jpg "Gravimetric Bottom Assy")
 
-## Electrical Parameters (Typical)
-
-```
-TBD
-```
-
 ## Mounting
 
 ```
@@ -112,6 +114,8 @@ DIN rail
 ![Schematic](./Documents/17341,Schematic.png "Gravimetric Schematic")
 
 ![Schematic2](./Documents/17341,Schematic2.png "Gravimetric Schematic2")
+
+![Schematic3](./Documents/17341,Schematic3.png "Gravimetric Schematic3")
 
 ## Testing
 
@@ -149,14 +153,5 @@ The SMD reflow is done in a Black & Decker Model NO. TO1303SB which has the heat
 
 # How To Use
 
-## Prevent overcharging a battery
-
-A do it yourself approach to prevent overcharging a battery by using the alternate power input with a solar panel.
-
-Use IO9 to open circuit the solar panel connected to the alternate power input. This input will only tolerate up to about 1 amp so make sure the short circuit current is less than that.
-
-
-## A functional view
-
-For calibration, this hardware provides data acquisition only. It does not try to deal with machine control, e.g. the operations necessary to launch a displacer through a known volume. In this case, the measurement task and its data acquisition is seen as a separate function and has been compartmentalized as such, it has ignored the aspects of machine control. Reducing complexity can help yield a working tool. Retaining the complexity required to provide a function makes the tool useful. 
+TBD
 

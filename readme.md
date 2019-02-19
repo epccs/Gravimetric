@@ -4,12 +4,13 @@ From <https://github.com/epccs/Gravimetric/>
 
 ## Overview
 
-Board with ATmega324pb plumed for measuring event times using ICP1, ICP3, and ICP4 with headers for multi-drop serial Shields. ICP3 and ICP4 have one-shot pulse extenders. 
+Board with ATmega324pb plumed for measuring event times using ICP1, ICP3, and ICP4 with headers for multi-drop serial Shields. 
 
-This programmable ATmega324pb based board has headers for a [RPUpi] or [RPUadpt] mezzanine shield. User's firmware application can monitor the power used with a high side current sense (ZXCT1087) and a voltage divider. Flow diversion control is available that starts when ICP3 capture occurs and ends when ICP4 capture does. The ICP3 capture ISR needs to enable a pull-up and the ICP4 capture ISR disable the pull-up to make the diversion control work properly. Serial input (can be a bit bang input for HX711) is available on the board to connect a load cell amplifier.
+The main idea guiding this design is gravimetric calibration of flow measuring devices. ICP1 is for measuring time events of flow pulses. ICP3 is for a start event and ICP4 a stop event, they have one-shot pulse extenders.  Flow diversion control is available that starts when the ICP3 capture event occurs and ends when the ICP4 capture event does. The ICP3 capture ISR needs to enable CS_DIVERSION and the ICP4 capture ISR disable CS_DIVERSION  to make the diversion control work properly. Serial input (or bit-bang for HX711) is available from RX1 and TX1 to connect a load cell amplifier. I2C is available to interface high-resolution ADC.
+
+This board has a header for a Raspberry Pi SBC that can host the programming tools for the ATmega324pb controller (and the SBC is a computer if you need that sort of thing). The user can develop and upload applications from the SBC over the serial connection (which works like an [RPUpi]). 
 
 [RPUpi]: https://github.com/epccs/RPUpi/
-[RPUadpt]: https://github.com/epccs/RPUadpt/
 
 
 ## Status
