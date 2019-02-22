@@ -12,6 +12,7 @@ This board has a header for a Raspberry Pi SBC that can host the programming too
 
 [RPUpi]: https://github.com/epccs/RPUpi/
 
+[Forum](https://rpubus.org/bb/viewforum.php?f=21)
 
 ## Status
 
@@ -26,11 +27,15 @@ Hardware files include a schematic, bill of materials, and various notes for tes
 
 ## Example
 
-This example shows an serial bus that allows multiple microcontroller boards to be connected to a single host computer serial port. It has an [RPUpi] shield that allows a Raspberry Pi Zero's hardware UART to connect as the host. The Pi Zero W has on board WiFi which I use for SSH connections and file sharing. The other controller boards use an [RPUadpt] shield and are daisy-chain with CAT5 cables. 
+This boad has a serial bus that allows multiple boards to be connected to a Single Board Computer (SBC). The 40 pin header is for a Raspberry Pi but may work with other SBC's. I use a Pi Zero (and Zero W which has WiFi). The RJ45 connectors are for the multi-drop serial bus (RPUBUS) and allow the SBC to access other boards. This board has the [RPUpi] hardware on it so shield headers are removed. 
+
+[RPUpi]: https://github.com/epccs/RPUpi/
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "RPUicp MultiDrop")
 
-In the above setup... welp that drawing needs updates.
+Diverting a calibration fluid onto a scale during a precisely measured time while measuring the meter flow pulses is how I am going to calibrate my meters. The start and stop events will be synchronized to the diversion's control and their event time can be compared to the flow meter events. The start and stop can be from a volume that is being calibrated.
+
+Note that the RPUBUS has been used and shown enough that I think it is time to simplified down to a single line.
 
 
 ## AVR toolchain
