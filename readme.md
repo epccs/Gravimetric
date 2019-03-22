@@ -4,11 +4,11 @@ From <https://github.com/epccs/Gravimetric/>
 
 ## Overview
 
-Board with ATmega324pb plumed for measuring event times using ICP1, ICP3, and ICP4 with headers for multi-drop serial Shields. 
+Board with ATmega324pb set up for measuring event times using ICP1, ICP3, and ICP4 with headers for multi-drop serial Shields. 
 
-The main idea guiding this design is gravimetric calibration of flow measuring devices. ICP1 is for measuring time events of flow pulses. ICP3 is for a start event and ICP4 a stop event, they have one-shot pulse extenders.  Flow diversion control is available that starts when the ICP3 capture event occurs and ends when the ICP4 capture event does. The ICP3 capture ISR needs to enable CS_DIVERSION and the ICP4 capture ISR disable CS_DIVERSION  to make the diversion control work properly. Serial input (or bit-bang for HX711) is available from RX1 and TX1 to connect a load cell amplifier. I2C is available to interface high-resolution ADC.
+This is a general purpose control board in most ways but there are a few areas aimed at the gravimetric calibration of flow measurement instruments. ICP1 is for measuring time events from flow meters (e.g. pulses). ICP3 is for a start event and ICP4 a stop event, they have one-shot pulse extenders.  Diversion control is one of the specialized circuits on this board, it starts when the ICP3 capture event occurs and ends when the ICP4 capture event does. The ICP3 capture ISR needs to enable CS_DIVERSION and the ICP4 capture ISR disable CS_DIVERSION  for it to work properly. Two serial inputs (or bit-bang for HX711) are available to connect a load cell amplifier or a volume prover control. I2C is available to interface high-resolution ADC, which I do not think are needed since the loop current will be integrated during the time of calibration into a single number, rather than using it to make many tiny volume batches.
 
-This board has a header for a Raspberry Pi SBC that can host the programming tools for the ATmega324pb controller (and the SBC is a computer if you need that sort of thing). The user can develop and upload applications from the SBC over the serial connection (which works like an [RPUpi]). 
+This board has a pinout for a Raspberry Pi SBC header that can host the programming tools for the ATmega324pb controller (and the SBC is a computer if you need that sort of thing). The user can develop and upload applications from the SBC over the serial connection (which works like an [RPUpi]). 
 
 [RPUpi]: https://github.com/epccs/RPUpi/
 
@@ -20,22 +20,22 @@ This board has a header for a Raspberry Pi SBC that can host the programming too
 
 ## [Hardware](./Hardware)
 
-Hardware files include a schematic, bill of materials, and various notes for testing and evaluation. [Layout] files are seperate.
+Hardware files include a schematic, bill of materials, and various notes for testing and evaluation. [Layout] files are separate.
 
 [Layout]: https://github.com/epccs/Eagle/
 
 
 ## Example
 
-This boad has a serial bus that allows multiple boards to be connected to a Single Board Computer (SBC). The 40 pin header is for a Raspberry Pi but may work with other SBC's. I use a Pi Zero (and Zero W which has WiFi). The RJ45 connectors are for the multi-drop serial bus (RPUBUS) and allow the SBC to access other boards. This board has the [RPUpi] hardware on it so shield headers are removed. 
+This board has a serial bus that allows multiple boards to be connected to a Single Board Computer (SBC). The 40 pin header is for a Raspberry Pi but may other SBC's also work (I do not test them, however). I use a Pi Zero (and Zero W which has WiFi). The RJ45 connectors are for the multi-drop serial bus and allow the SBC to access the other boards. 
 
 [RPUpi]: https://github.com/epccs/RPUpi/
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "RPUicp MultiDrop")
 
-Diverting a calibration fluid onto a scale during a precisely measured time while measuring the meter flow pulses is how I am going to calibrate my meters. The start and stop events will be synchronized to the diversion's control and their event time can be compared to the flow meter events. The start and stop can be from a volume that is being calibrated.
+Diverting a calibration fluid onto a scale during a precisely measured time while measuring the meter flow pulses is how I am going to calibrate my meters. The start and stop events will be synchronized to the diversion's control and their event time can be compared to the flow meter events. The START and STOP can be from a volume that is being calibrated.
 
-Note that the RPUBUS has been used and shown enough that I think it is time to simplified down to a single line.
+Note that the RPUBUS has been shown enough that I think it is time to simplify it down to a single line.
 
 
 ## AVR toolchain

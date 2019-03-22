@@ -2,11 +2,11 @@
 
 ## Overview
 
-This board has an ATmega324pb and is setup for using the three timers (Timer1, Timer3, Timer4) that have input capture (ICP) hardware. The main idea is to calibrate flow meters, so that means it needs to do the measurements for a flow meter [prover]. ICP1 is used with the flow meter which produces pulses with each unit of volume (a magnet on a spinning turbine triggering a sensor). ICP3 is used to measure a volume start event, and ICP4 a stop event. A one-shot pulse extender is used with the ICP3 and ICP4 inputs. Gravimetric proving is fairly easy with a flow meter alone but it is more involved with a volume prover. The volume prover needs to have a diversion operate in a way I'm going to liken to a bistable switch. The diversion will fill a bucket (or ilk) that can be weighted. The trick is that the one-shot that feds ICP3 on the ATmega324pb is also used to start the diversion and the ISR that ICP3 runs needs to set a pull-up to keep the diversion going. The pull-up also enables the one-shot that feds ICP4 (stop event) and will override the pull-up and thus change the diversion control. The ISR that ICP4 runs needs to clear the pull-up so the diversion will stay off after the ICP4 one-shot ends. The result is that flow is diverted from the instant start occurs to the instant stop occurs. One helpful thing to do is slow the flow near the start and stop events, but that requires the magic of a computer (the R-Pi) and estimates of when those events will occur in relation to the flow meter pulse counts.
+This board has an ATmega324pb which has three timers (Timer1, Timer3, Timer4) that have input capture (ICP) hardware. The main idea is to calibrate flow meters with a gravimetric method, so that means it needs to capture flow meter events (pulses) and calibrate them with a volume corrected weight. This method can also be used for [prover]. ICP1 is used with the flow meter which produces pulses as a unit of volume flows (e.g. a magnet on a spinning turbine triggering a sensor). ICP3 is used to measure a volume start event and ICP4 a stop event. A one-shot pulse extender is used with the ICP3 and ICP4 inputs. Gravimetric proving is fairly easy with a flow meter alone but may also benefit from ideas found on volume provers. To do a gravimetric calibration on a volume prover a diversion needs to operate in a way I'm going to liken to a bistable switch. The diversion fills a bucket (or ilk) that will be weighted. The one-shot that feds ICP3 on the ATmega324pb is also used to start the diversion and the ISR that ICP3 runs enables a pin that holds the diversion. The ICP4 (stop event) has a way to override the hold on the diversion control. The ISR that ICP4 runs needs to disable the pin that holds the diversion so it will stay off after the ICP4 one-shot ends. The result is that flow is diverted from the instant START occurs to the instant STOP occurs. One helpful thing to do is slow the flow near the start and stop events, but that requires the magic of a computer (and SBC like an R-Pi) and estimates of when those events will occur in relation to the flow meter pulse counts.
 
 [prover]: http://asgmt.com/wp-content/uploads/2016/02/011_.pdf
 
-Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't change the hardware fuse setting which reduces programming errors that can accidentally brick the controller. 
+Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't change the hardware fuse setting which reduces programming errors that could accidentally brick the controller. 
 
 [optiboot]: https://github.com/Optiboot/optiboot
 [xboot]: https://github.com/alexforencich/xboot
@@ -16,17 +16,18 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ```
         ATmega324pb programs are compiled with open source tools.
         Input power can range from 7 to 36V DC
+        Alternat input voltage is divided down and connected to ADC4.
         High side current sense of alternat input power is connected to ADC5.
         High side current sense of input power is connected to ADC6.
         Input power voltage is divided down and connected to ADC7.
-        Alternat input voltage is divided down and connected to ADC4.
         Four analog (CH 0..3) or digital connections with level conversion.
         Three inputs for event capture: ICP1, ICP3, ICP4.
         Two of the event capture inputs have a one shot pulse extender: ICP3, ICP4.
         Event timers have a common crystal which eliminates correlation errors.
         Event capture interface has a 17mA current source for sensor (hall, VR, or just a limit switch)
         Event transition occures at about 6.5mA of current returned from the sensor to a 100 Ohm resistor on board.
-        Diversion control is nearly instantaneous, sustain with ICP3 and ICP4 ISR after one-shot.
+        Diversion control use ICP3 to START and ICP4 to STOP, and there ISR's to operate the CS_DIVERSION holding pin.
+        Diversion control is nearly instantaneous with a slight delay that has repeatable timing.
         Control of a PMOS enables an alternate power supply (e.g. battery charging).
         Control of a PMOS disables power to the 40PIN SBC header.
         SPI between SBC and ATmega324pb has a buffer with IOFF for SBC power off.
@@ -40,9 +41,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 
 ```
         Calibration of rotating hardware measured with input capture (ICP) hardware.
-        Use a start and stop sensor to capture displacer events while capturing flow meter pules.
-        Diversion and fast/slow flow control can be used for gravimetric calibration. 
-        One-shot pulse extenders on ICP3 and ICP4 for clean switch event measurements (e.g. a start and stop).
+        Use a START (ICP3) and STOP (ICP4) sensor to capture displacer events while capturing flow meter pules.
+        Diversion and fast/slow flow control are useful for gravimetric calibration methods. 
+        One-shot pulse extenders on ICP3 and ICP4 for clean STAR and STOP switch events.
 ```
 
 ## Notice
@@ -50,7 +51,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ```
         AREF from ATmega324pb is not connected to the header.
         3V3 is not present on the board, the header pin is not connected.
-        Using SPI will trigger ICP3 if it is enabled and cut off CS_ICP3.
+        Using SPI may trigger ICP3 if it is enabled and will cut off CS_ICP3.
 ```
 
 
