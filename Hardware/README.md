@@ -68,9 +68,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^0  Done:  
-            WIP: Design (Overhaul... it never got past the review)
-            Todo: Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+        ^0  Done: Design, Layout,
+            WIP: BOM,
+            Todo:  Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
             use 324pb MCU not 328pb.
             add high side current sense connected to ADC5 for alternat input.
