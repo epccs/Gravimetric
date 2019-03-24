@@ -69,25 +69,10 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^0  Done: Design, Layout,
-            WIP: BOM,
-            Todo:  Review*, Order Boards, Assembly, Testing, Evaluation.
+        ^0  Done: Design, Layout, BOM,
+            WIP: Review*,
+            Todo:  Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
-            use 324pb MCU not 328pb.
-            add high side current sense connected to ADC5 for alternat input.
-            add voltage sense connected to ADC4 for alternat input.
-            add serial1 and serial2 so an R-Pi can access things like a load cell (e.g. HX711) though the control board.
-            add two one-shot pulse stretching circuits to fed ICP3 and ICP4.
-            add current sources to signal SSR's that can power FAST_FLOW and DIVERSION valves for gravimetric proving.
-            the FAST_FLOW current source should be self explaing enough, e.g. if it is off then flow is slow.
-            the gravimetric DIVERSION control current source turns on when ICP3 one-shot does (e.g. start flow onto scale).
-            the DIVERSION control current source needs held on by CS_DIVERSION when the ICP3 ISR runs.
-            the DIVERSION current source needs to be forced off when the ICP4 is active (the ICP4 ISR can then turn off CS_DIVERSION).
-            add current sources to signal a prover LAUNCH (CS4_EN can do this).
-            add digital input to signal when prover is READY and handshake when the launch occured (RX2 and/or TX2 can do this).
-            add RPUpi (e.g. the RPUbus manager and transceivers)
-            remove shield headers
-            problem note: ICP3 is on ISCP (MOSI pin) so take care not to block programing (RPUpi has a 3k pullup on MOSI).
 ```
 
 Debugging and fixing problems i.e. [Schooling](./Schooling/)
@@ -125,21 +110,25 @@ Check correct assembly and function with [Testing](./Testing/)
 
 # Bill of Materials
 
-The BOM is a CVS file(s), import it into a spreadsheet program like LibreOffice Calc (or Excel), or use a text editor.
+The BOM's are CVS files, import them into a spreadsheet program like Excel (or LibreOffice Calc), or use a text editor.
 
 Option | BOM's included
 ----- | ----- 
-A. | [BRD] 
-M. | [BRD] [SMD] [HDR] 
-W. | [BRD] [SMD] [HDR] [PLUG]
-Z. | [BRD] [SMD] [HDR] [PLUG] [DIN]
+A. | [BRD]
+J. | [BRD] [SMD] [HDR]
+M. | [BRD] [SMD] [HDR] [CAT5]
+N. | [BRD] [SMD] [HDR] [CAT5] [POL]
+Y. | [BRD] [SMD] [HDR] [CAT5] [POL] [DIN] [PLUG] 
+
 
 [BRD]: ./Design/17341BRD,BOM.csv
-[SMD]: ./Design/17341SMD,BOM.csv
+[CAT5]: ./Design/17341CAT,BOM.csv
+[DIN]: ./Design/17341DIN,BOM.csv
 [HDR]: ./Design/17341HDR,BOM.csv
 [PLUG]: ./Design/17341PLUG,BOM.csv
-[DIN]: ./Design/17341DIN,BOM.csv
-
+[POL]: ./Design/17341POL,BOM.csv
+[SMD]: ./Design/17341SMD,BOM.csv
+[TCOX]: ./Design/17341TCOX,BOM.csv
 
 # Assembly
 
