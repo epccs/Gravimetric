@@ -69,9 +69,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^0  Done: Design, Layout, BOM,
-            WIP: Review*,
-            Todo:  Order Boards, Assembly, Testing, Evaluation.
+        ^0  Done: Design, Layout, BOM, Review*, Order Boards, 
+            WIP: Assembly,
+            Todo:  Testing, Evaluation.
             *during review the Design may change without changing the revision.
 ```
 
