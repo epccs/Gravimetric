@@ -90,7 +90,36 @@ static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
     [34] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 } //  ADC6
     [35] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA7 } //  ADC7
 };
-#endif  // defined(__AVR_ATmega328PB__)
+#elif defined(__AVR_ATmega328PB__)
+
+#define NUM_DIGITAL_PINS 24
+static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
+    [0] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD0 }, // DTR_RXD
+    [1] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD1 }, // DTR_TXD
+    [2] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD2 }, // HOST_nDTR
+    [3] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD3 }, // HOST_nRTS
+    [4] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD4 }, // RX_nRE
+    [5] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD5 }, // TX_DE
+    [6] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD6 }, // DTR_nRE
+    [7] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD7 }, // DTR_DE
+    [8] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB0 }, // SHUTDWN 
+    [9] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB1 }, // LED_BUILTIN
+    [10] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB2 }, // nSS
+    [11] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB3 }, // MOSI
+    [12] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB4 }, // MISO
+    [13] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB5 }, // SCK
+    [14] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC0 }, // HOST_nCTS
+    [15] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC1 }, // HOST_nDSR
+    [16] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC2 }, // TX_nRE
+    [17] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC3 }, //  RX_DE
+    [18] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC4 }, // SDA0
+    [19] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC5 }, //  SCL0
+    [20] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE2 }, // 
+    [21] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 }, // 
+    [22] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE0 }, // SDA1
+    [23] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE1 } // SCL1
+};
+#endif // not __AVR_ATmega324PB__ or __AVR_ATmega328PB__
 
 // note: the use of dead code elimination tricks is not standard C. 
 static inline __attribute__((always_inline)) uint8_t badPin(uint8_t pin) 
