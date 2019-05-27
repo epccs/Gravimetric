@@ -32,8 +32,8 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
         Control of a PMOS disables power to the 40PIN SBC header.
         SPI between SBC and ATmega324pb has a buffer with IOFF for SBC power off.
         UART from SBC to transceivers has a buffer with IOFF for SBC power off.
-        I2C between SBC and bus manager is isolated so SBC can power off.
-        I2C between ATmega324pb and bus manager is isolated.
+        I2C between SBC and bus manager is for SMBus and so SBC can power off.
+        I2C between ATmega324pb and bus manager is on a seperate port.
         Serial (RPUbus) continues working when SBC is powered off.
 ```
 
@@ -69,9 +69,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^0  Done: Design, Layout, BOM, Review*, Order Boards, 
-            WIP: Assembly,
-            Todo:  Testing, Evaluation.
+        ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly,
+            WIP: Testing,
+            Todo: Evaluation.
             *during review the Design may change without changing the revision.
 ```
 
