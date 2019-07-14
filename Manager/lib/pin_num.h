@@ -41,56 +41,7 @@ typedef struct {
   uint8_t bit;  
 } Pin_Map;
 
-#if defined(__AVR_ATmega324PB__)
-
-#define NUM_DIGITAL_PINS 36
-
-/* Each of the AVR Digital I/O ports is associated with three I/O registers. 
-8 bit Data Direction Register (DDRx) each bit sets a pin as input (=0) or output (=1).
-8 bit Port Input Register (PINx) each  bit is the input from a pin that was latched durring last low edge of the system clock.
-8 bit Port Data Register (PORTx) each bit drives a pin if set as output (or sets pullup if input)
-Where x is the port A, B, C, etc.
-
-Wiring uses pin numbers to control their functions. */
-static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
-    [0] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD0 }, // RX0
-    [1] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD1 }, // TX0
-    [2] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD2 }, // RX1
-    [3] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD3 }, // TX1
-    [4] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD4 }, // CS1_EN
-    [5] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD5 }, // CS_ICP1
-    [6] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD6 }, // ICP1
-    [7] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD7 }, // ALT_EN
-    [8] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB0 }, // CS0_EN
-    [9] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB1 }, // CS4_EN
-    [10] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB2 }, // SHLD_VIN_EN
-    [11] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB3 }, // CS2_EN
-    [12] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB4 }, // nSS
-    [13] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB5 }, // ICP3/MOSI
-    [14] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB6 }, // MISO
-    [15] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB7 }, // SCK
-    [16] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC0 }, // SCL0
-    [17] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC1 }, // SDA0
-    [18] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC2 }, // CS_FAST
-    [19] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC3 }, //  ICP4
-    [20] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC4 }, // CS_ICP4
-    [21] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC5 } //  CS_ICP3
-    [22] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC6 } //  CS_DIVERSION
-    [23] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC7 } //  CS3_EN
-    [24] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE2 } // RX2
-    [25] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 } // TX2
-    [26] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE4 } // SDA1
-    [27] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE5 } // SCL1
-    [28] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA0 }, // ADC0
-    [29] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA1 }, // ADC1
-    [30] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA2 }, // ADC2
-    [31] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA3 }, // ADC3
-    [32] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA4 }, // ADC4
-    [33] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA5 } //  ADC5
-    [34] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 } //  ADC6
-    [35] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA7 } //  ADC7
-};
-#elif defined(__AVR_ATmega328PB__)
+#if defined(__AVR_ATmega328PB__)
 
 #define NUM_DIGITAL_PINS 24
 static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
@@ -119,7 +70,7 @@ static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
     [22] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE0 }, // SDA1
     [23] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE1 } // SCL1
 };
-#endif // not __AVR_ATmega324PB__ or __AVR_ATmega328PB__
+#endif
 
 // note: the use of dead code elimination tricks is not standard C. 
 static inline __attribute__((always_inline)) uint8_t badPin(uint8_t pin) 
@@ -169,8 +120,7 @@ bool digitalRead(uint8_t pin_num)
 /* set pin value HIGH and LOW */
 static inline __attribute__((always_inline))
 void digitalWrite(uint8_t pin_num, bool value_for_bit) {
-  badPinCheck(pin_num);
-  bitWrite(pinMap[pin_num].port, pinMap[pin_num].bit, value_for_bit);
+    if (!badPin(pin_num)) bitWrite(pinMap[pin_num].port, pinMap[pin_num].bit, value_for_bit);
 }
 
 /* toggle pin number  */
