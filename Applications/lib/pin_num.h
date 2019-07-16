@@ -74,20 +74,20 @@ static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
     [18] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC2 }, // CS_FAST
     [19] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC3 }, //  ICP4
     [20] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC4 }, // CS_ICP4
-    [21] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC5 } //  CS_ICP3
-    [22] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC6 } //  CS_DIVERSION
-    [23] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC7 } //  CS3_EN
-    [24] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE2 } // RX2
-    [25] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 } // TX2
-    [26] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE4 } // SDA1
-    [27] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE5 } // SCL1
+    [21] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC5 }, //  CS_ICP3
+    [22] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC6 }, //  CS_DIVERSION
+    [23] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC7 }, //  CS3_EN
+    [24] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE2 }, // RX2
+    [25] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 }, // TX2
+    [26] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE4 }, // SDA1
+    [27] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE5 }, // SCL1
     [28] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA0 }, // ADC0
     [29] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA1 }, // ADC1
     [30] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA2 }, // ADC2
     [31] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA3 }, // ADC3
     [32] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA4 }, // ADC4
-    [33] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA5 } //  ADC5
-    [34] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 } //  ADC6
+    [33] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA5 }, //  ADC5
+    [34] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 }, //  ADC6
     [35] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA7 } //  ADC7
 };
 #endif

@@ -50,4 +50,6 @@ git clone https://github.com/epccs/Gravimetric
 * [avr-libc](https://packages.ubuntu.com/search?keywords=avr-libc)
 * [avrdude](https://packages.ubuntu.com/search?keywords=avrdude)
 
-The software is a guide, it is in C because that works for me.
+The software is a guide, it is in C because that works for me. 
+
+Warning: for the 324pb Microchip has changed how AVR defines stuff (name of bits in registers mostly), so expect pain when updating libraries. 
