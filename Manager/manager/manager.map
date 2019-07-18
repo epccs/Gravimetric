@@ -1,0 +1,1116 @@
+Archive member included to satisfy reference by file (symbol)
+
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+                              ../lib/uart.o (__udivmodsi4)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+                              ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o (exit)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+                              dtr_transmition.o (__do_copy_data)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+                              rpubus_manager_state.o (__do_clear_bss)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+                              ../lib/timers.o (__muluhisi3)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+                              /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o) (__umulhisi3)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+                              dtr_transmition.o (fgetc)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+                              main.o (__iob)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+                              dtr_transmition.o (printf)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o) (vfprintf)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (strnlen_P)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (strnlen)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (fputc)
+/usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (__ultoa_invert)
+../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+                              main.o (eeprom_read_byte)
+../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+                              id_in_ee.o (eeprom_write_byte)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o) (__prologue_saves__)
+/usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+                              /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o) (__epilogue_restores__)
+
+Allocating common symbols
+Common symbol       size              file
+
+bootloader_started_at
+                    0x4               rpubus_manager_state.o
+lockout_started_at  0x4               rpubus_manager_state.o
+test_mode_started   0x1               rpubus_manager_state.o
+lockout_active      0x1               rpubus_manager_state.o
+bootloader_started  0x1               rpubus_manager_state.o
+uart_output         0x1               dtr_transmition.o
+status_byt          0x1               rpubus_manager_state.o
+localhost_active    0x1               rpubus_manager_state.o
+smbusBuffer         0x20              smbus_cmds.o
+uart_previous_byte  0x1               dtr_transmition.o
+shutdown_started    0x1               rpubus_manager_state.o
+shutdown_detected   0x1               rpubus_manager_state.o
+inBytes_to_handle   0x2               smbus_cmds.o
+transceiver_state   0x1               rpubus_manager_state.o
+write_rpu_address_to_eeprom
+                    0x1               rpubus_manager_state.o
+smbus_has_numBytes_to_handle
+                    0x2               smbus_cmds.o
+local_mcu_is_rpu_aware
+                    0x1               rpubus_manager_state.o
+i2c0Buffer          0x20              i2c_cmds.o
+host_is_foreign     0x1               rpubus_manager_state.o
+blink_started_at    0x4               rpubus_manager_state.o
+uart_started_at     0x4               dtr_transmition.o
+arduino_mode        0x1               rpubus_manager_state.o
+shutdown_started_at
+                    0x4               rpubus_manager_state.o
+bootloader_address  0x1               rpubus_manager_state.o
+rpu_address         0x1               rpubus_manager_state.o
+host_active         0x1               rpubus_manager_state.o
+arduino_mode_started
+                    0x1               rpubus_manager_state.o
+uart_has_TTL        0x1               rpubus_manager_state.o
+smbus_oldBuffer     0x20              smbus_cmds.o
+test_mode           0x1               rpubus_manager_state.o
+__iob               0x6               /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+
+Discarded input sections
+
+ .data          0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .bss           0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .text          0x00000000        0x0 main.o
+ .data          0x00000000        0x0 main.o
+ .bss           0x00000000        0x0 main.o
+ .text          0x00000000        0x0 rpubus_manager_state.o
+ .data          0x00000000        0x0 rpubus_manager_state.o
+ .bss           0x00000000        0x0 rpubus_manager_state.o
+ .text          0x00000000        0x0 dtr_transmition.o
+ .data          0x00000000        0x0 dtr_transmition.o
+ .bss           0x00000000        0x0 dtr_transmition.o
+ .text          0x00000000        0x0 i2c_cmds.o
+ .data          0x00000000        0x0 i2c_cmds.o
+ .bss           0x00000000        0x0 i2c_cmds.o
+ .text          0x00000000        0x0 smbus_cmds.o
+ .data          0x00000000        0x0 smbus_cmds.o
+ .bss           0x00000000        0x0 smbus_cmds.o
+ .text          0x00000000        0x0 id_in_ee.o
+ .data          0x00000000        0x0 id_in_ee.o
+ .bss           0x00000000        0x0 id_in_ee.o
+ .text          0x00000000        0x0 ../lib/uart.o
+ .data          0x00000000        0x0 ../lib/uart.o
+ .bss           0x00000000        0x0 ../lib/uart.o
+ .text.init_uart0_after_bootloader
+                0x00000000        0x6 ../lib/uart.o
+ .text.uart0_flush
+                0x00000000       0x10 ../lib/uart.o
+ .text.uart0_availableForWrite
+                0x00000000       0x20 ../lib/uart.o
+ .text          0x00000000        0x0 ../lib/timers.o
+ .data          0x00000000        0x0 ../lib/timers.o
+ .bss           0x00000000        0x0 ../lib/timers.o
+ .text.micros   0x00000000       0x46 ../lib/timers.o
+ .text          0x00000000        0x0 ../lib/twi0.o
+ .data          0x00000000        0x0 ../lib/twi0.o
+ .bss           0x00000000        0x0 ../lib/twi0.o
+ .text.twi0_disable
+                0x00000000       0x10 ../lib/twi0.o
+ .text.twi0_setFrequency
+                0x00000000       0x28 ../lib/twi0.o
+ .text.twi0_readFrom
+                0x00000000       0x90 ../lib/twi0.o
+ .text.twi0_writeTo
+                0x00000000       0xac ../lib/twi0.o
+ .text.twi0_reply
+                0x00000000       0x10 ../lib/twi0.o
+ .text          0x00000000        0x0 ../lib/twi1.o
+ .data          0x00000000        0x0 ../lib/twi1.o
+ .bss           0x00000000        0x0 ../lib/twi1.o
+ .text.twi1_disable
+                0x00000000       0x10 ../lib/twi1.o
+ .text.twi1_setFrequency
+                0x00000000       0x28 ../lib/twi1.o
+ .text.twi1_readFrom
+                0x00000000       0x90 ../lib/twi1.o
+ .text.twi1_writeTo
+                0x00000000       0xac ../lib/twi1.o
+ .text.twi1_reply
+                0x00000000       0x10 ../lib/twi1.o
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.mul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc.mul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc.mul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc.mul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc.mul
+                0x00000000       0x16 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_muluhisi3.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc.mul
+                0x00000000       0x1e /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc.prologue
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_umulhisi3.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+ .text          0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .data          0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .bss           0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .text          0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+ .data          0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+ .bss           0x00000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text.libgcc.mul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+ .text          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .text.libgcc.mul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .text.libgcc.div
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .text.libgcc   0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .text.libgcc.builtins
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .text.libgcc.fmul
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+ .text.libgcc.fixed
+                0x00000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+text             0x00000000         0x00020000         xr
+data             0x00800060         0x0000ffa0         rw !x
+eeprom           0x00810000         0x00010000         rw !x
+fuse             0x00820000         0x00000003         rw !x
+lock             0x00830000         0x00000400         rw !x
+signature        0x00840000         0x00000400         rw !x
+user_signatures  0x00850000         0x00000400         rw !x
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+Address of section .data set to 0x800100
+LOAD ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+LOAD main.o
+LOAD rpubus_manager_state.o
+LOAD dtr_transmition.o
+LOAD i2c_cmds.o
+LOAD smbus_cmds.o
+LOAD id_in_ee.o
+LOAD ../lib/uart.o
+LOAD ../lib/timers.o
+LOAD ../lib/twi0.o
+LOAD ../lib/twi1.o
+START GROUP
+LOAD /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a
+LOAD /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libm.a
+LOAD /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a
+LOAD ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a
+END GROUP
+                0x00020000                __TEXT_REGION_LENGTH__ = DEFINED (__TEXT_REGION_LENGTH__)?__TEXT_REGION_LENGTH__:0x20000
+                0x0000ffa0                __DATA_REGION_LENGTH__ = DEFINED (__DATA_REGION_LENGTH__)?__DATA_REGION_LENGTH__:0xffa0
+                0x00010000                __EEPROM_REGION_LENGTH__ = DEFINED (__EEPROM_REGION_LENGTH__)?__EEPROM_REGION_LENGTH__:0x10000
+                [0x00000003]                __FUSE_REGION_LENGTH__ = DEFINED (__FUSE_REGION_LENGTH__)?__FUSE_REGION_LENGTH__:0x400
+                0x00000400                __LOCK_REGION_LENGTH__ = DEFINED (__LOCK_REGION_LENGTH__)?__LOCK_REGION_LENGTH__:0x400
+                0x00000400                __SIGNATURE_REGION_LENGTH__ = DEFINED (__SIGNATURE_REGION_LENGTH__)?__SIGNATURE_REGION_LENGTH__:0x400
+                0x00000400                __USER_SIGNATURE_REGION_LENGTH__ = DEFINED (__USER_SIGNATURE_REGION_LENGTH__)?__USER_SIGNATURE_REGION_LENGTH__:0x400
+
+.hash
+ *(.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text)
+ *(.rel.text.*)
+ *(.rel.gnu.linkonce.t*)
+
+.rela.text
+ *(.rela.text)
+ *(.rela.text.*)
+ *(.rela.gnu.linkonce.t*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata)
+ *(.rel.rodata.*)
+ *(.rel.gnu.linkonce.r*)
+
+.rela.rodata
+ *(.rela.rodata)
+ *(.rela.rodata.*)
+ *(.rela.gnu.linkonce.r*)
+
+.rel.data
+ *(.rel.data)
+ *(.rel.data.*)
+ *(.rel.gnu.linkonce.d*)
+
+.rela.data
+ *(.rela.data)
+ *(.rela.data.*)
+ *(.rela.gnu.linkonce.d*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got
+ *(.rela.got)
+
+.rel.bss
+ *(.rel.bss)
+
+.rela.bss
+ *(.rela.bss)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt
+ *(.rela.plt)
+
+.text           0x00000000     0x244e
+ *(.vectors)
+ .vectors       0x00000000       0xb4 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+                0x00000000                __vectors
+                0x00000000                __vector_default
+ *(.vectors)
+ *(.progmem.gcc*)
+                0x000000b4                . = ALIGN (0x2)
+                0x000000b4                __trampolines_start = .
+ *(.trampolines)
+ .trampolines   0x000000b4        0x0 linker stubs
+ *(.trampolines*)
+                0x000000b4                __trampolines_end = .
+ *libprintf_flt.a:*(.progmem.data)
+ *libc.a:*(.progmem.data)
+ *(.progmem*)
+ .progmem.data.EE_IdTable
+                0x000000b4        0x6 id_in_ee.o
+                0x000000b4                EE_IdTable
+                0x000000ba                . = ALIGN (0x2)
+ *(.jumptables)
+ *(.jumptables*)
+ *(.lowtext)
+ *(.lowtext*)
+                0x000000ba                __ctors_start = .
+ *(.ctors)
+                0x000000ba                __ctors_end = .
+                0x000000ba                __dtors_start = .
+ *(.dtors)
+                0x000000ba                __dtors_end = .
+ SORT(*)(.ctors)
+ SORT(*)(.dtors)
+ *(.init0)
+ .init0         0x000000ba        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+                0x000000ba                __init
+ *(.init0)
+ *(.init1)
+ *(.init1)
+ *(.init2)
+ .init2         0x000000ba        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ *(.init2)
+ *(.init3)
+ *(.init3)
+ *(.init4)
+ .init4         0x000000c6       0x16 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
+                0x000000c6                __do_copy_data
+ .init4         0x000000dc       0x10 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
+                0x000000dc                __do_clear_bss
+ *(.init4)
+ *(.init5)
+ *(.init5)
+ *(.init6)
+ *(.init6)
+ *(.init7)
+ *(.init7)
+ *(.init8)
+ *(.init8)
+ *(.init9)
+ .init9         0x000000ec        0x8 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ *(.init9)
+ *(.text)
+ .text          0x000000f4        0x4 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+                0x000000f4                __vector_38
+                0x000000f4                __vector_22
+                0x000000f4                __vector_28
+                0x000000f4                __vector_1
+                0x000000f4                __vector_32
+                0x000000f4                __vector_34
+                0x000000f4                __vector_12
+                0x000000f4                __bad_interrupt
+                0x000000f4                __vector_6
+                0x000000f4                __vector_31
+                0x000000f4                __vector_35
+                0x000000f4                __vector_39
+                0x000000f4                __vector_3
+                0x000000f4                __vector_23
+                0x000000f4                __vector_30
+                0x000000f4                __vector_25
+                0x000000f4                __vector_11
+                0x000000f4                __vector_13
+                0x000000f4                __vector_17
+                0x000000f4                __vector_7
+                0x000000f4                __vector_41
+                0x000000f4                __vector_43
+                0x000000f4                __vector_27
+                0x000000f4                __vector_5
+                0x000000f4                __vector_33
+                0x000000f4                __vector_37
+                0x000000f4                __vector_4
+                0x000000f4                __vector_44
+                0x000000f4                __vector_9
+                0x000000f4                __vector_2
+                0x000000f4                __vector_21
+                0x000000f4                __vector_15
+                0x000000f4                __vector_36
+                0x000000f4                __vector_29
+                0x000000f4                __vector_8
+                0x000000f4                __vector_26
+                0x000000f4                __vector_14
+                0x000000f4                __vector_10
+                0x000000f4                __vector_20
+                0x000000f4                __vector_42
+                0x000000f8                . = ALIGN (0x2)
+ *(.text.*)
+ .text.setup    0x000000f8      0x1ae main.o
+                0x000000f8                setup
+ .text.startup.main
+                0x000002a6       0x54 main.o
+                0x000002a6                main
+ .text.connect_normal_mode
+                0x000002fa       0x6a rpubus_manager_state.o
+                0x000002fa                connect_normal_mode
+ .text.connect_bootload_mode
+                0x00000364       0x4a rpubus_manager_state.o
+                0x00000364                connect_bootload_mode
+ .text.connect_lockout_mode
+                0x000003ae       0x4a rpubus_manager_state.o
+                0x000003ae                connect_lockout_mode
+ .text.blink_on_activate
+                0x000003f8      0x15e rpubus_manager_state.o
+                0x000003f8                blink_on_activate
+ .text.check_Bootload_Time
+                0x00000556       0x52 rpubus_manager_state.o
+                0x00000556                check_Bootload_Time
+ .text.check_lockout
+                0x000005a8       0x52 rpubus_manager_state.o
+                0x000005a8                check_lockout
+ .text.check_shutdown
+                0x000005fa       0xa2 rpubus_manager_state.o
+                0x000005fa                check_shutdown
+ .text.check_DTR
+                0x0000069c      0x188 dtr_transmition.o
+                0x0000069c                check_DTR
+ .text.check_uart
+                0x00000824      0x416 dtr_transmition.o
+                0x00000824                check_uart
+ .text.fnWtMgrAddr
+                0x00000c3a       0x10 i2c_cmds.o
+                0x00000c3a                fnWtMgrAddr
+ .text.fnRdBootldAddr
+                0x00000c4a        0xa i2c_cmds.o
+                0x00000c4a                fnRdBootldAddr
+ .text.fnWtBootldAddr
+                0x00000c54        0xa i2c_cmds.o
+                0x00000c54                fnWtBootldAddr
+ .text.fnRdShtdnDtct
+                0x00000c5e        0xe i2c_cmds.o
+                0x00000c5e                fnRdShtdnDtct
+ .text.fnRdStatus
+                0x00000c6c        0xa i2c_cmds.o
+                0x00000c6c                fnRdStatus
+ .text.fnWtStatus
+                0x00000c76        0xa i2c_cmds.o
+                0x00000c76                fnWtStatus
+ .text.fnRdArduinMode
+                0x00000c80        0xa i2c_cmds.o
+                0x00000c80                fnRdArduinMode
+ .text.fnNull   0x00000c8a        0x2 i2c_cmds.o
+                0x00000c8a                fnNull
+ .text.fnRdMgrAddr
+                0x00000c8c      0x148 i2c_cmds.o
+                0x00000c8c                fnRdMgrAddr
+ .text.fnRdXcvrCntlInTestMode
+                0x00000dd4       0xe8 i2c_cmds.o
+                0x00000dd4                fnRdXcvrCntlInTestMode
+ .text.fnWtXcvrCntlInTestMode
+                0x00000ebc       0xf4 i2c_cmds.o
+                0x00000ebc                fnWtXcvrCntlInTestMode
+ .text.fnWtShtdnDtct
+                0x00000fb0       0x46 i2c_cmds.o
+                0x00000fb0                fnWtShtdnDtct
+ .text.fnWtArduinMode
+                0x00000ff6       0x9e i2c_cmds.o
+                0x00000ff6                fnWtArduinMode
+ .text.fnStartTestMode
+                0x00001094       0xa4 i2c_cmds.o
+                0x00001094                fnStartTestMode
+ .text.fnEndTestMode
+                0x00001138       0xdc i2c_cmds.o
+                0x00001138                fnEndTestMode
+ .text.receive_i2c_event
+                0x00001214       0x7a i2c_cmds.o
+                0x00001214                receive_i2c_event
+ .text.transmit_i2c_event
+                0x0000128e       0x1c i2c_cmds.o
+                0x0000128e                transmit_i2c_event
+ .text.fnRdMgrAddrQuietly
+                0x000012aa        0xa i2c_cmds.o
+                0x000012aa                fnRdMgrAddrQuietly
+ .text.receive_smbus_event
+                0x000012b4       0x12 smbus_cmds.o
+                0x000012b4                receive_smbus_event
+ .text.handle_smbus_receive
+                0x000012c6       0xe0 smbus_cmds.o
+                0x000012c6                handle_smbus_receive
+ .text.transmit_smbus_event
+                0x000013a6       0x12 smbus_cmds.o
+                0x000013a6                transmit_smbus_event
+ .text.save_rpu_addr_state
+                0x000013b8       0x52 id_in_ee.o
+                0x000013b8                save_rpu_addr_state
+ .text.check_for_eeprom_id
+                0x0000140a       0x36 id_in_ee.o
+                0x0000140a                check_for_eeprom_id
+ .text.__vector_18
+                0x00001440       0x6a ../lib/uart.o
+                0x00001440                __vector_18
+ .text.__vector_19
+                0x000014aa       0x58 ../lib/uart.o
+                0x000014aa                __vector_19
+ .text.uart0_init
+                0x00001502       0x32 ../lib/uart.o
+                0x00001502                uart0_init
+ .text.uart0_getc
+                0x00001534       0x3a ../lib/uart.o
+                0x00001534                uart0_getc
+ .text.uart0_putc
+                0x0000156e       0x32 ../lib/uart.o
+                0x0000156e                uart0_putc
+ .text.uartstream0_putchar
+                0x000015a0        0xa ../lib/uart.o
+ .text.uart0_available
+                0x000015aa       0x16 ../lib/uart.o
+                0x000015aa                uart0_available
+ .text.uartstream0_getchar
+                0x000015c0       0x1a ../lib/uart.o
+ .text.uartstream0_init
+                0x000015da       0x4e ../lib/uart.o
+                0x000015da                uartstream0_init
+ .text.__vector_16
+                0x00001628       0x94 ../lib/timers.o
+                0x00001628                __vector_16
+ .text.millis   0x000016bc       0x18 ../lib/timers.o
+                0x000016bc                millis
+ .text.initTimers
+                0x000016d4       0x88 ../lib/timers.o
+                0x000016d4                initTimers
+ .text.transmit0_default
+                0x0000175c        0x2 ../lib/twi0.o
+                0x0000175c                transmit0_default
+ .text.receive0_default
+                0x0000175e        0x2 ../lib/twi0.o
+                0x0000175e                receive0_default
+ .text.twi0_init
+                0x00001760       0x3c ../lib/twi0.o
+                0x00001760                twi0_init
+ .text.twi0_setAddress
+                0x0000179c        0x8 ../lib/twi0.o
+                0x0000179c                twi0_setAddress
+ .text.twi0_transmit
+                0x000017a4       0x32 ../lib/twi0.o
+                0x000017a4                twi0_transmit
+ .text.twi0_attachSlaveRxEvent
+                0x000017d6        0xa ../lib/twi0.o
+                0x000017d6                twi0_attachSlaveRxEvent
+ .text.twi0_attachSlaveTxEvent
+                0x000017e0        0xa ../lib/twi0.o
+                0x000017e0                twi0_attachSlaveTxEvent
+ .text.twi0_stop
+                0x000017ea       0x14 ../lib/twi0.o
+                0x000017ea                twi0_stop
+ .text.twi0_releaseBus
+                0x000017fe        0xc ../lib/twi0.o
+                0x000017fe                twi0_releaseBus
+ .text.__vector_24
+                0x0000180a      0x25a ../lib/twi0.o
+                0x0000180a                __vector_24
+ .text.transmit1_default
+                0x00001a64        0x2 ../lib/twi1.o
+                0x00001a64                transmit1_default
+ .text.receive1_default
+                0x00001a66        0x2 ../lib/twi1.o
+                0x00001a66                receive1_default
+ .text.twi1_init
+                0x00001a68       0x48 ../lib/twi1.o
+                0x00001a68                twi1_init
+ .text.twi1_setAddress
+                0x00001ab0        0x8 ../lib/twi1.o
+                0x00001ab0                twi1_setAddress
+ .text.twi1_transmit
+                0x00001ab8       0x32 ../lib/twi1.o
+                0x00001ab8                twi1_transmit
+ .text.twi1_attachSlaveRxEvent
+                0x00001aea        0xa ../lib/twi1.o
+                0x00001aea                twi1_attachSlaveRxEvent
+ .text.twi1_attachSlaveTxEvent
+                0x00001af4        0xa ../lib/twi1.o
+                0x00001af4                twi1_attachSlaveTxEvent
+ .text.twi1_stop
+                0x00001afe       0x14 ../lib/twi1.o
+                0x00001afe                twi1_stop
+ .text.twi1_releaseBus
+                0x00001b12        0xc ../lib/twi1.o
+                0x00001b12                twi1_releaseBus
+ .text.__vector_40
+                0x00001b1e      0x284 ../lib/twi1.o
+                0x00001b1e                __vector_40
+ .text.libgcc.div
+                0x00001da2       0x44 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+                0x00001da2                __udivmodsi4
+ .text.avr-libc
+                0x00001de6       0x7c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+                0x00001de6                fgetc
+ .text.avr-libc
+                0x00001e62       0x2c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+                0x00001e62                printf
+ .text.avr-libc
+                0x00001e8e      0x3c2 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+                0x00001e8e                vfprintf
+ .text.avr-libc
+                0x00002250       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
+                0x00002250                strnlen_P
+ .text.avr-libc
+                0x00002266       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
+                0x00002266                strnlen
+ .text.avr-libc
+                0x0000227c       0x78 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+                0x0000227c                fputc
+ .text.avr-libc
+                0x000022f4       0xbc /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+                0x000022f4                __ultoa_invert
+ .text.avr-libc
+                0x000023b0       0x10 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+                0x000023b0                eeprom_read_byte
+ .text.avr-libc
+                0x000023c0       0x1c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+                0x000023c0                eeprom_write_byte
+                0x000023c2                eeprom_write_r18
+ .text.libgcc.prologue
+                0x000023dc       0x38 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+                0x000023dc                __prologue_saves__
+ .text.libgcc.prologue
+                0x00002414       0x36 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+                0x00002414                __epilogue_restores__
+                0x0000244a                . = ALIGN (0x2)
+ *(.fini9)
+ .fini9         0x0000244a        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+                0x0000244a                exit
+                0x0000244a                _exit
+ *(.fini9)
+ *(.fini8)
+ *(.fini8)
+ *(.fini7)
+ *(.fini7)
+ *(.fini6)
+ *(.fini6)
+ *(.fini5)
+ *(.fini5)
+ *(.fini4)
+ *(.fini4)
+ *(.fini3)
+ *(.fini3)
+ *(.fini2)
+ *(.fini2)
+ *(.fini1)
+ *(.fini1)
+ *(.fini0)
+ .fini0         0x0000244a        0x4 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ *(.fini0)
+                0x0000244e                _etext = .
+
+.data           0x00800100       0x9c load address 0x0000244e
+                0x00800100                PROVIDE (__data_start, .)
+ *(.data)
+ *(.data*)
+ .data.uartstream0_f
+                0x00800100        0xe ../lib/uart.o
+ .data.twi0_onSlaveReceive
+                0x0080010e        0x2 ../lib/twi0.o
+ .data.twi0_onSlaveTransmit
+                0x00800110        0x2 ../lib/twi0.o
+ .data.twi1_onSlaveReceive
+                0x00800112        0x2 ../lib/twi1.o
+ .data.twi1_onSlaveTransmit
+                0x00800114        0x2 ../lib/twi1.o
+ *(.rodata)
+ *(.rodata*)
+ .rodata.str1.1
+                0x00800116        0x5 dtr_transmition.o
+ .rodata.str1.1
+                0x0080011b        0x5 i2c_cmds.o
+ .rodata.pf.2041
+                0x0080011b       0x40 i2c_cmds.o
+ .rodata.pf.2183
+                0x0080015b       0x40 smbus_cmds.o
+ *(.gnu.linkonce.d*)
+                0x0080019c                . = ALIGN (0x2)
+ *fill*         0x0080019b        0x1 
+                0x0080019c                _edata = .
+                0x0080019c                PROVIDE (__data_end, .)
+
+.bss            0x0080019c      0x1da
+                0x0080019c                PROVIDE (__bss_start, .)
+ *(.bss)
+ *(.bss*)
+ .bss.i2c0BufferLength
+                0x0080019c        0x1 i2c_cmds.o
+                0x0080019c                i2c0BufferLength
+ .bss.transmit_data_ready
+                0x0080019d        0x1 smbus_cmds.o
+                0x0080019d                transmit_data_ready
+ .bss.smbus_oldBufferLength
+                0x0080019e        0x1 smbus_cmds.o
+                0x0080019e                smbus_oldBufferLength
+ .bss.smbusBufferLength
+                0x0080019f        0x1 smbus_cmds.o
+                0x0080019f                smbusBufferLength
+ .bss.UART0_LastRxError
+                0x008001a0        0x1 ../lib/uart.o
+ .bss.UART0_RxTail
+                0x008001a1        0x1 ../lib/uart.o
+ .bss.UART0_RxHead
+                0x008001a2        0x1 ../lib/uart.o
+ .bss.UART0_TxTail
+                0x008001a3        0x1 ../lib/uart.o
+ .bss.UART0_TxHead
+                0x008001a4        0x1 ../lib/uart.o
+ .bss.UART_RxBuf
+                0x008001a5       0x20 ../lib/uart.o
+ .bss.UART_TxBuf
+                0x008001c5       0x20 ../lib/uart.o
+ .bss.timer0_fract
+                0x008001e5        0x1 ../lib/timers.o
+ .bss.timer0_millis
+                0x008001e6        0x4 ../lib/timers.o
+                0x008001e6                timer0_millis
+ .bss.timer0_overflow_count
+                0x008001ea        0x4 ../lib/timers.o
+                0x008001ea                timer0_overflow_count
+ .bss.twi0_error
+                0x008001ee        0x1 ../lib/twi0.o
+ .bss.twi0_rxBufferIndex
+                0x008001ef        0x1 ../lib/twi0.o
+ .bss.twi0_rxBuffer
+                0x008001f0       0x20 ../lib/twi0.o
+ .bss.twi0_txBufferLength
+                0x00800210        0x1 ../lib/twi0.o
+ .bss.twi0_txBufferIndex
+                0x00800211        0x1 ../lib/twi0.o
+ .bss.twi0_txBuffer
+                0x00800212       0x20 ../lib/twi0.o
+ .bss.twi0_masterBufferLength
+                0x00800232        0x1 ../lib/twi0.o
+ .bss.twi0_masterBufferIndex
+                0x00800233        0x1 ../lib/twi0.o
+ .bss.twi0_masterBuffer
+                0x00800234       0x20 ../lib/twi0.o
+ .bss.twi0_inRepStart
+                0x00800254        0x1 ../lib/twi0.o
+ .bss.twi0_sendStop
+                0x00800255        0x1 ../lib/twi0.o
+ .bss.twi0_slarw
+                0x00800256        0x1 ../lib/twi0.o
+ .bss.twi0_state
+                0x00800257        0x1 ../lib/twi0.o
+ .bss.twi1_error
+                0x00800258        0x1 ../lib/twi1.o
+ .bss.twi1_rxBufferIndex
+                0x00800259        0x1 ../lib/twi1.o
+ .bss.twi1_rxBuffer
+                0x0080025a        0x2 ../lib/twi1.o
+ .bss.twi1_rxBufferB
+                0x0080025c       0x20 ../lib/twi1.o
+ .bss.twi1_rxBufferA
+                0x0080027c       0x20 ../lib/twi1.o
+ .bss.twi1_txBufferLength
+                0x0080029c        0x1 ../lib/twi1.o
+ .bss.twi1_txBufferIndex
+                0x0080029d        0x1 ../lib/twi1.o
+ .bss.twi1_txBuffer
+                0x0080029e       0x20 ../lib/twi1.o
+ .bss.twi1_masterBufferLength
+                0x008002be        0x1 ../lib/twi1.o
+ .bss.twi1_masterBufferIndex
+                0x008002bf        0x1 ../lib/twi1.o
+ .bss.twi1_masterBuffer
+                0x008002c0       0x20 ../lib/twi1.o
+ .bss.twi1_inRepStart
+                0x008002e0        0x1 ../lib/twi1.o
+ .bss.twi1_sendStop
+                0x008002e1        0x1 ../lib/twi1.o
+ .bss.twi1_slarw
+                0x008002e2        0x1 ../lib/twi1.o
+ .bss.twi1_state
+                0x008002e3        0x1 ../lib/twi1.o
+ *(COMMON)
+ COMMON         0x008002e4       0x22 rpubus_manager_state.o
+                0x008002e4                bootloader_started_at
+                0x008002e8                lockout_started_at
+                0x008002ec                test_mode_started
+                0x008002ed                lockout_active
+                0x008002ee                bootloader_started
+                0x008002ef                status_byt
+                0x008002f0                localhost_active
+                0x008002f1                shutdown_started
+                0x008002f2                shutdown_detected
+                0x008002f3                transceiver_state
+                0x008002f4                write_rpu_address_to_eeprom
+                0x008002f5                local_mcu_is_rpu_aware
+                0x008002f6                host_is_foreign
+                0x008002f7                blink_started_at
+                0x008002fb                arduino_mode
+                0x008002fc                shutdown_started_at
+                0x00800300                bootloader_address
+                0x00800301                rpu_address
+                0x00800302                host_active
+                0x00800303                arduino_mode_started
+                0x00800304                uart_has_TTL
+                0x00800305                test_mode
+ COMMON         0x00800306        0x6 dtr_transmition.o
+                0x00800306                uart_output
+                0x00800307                uart_previous_byte
+                0x00800308                uart_started_at
+ COMMON         0x0080030c       0x20 i2c_cmds.o
+                0x0080030c                i2c0Buffer
+ COMMON         0x0080032c       0x44 smbus_cmds.o
+                0x0080032c                smbusBuffer
+                0x0080034c                inBytes_to_handle
+                0x0080034e                smbus_has_numBytes_to_handle
+                0x00800350                smbus_oldBuffer
+ COMMON         0x00800370        0x6 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+                0x00800370                __iob
+                0x00800376                PROVIDE (__bss_end, .)
+                0x0000244e                __data_load_start = LOADADDR (.data)
+                0x000024ea                __data_load_end = (__data_load_start + SIZEOF (.data))
+
+.noinit         0x00800376        0x0
+                [!provide]                PROVIDE (__noinit_start, .)
+ *(.noinit*)
+                [!provide]                PROVIDE (__noinit_end, .)
+                0x00800376                _end = .
+                [!provide]                PROVIDE (__heap_start, .)
+
+.eeprom         0x00810000        0x0
+ *(.eeprom*)
+                0x00810000                __eeprom_end = .
+
+.fuse
+ *(.fuse)
+ *(.lfuse)
+ *(.hfuse)
+ *(.efuse)
+
+.lock
+ *(.lock*)
+
+.signature
+ *(.signature*)
+
+.user_signatures
+ *(.user_signatures*)
+
+.stab           0x00000000     0x8304
+ *(.stab)
+ .stab          0x00000000     0x13a4 main.o
+ .stab          0x000013a4     0x17b8 rpubus_manager_state.o
+                               0x19f8 (size before relaxing)
+ .stab          0x00002b5c     0x1494 dtr_transmition.o
+                               0x16ec (size before relaxing)
+ .stab          0x00003ff0     0x15f0 i2c_cmds.o
+                               0x183c (size before relaxing)
+ .stab          0x000055e0      0x600 smbus_cmds.o
+                                0x858 (size before relaxing)
+ .stab          0x00005be0      0x480 id_in_ee.o
+                                0x69c (size before relaxing)
+ .stab          0x00006060      0x918 ../lib/uart.o
+                                0xc78 (size before relaxing)
+ .stab          0x00006978      0x57c ../lib/timers.o
+                                0x828 (size before relaxing)
+ .stab          0x00006ef4      0x9e4 ../lib/twi0.o
+                                0xfcc (size before relaxing)
+ .stab          0x000078d8      0xa2c ../lib/twi1.o
+                               0x1014 (size before relaxing)
+
+.stabstr        0x00000000     0x22a2
+ *(.stabstr)
+ .stabstr       0x00000000     0x22a2 main.o
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x00000000       0x11
+ *(.comment)
+ .comment       0x00000000       0x11 main.o
+                                 0x12 (size before relaxing)
+ .comment       0x00000011       0x12 rpubus_manager_state.o
+ .comment       0x00000011       0x12 dtr_transmition.o
+ .comment       0x00000011       0x12 i2c_cmds.o
+ .comment       0x00000011       0x12 smbus_cmds.o
+ .comment       0x00000011       0x12 id_in_ee.o
+ .comment       0x00000011       0x12 ../lib/uart.o
+ .comment       0x00000011       0x12 ../lib/timers.o
+ .comment       0x00000011       0x12 ../lib/twi0.o
+ .comment       0x00000011       0x12 ../lib/twi1.o
+ .comment       0x00000011       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+ .comment       0x00000011       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+ .comment       0x00000011       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+ .comment       0x00000011       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+ .comment       0x00000011       0x12 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+
+.note.gnu.avr.deviceinfo
+                0x00000000       0x40
+ .note.gnu.avr.deviceinfo
+                0x00000000       0x40 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+
+.note.gnu.build-id
+ *(.note.gnu.build-id)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges  0x00000000       0x40
+ *(.debug_aranges)
+ .debug_aranges
+                0x00000000       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_aranges
+                0x00000020       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info     0x00000000      0xa20
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x00000000      0x8ea ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_info    0x000008ea       0x9b ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_info    0x00000985       0x9b ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+
+.debug_abbrev   0x00000000      0x896
+ *(.debug_abbrev)
+ .debug_abbrev  0x00000000      0x86e ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_abbrev  0x0000086e       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_abbrev  0x00000882       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+
+.debug_line     0x00000000      0x2bd
+ *(.debug_line .debug_line.* .debug_line_end)
+ .debug_line    0x00000000      0x1a5 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_line    0x000001a5       0x7a ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_line    0x0000021f       0x9e ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str      0x00000000      0x318
+ *(.debug_str)
+ .debug_str     0x00000000      0x318 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+
+.debug_pubtypes
+ *(.debug_pubtypes)
+
+.debug_ranges
+ *(.debug_ranges)
+
+.debug_macro
+ *(.debug_macro)
+OUTPUT(manager.elf elf32-avr)
+LOAD linker stubs

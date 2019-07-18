@@ -4,8 +4,26 @@ Some lessons I learned doing Gravimetric.
 
 # Table Of Contents:
 
+1. ^0 Power Protection 
 1. ^0 Manager Should Do More
 1. ^0 Alternat Power Diode
+
+
+## ^0  Power Protection
+
+U1 provides ALT_I curr sense but it causes power protection to fail.
+
+Move U1 sense (R4) resistor between Q2 and D1 so that Q2 can block a reverse polarity.
+
+![MoveR4](./Gravimetric^0,Move_R4.png "Move R4")
+
+![R4LayoutRef](./Gravimetric^0,R4_LayoutRef.png "R4 LayoutRef")
+
+I am not sure how to show a drawing of what needs to be done so it is time to improvise. 
+
+![R4Rework](./Gravimetric^0,Rework_R4.png "R4 Rework")
+
+That is a hack, and not clear what I did. D1 was never placed, so that is where I cut the trace between Q2 and D1. That node (between D1 and Q2) has reverse polarity protection now, and it should also protect the alternate power input as long as ALT_EN is not turned on when alternate power is reversed.
 
 
 ## ^0  Manager Should Do More
