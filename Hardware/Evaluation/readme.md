@@ -7,7 +7,13 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^0 Bootloader and Manager fw
+
+I was not able to install with the ICSP and R-Pi Zero for reasons that are not yet clear, but the ArduinoISP sketch worked and the board firmware installed. I will backtrack to the ICSP as time allows, next is to verify the bootloader works with the BlinkLED fw which needs Uart and Timer drivers, then I need the ADC drivers for the self-test. 
 
 
 ## ^0 Mockup

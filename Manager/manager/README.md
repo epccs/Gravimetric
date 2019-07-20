@@ -21,7 +21,7 @@ Test Mode. I2C command to swithch to test_mode (save trancever control values). 
 
 ## Firmware Upload
 
-Use an ICSP tool connected to the bus manager (set the ISP_PORT in Makefile) run 'make' to compile then 'make isp' to flash the bus manager.
+Use an ICSP tool connected to the bus manager (set the ISP_PORT in Makefile) run 'make' to compile then 'make isp' to flash the bus manager (Notes of fuse setting included).
 
 ```
 sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
@@ -29,6 +29,16 @@ git clone https://github.com/epccs/Gravimetric/
 cd /Gravimetric/Manager/manager
 make
 make isp
+...
+avrdude -v -p atmega328pb -C +../lib/avrdude/328pb.conf -c stk500v1 -P /dev/ttyACM0 -b 19200 -U eeprom:r:manager_atmega328pb_eeprom.hex:i
+...
+avrdude: safemode: Fuses OK (E:F7, H:D9, L:62)
+...
+avrdude -v -p atmega328pb -C +../lib/avrdude/328pb.conf -c stk500v1 -P /dev/ttyACM0 -b 19200 -e -U lock:w:0xFF:m -U lfuse:w:0xFF:m -U hfuse:w:0xD6:m -U efuse:w:0xFD:m
+...
+avrdude: safemode: Fuses OK (E:FD, H:D6, L:FF)
+...
+avrdude -v -p atmega328pb -C +../lib/avrdude/328pb.conf -c stk500v1 -P /dev/ttyACM0 -b 19200 -e -U flash:w:manager.hex -U lock:w:0xEF:m
 ...
 avrdude done.  Thank you.
 ```

@@ -18,16 +18,24 @@ With ISP tool connected.
 
 ``` 
 sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
-git clone https://github.com/epccs/RPUno/
+git clone https://github.com/epccs/Gravimetric/Applications/Bootloader
 cd /RPUno/Bootloader
-make fuse
-...
-avrdude done.  Thank you.
+make
 make isp
+...
+avrdude -v -p atmega324pb -C +../lib/avrdude/324pb.conf -c stk500v1 -P /dev/ttyACM0 -b 19200 -U eeprom:r:optiboot_gravimetric_atmega324pb_eeprom.hex:i
+...
+avrdude: safemode: Fuses OK (E:F7, H:99, L:62)
+...
+avrdude -v -p atmega324pb -C +../lib/avrdude/324pb.conf -c stk500v1 -P /dev/ttyACM0 -b 19200 -e -U lock:w:0xFF:m -U lfuse:w:0xFF:m -U hfuse:w:0xDE:m -U efuse:w:0xFC:m
+...
+avrdude: safemode: Fuses OK (E:FC, H:DE, L:FF)
+...
+avrdude -v -p atmega324pb -C +../lib/avrdude/324pb.conf -c stk500v1 -P /dev/ttyACM0 -b 19200 -U flash:w:optiboot_gravimetric_atmega324pb_-b38400UL_F_CPU16000000UL.hex -U lock:w:0xEF:m
 ...
 avrdude done.  Thank you.
 ``` 
 
-The bootloader is from MiniCore
-https://github.com/MCUdude/MiniCore
+The bootloader is from MCUdude
+https://github.com/MCUdude/optiboot_flash
 

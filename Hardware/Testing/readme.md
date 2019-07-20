@@ -14,6 +14,8 @@ This is a list of Test preformed on each Gravimetric board after assembly.
 5. Power Without SMPS
 6. Bias +5V
 7. Install Bootloader
+8. Install SMPS
+9. Self Test
 
 ## Basics
 
@@ -76,30 +78,52 @@ Install Git and AVR toolchain on Ubuntu (18.04).
 sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
 ```
 
-Clone the RPUno repository.
+Clone the Gravimetric repository.
 
 ```
 cd ~
-git clone https://github.com/epccs/RPUno
-cd ~/RPUno/Bootloader
+git clone https://github.com/epccs/Gravimetric
 ```
 
-Connect a 5V supply with CC mode set at 30mA to +5V (J7). Connect the ISP tool (J11). The MCU needs its fuses set, so run the Makefile rule to do that. 
+Connect a 5V supply with CC mode set at 50mA to +5V (J1). Connect the ISP tool to the manager programing port (J11). 
 
 ```
-make fuse
-```
-
-Next install the bootloader
-
-```
+cd ~/Gravimetric/Manager/manager
+make
 make isp
 ```
 
-Disconnect the ICSP tool and measure the input current, wait for the power to be settled. Turn off the power.
+Verify that the uploader finished without errors and measure the input current to verify it is running with the crystal.
 
 ```
-{ "I_IN_16MHZ_EXT_CRYST_mA":[12.7,11.2,11.1,11.0,11.0,10.8,10.6,10.7,]}
+{ "I_IN_MGR_FLAGS_SET_mA":[19.4,]}
+
+Next upload the bootloader on the application controller port (J12).
+
+```
+cd ~/Gravimetric/Applications/Bootloader
+make
+make isp
 ```
 
-Add U2 to the board now. Measurement of the input current is for referance (takes a long time to settle, 10mA ICP1 jumper is off).
+Measure the input current, wait for the power to be settled. Turn off the power.
+
+```
+{ "I_IN_MGR_AND_APP_FLAGS_SET_mA":[33.5,]}
+```
+
+Add U3 to the board now.
+
+
+## Install SMPS
+
+With U3 installed measure its output voltage and input current with the supply set at 12.8V and a 30mA current limit.
+
+```
+{ "+5V_V":[4.9595,]}
+```
+
+
+## Self Test
+
+TBD... 
