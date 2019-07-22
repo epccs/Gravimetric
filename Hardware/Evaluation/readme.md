@@ -7,8 +7,20 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^0 Bootload
+
+Compile and bootload the BlinkLED firmware from an R-Pi Zero on a RPUpi^6 (on RPUno^9) over the RPUbus. 
+
+The RPUpi^6 manager works with this manager at this time (other shields do not).
+
+![Bootload](./17341^0_Bootload.jpg "Bootload")
+
+As you can see, the R-Pi header and its POL are not used; it is remote or foreign relative to the host.
 
 
 ## ^0 Bootloader and Manager fw
