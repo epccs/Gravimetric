@@ -76,6 +76,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             Power Protection
             Manager Should Do More
             Alternat Power Diode
+            Pin numbers need changed so PA0 with ADC0 is also pin 0 for digital Wiring functions
 
         ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly,
             WIP: Testing,

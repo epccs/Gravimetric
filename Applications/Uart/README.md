@@ -48,7 +48,7 @@ Now connect with picocom (or ilk).
 
 ``` 
 #exit is C-a, C-x
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 ``` 
 
 
@@ -69,5 +69,5 @@ identify
 
 ``` 
 /0/id?
-{"id":{"name":"Uart","desc":"RPUno Board /w ATmega328p and LT3652","avr-gcc":"4.9"}}
+{"id":{"name":"Uart","desc":"Gravimetric (17341^0) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ``` 
