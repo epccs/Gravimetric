@@ -1,10 +1,9 @@
 # Makefile 
-TARGET = Adc
+TARGET = I2c-debug
 LIBDIR = ../lib
 OBJECTS = main.o \
-	analog.o \
-	calibrate.o \
-	references.o \
+	i2c0-scan.o \
+	i2c0-cmd.o \
 	../Uart/id.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/uart.o \
@@ -50,10 +49,6 @@ TARGET_ARCH = -mmcu=$(MCU) -B $(LIBDIR)/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/
 LDFLAGS = -Wl,-Map,$(TARGET).map 
 LDFLAGS += -Wl,--gc-sections 
 
-## printf() is one of the vfprintf() family of functions which does not implement floating point conversion by default
-## warning this takes about 2k of program space
-LDFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm
-
 all: $(TARGET).hex $(TARGET).lst
 
 $(TARGET): $(TARGET).hex
@@ -75,4 +70,3 @@ clean:
  
 %.lst: %.elf
 	$(OBJDUMP) -h -S $< > $@
-
