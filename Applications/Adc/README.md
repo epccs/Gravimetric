@@ -68,7 +68,7 @@ cd /Gravimetric/Applications/Adc
 make
 make bootload
 ...
-avrdude
+avrdude done.  Thank you.
 ``` 
 
 Now connect with picocom (or ilk).
