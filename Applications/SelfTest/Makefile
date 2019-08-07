@@ -63,7 +63,8 @@ bootload:
 
 $(TARGET).elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ -o $@
-	$(SIZE) -C --mcu=$(MCU) $@
+	@echo binutils-avr do not have 324pb, but it is sized like a 324p
+	$(SIZE) -C --mcu=atmega324p $@
 	rm -f $(TARGET).o $(OBJECTS)
 
 clean: 

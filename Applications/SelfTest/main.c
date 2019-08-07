@@ -340,13 +340,13 @@ void test(void)
     // Input current at no load with 1V1 band-gap referance
     float input_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
     printf_P(PSTR("PWR_I at no load use INTERNAL_1V1: %1.3f A\r\n"), input_i);
-    if (input_i > 0.033) 
+    if (input_i > 0.026) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> Input curr is to high.\r\n"));
         return;
     }
-    if (input_i < 0.020) 
+    if (input_i < 0.013) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> Input curr is to low.\r\n"));
@@ -435,6 +435,70 @@ void test(void)
         printf_P(PSTR(">>> CS3 curr is to high.\r\n"));
     }
     digitalWrite(CS3_EN,LOW);
+
+    // Serial One pins loopback, e.g., drive TX1 to test RX1.
+    pinMode(TX1,OUTPUT);
+    digitalWrite(TX1,HIGH);
+    pinMode(RX1,INPUT);
+    digitalWrite(RX1,LOW); // turn off the weak pullup
+    _delay_ms(50) ; // busy-wait delay
+    uint8_t tx1_rd = digitalRead(TX1);
+    uint8_t rx1_rd = digitalRead(RX1);
+    if (tx1_rd && rx1_rd) 
+    { 
+        printf_P(PSTR("TX1 loopback to RX1 == HIGH\r\n"));
+    }
+    else 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> TX1 %d did not loopback to RX1 %d\r\n"), tx1_rd, rx1_rd);
+    }
+
+    digitalWrite(TX1,LOW);
+    _delay_ms(50) ; // busy-wait delay
+    tx1_rd = digitalRead(TX1);
+    rx1_rd = digitalRead(RX1);
+    if ( (!tx1_rd) && (!rx1_rd) ) 
+    { 
+        printf_P(PSTR("TX1 loopback to RX1 == LOW\r\n"));
+    }
+    else 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> TX1 %d did not loopback to RX1 %d\r\n"), tx1_rd, rx1_rd);
+    }
+
+    // Serial Two pins loopback, e.g., drive TX2 to test RX2.
+    pinMode(TX2,OUTPUT);
+    digitalWrite(TX2,HIGH);
+    pinMode(RX2,INPUT);
+    digitalWrite(RX2,LOW); // turn off the weak pullup
+    _delay_ms(50) ; // busy-wait delay
+    uint8_t tx2_rd = digitalRead(TX2);
+    uint8_t rx2_rd = digitalRead(RX2);
+    if (tx2_rd && rx2_rd) 
+    { 
+        printf_P(PSTR("TX2 loopback to RX2 == HIGH\r\n"));
+    }
+    else 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> TX2 %d did not loopback to RX2 %d\r\n"), tx2_rd, rx2_rd);
+    }
+
+    digitalWrite(TX2,LOW);
+    _delay_ms(50) ; // busy-wait delay
+    tx2_rd = digitalRead(TX2);
+    rx2_rd = digitalRead(RX2);
+    if ( (!tx2_rd) && (!rx2_rd) ) 
+    { 
+        printf_P(PSTR("TX2 loopback to RX2 == LOW\r\n"));
+    }
+    else 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> TX2 %d did not loopback to RX2 %d\r\n"), tx2_rd, rx2_rd);
+    }
 
     // final test status
     if (passing)

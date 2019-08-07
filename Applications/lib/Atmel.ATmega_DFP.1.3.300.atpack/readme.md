@@ -12,6 +12,8 @@ avr-gcc -mmcu=atmega324pb -B ../Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega32
 
 http://distribute.atmel.no/tools/opensource/Atmel-AVR-GNU-Toolchain/
 
+https://www.microchip.com/mplab/avr-support/avr-and-sam-downloads-archive
+
 I am just using avr-gcc packaged on Debian buster (e.g. 5.4.0 it is on Ubuntu 1804)
 
 Welp; that "iom324pb.h" file is going to cause pain. 

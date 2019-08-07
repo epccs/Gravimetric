@@ -23,20 +23,35 @@ For development I will input data from another serial device (e.g., USBuart or a
 
 ## Partial Pulse
 
-An incomplete pulse time will be found between the Start and Stop events. Keep track of the first and last pulse from the Flowmeter and use that to figure out how much is needed to finish the time between Start and Stop. Now that I have seen the workings, it seems entirely straightforward, but I guess that is the nature of things.
+An incomplete pulse time will be found between the Start and Stop events. Keep track of the first and last pulse from the Flowmeter and use that to figure out how much is needed to finish the time between Start and Stop.  Things that are done in the MCU are in C. 
 
+``` C
+// done on MCU
+StartFTcnt = ICP1cnt_at_ICP3_event
+StartFTbuffer = ICP1_events[] # saved after ICP3 event
+Start = ICP3_event
+StopFTcnt = ICP1cnt_at_ICP4_event
+Stop = ICP4_event
+StopFTbuffer = ICP1_events[] # saved after ICP4 event
+Partial = (Stop - Start) - (StopFTbuffer[0] - StartFTbuffer[0])
 ```
-Start = ICP3
-Stop = ICP4
-FirstFTafterICP3 = ICP1[0]
-LastFTbeforICP4 = ICP1[Last-1]
-# the Partial Pulse
-Partial = (Stop - Start) - (LastFTbeforICP4 - FirstFTafterICP3)
-# the average pulse is a floating point
-FTrate = 1.0 * (LastFTbeforICP4 - FirstFTafterICP3) / Last
-Weight = read_stable_scale()
-WtPerFT = Weight / (Last + (FTrate / Partial) )
+
+Things that are done on the SBC can be done with Python. The integer values are transfered in JSON from the MCU to the SBC. 
+
+``` Python
+# done on SBC with floating point
+# the average event time rate of pulse near the Stop
+repeat = 8
+valid_flow = repeating(StartFTbuffer, repeat) & repeating(StopFTbuffer, repeat)
+if valid_flow:
+    FTcnt_rate = ( (1.0 * (StartFTbuffer[0] - StartFTbuffer[7]) / repeat) + (1.0 * (StopFTbuffer[0] - StopFTbuffer[7]) / repeat) ) / 2
+    if ( (Partial * 1.0) > (FTcnt_rate * 2.0) ): print "Warning: partial pulse time is to large"
+    Weight = read_stable_scale()
+    FTpulses = (StopFTcnt - StartFTcnt) +  (Partial / FTcnt_rate)
+    WtPerFT = Weight / FTpulses
 ```
+
+A slow flow rate during the Start and Stop events can improve the calibration, but the partial pulse calculation needs to be done based on the average of some of the slow pulses found near the Stop event. The ICP1 capture buffer is saved at the Start and Stop signal. The capture buffer also needs checked for repeating captures (e.g., steady flow rate).   
 
 
 ## Volume
