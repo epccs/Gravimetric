@@ -5,6 +5,7 @@ OBJECTS = main.o \
 	../Adc/references.o \
 	$(LIBDIR)/uart.o \
 	$(LIBDIR)/twi0.o \
+	$(LIBDIR)/twi1.o \
 	$(LIBDIR)/rpu_mgr.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/timers.o

@@ -22,6 +22,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/timers.h"
 #include "../lib/uart.h"
 #include "../lib/twi0.h"
+#include "../lib/twi1.h"
 #include "../lib/adc.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/pin_num.h"
@@ -96,6 +97,10 @@ void setup_pins_off(void)
     // Alternate power control
     pinMode(ALT_EN,OUTPUT);
     digitalWrite(ALT_EN,LOW);
+    
+    // SPI needs a loopback on the R-Pi connector between PI_MISO and PI_MOSI
+    pinMode(MISO,INPUT);
+    digitalWrite(MISO,HIGH); //a weak pull up will turn off the buffer that would otherwise pull down ICP3/MOSI
 }
 
 
@@ -113,6 +118,7 @@ void setup(void)
 
     /* Initialize I2C, with the internal pull-up*/
     twi0_init(TWI_PULLUP);
+    twi1_init(TWI_PULLUP);
 
     // Enable global interrupts to start TIMER0 and UART
     sei(); 
@@ -131,6 +137,49 @@ void setup(void)
     
     // set the referances and save them in EEPROM
     ref_extern_avcc_uV = REF_EXTERN_AVCC;
+}
+
+void smbus_address(void)
+{
+    uint8_t smbus_address = 0x2A;
+    uint8_t length = 2;
+    uint8_t wait = 1;
+    uint8_t sendStop = 1;
+    uint8_t txBuffer[2] = {0x00,0x00}; //comand 0x00 should Read the mulit-drop bus addr;
+    uint8_t twi1_returnCode = twi1_writeTo(smbus_address, txBuffer, length, wait, sendStop); 
+    if (twi1_returnCode != 0)
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> SMBus write failed, twi1_returnCode: %d\r\n"), twi1_returnCode);
+    }
+    
+    // read_i2c_block_data sends a command byte and then a repeated start followed by reading the data 
+    uint8_t cmd_length = 1; // one byte command is sent befor read with the read_i2c_block_data
+    sendStop = 0; // a repeated start happens after the command byte is sent
+    txBuffer[0] = 0x00; //comand 0x00 matches the above write command
+    twi1_returnCode = twi1_writeTo(smbus_address, txBuffer, cmd_length, wait, sendStop); 
+    if (twi1_returnCode != 0)
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> SMBus read cmd fail, twi1_returnCode: %d\r\n"), twi1_returnCode);
+    }
+    uint8_t rxBuffer[2] = {0x00,0x00};
+    sendStop = 1;
+    uint8_t bytes_read = twi1_readFrom(smbus_address, rxBuffer, length, sendStop);
+    if ( bytes_read != length )
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> SMBus read missing %d bytes \r\n"), (length-bytes_read) );
+    }
+    if ( (rxBuffer[0] == 0x0) && (rxBuffer[1] == '1') )
+    {
+        printf_P(PSTR("SMBUS cmd %d provided address %d from manager\r\n"), rxBuffer[0], rxBuffer[1]);
+    } 
+    else  
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> SMBUS wrong addr %d for cmd %d\r\n"), rxBuffer[1], rxBuffer[0]);
+    }
 }
 
 void test(void)
@@ -499,6 +548,13 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> TX2 %d did not loopback to RX2 %d\r\n"), tx2_rd, rx2_rd);
     }
+
+    // XcvrTest
+    
+    // SMBus from manager needs connected to I2C1 master for testing, it is for write_i2c_block_data and read_i2c_block_data from
+    // https://git.kernel.org/pub/scm/utils/i2c-tools/i2c-tools.git/tree/py-smbus/smbusmodule.c
+    // write_i2c_block_data sends a command byte and data to the slave 
+    smbus_address();
 
     // final test status
     if (passing)

@@ -15,10 +15,8 @@ For a copy of the GNU General Public License use
 http://www.gnu.org/licenses/gpl-2.0.html
  */ 
 
-#include <stdio.h>
+#include <avr/pgmspace.h>
 #include <stdlib.h>
-#include <util/delay.h>
-#include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/uart.h"
 #include "../lib/pin_num.h"
@@ -38,7 +36,7 @@ void setup(void)
     digitalWrite(STATUS_LED,HIGH);
 
     /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stdout = stdin = uartstream0_init(BAUD);
+    stderr = stdout = stdin = uartstream0_init(BAUD);
 
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers(); 
@@ -63,9 +61,22 @@ void blink(void)
     }
 }
 
+void safe_abort(void)
+{
+    // make sure pins are safe befor waiting on UART 
+    pinMode(STATUS_LED,INPUT);
+    digitalWrite(STATUS_LED,LOW);
+    // wait for the UART to finish
+    while (uart0_availableForWrite() != UART_TX0_BUFFER_SIZE );
+    // abort turns off interrupts and loops 
+    abort();
+}
+
 int main(void)
 {
     setup(); 
+    
+    int abort_yet = 0;
     
     while (1) 
     {
@@ -75,11 +86,17 @@ int main(void)
             printf("%c\r\n", input); //standard C that sends the byte back to stdout which was redirected to the UART
             if(input == 'a') // a will stop blinking.
             {
-              got_a = 1; 
+                got_a = 1; 
+                ++abort_yet; 
             }
             else
             {
               got_a = 0;
+            }
+            if (abort_yet >= 5) 
+            {
+                printf_P(PSTR("{\"abort\":\"blue sceen\"}\r\n")); 
+                safe_abort();
             }
         }
         if (!got_a)

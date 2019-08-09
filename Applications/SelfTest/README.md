@@ -14,6 +14,13 @@ The wiring has a red and green LED that blink to indicate test status.
 
 ![Wiring](./Setup/SelfTestWiring.png)
 
+not yet shown:
+I2C1 on 324pb wired to SMBus on R-Pi header
++5V from bootload port pin wired to +5V on R-Pi header
+all loopbacks from [XcvrTest] on R-Pi header
+
+[XcvrTest]: https://github.com/epccs/RPUno/tree/master/XcvrTest
+
 
 ## Power Supply
 
@@ -41,11 +48,11 @@ Now connect with picocom (exit is C-a, C-x).
 ``` 
 picocom -b 38400 /dev/ttyAMA0
 ...
-Gravimetric Self Test date: Aug  7 2019
+Gravimetric Self Test date: Aug  9 2019
 avr-gcc --version: 5.4.0
 I2C provided address 0x31 from RPUadpt serial bus manager
-adc reading for PWR_V: 358 int
-PWR at: 12.705 V
+adc reading for PWR_V: 359 int
+PWR at: 12.740 V
 ADC0 at ICP3&4 TERM /W all CS off: 0.000 V
 ADC1 at ICP1 TERM /w all CS off: 0.000 V
 ADC2 at ICP3&4 TERM /W all CS off: 0.000 V
@@ -56,23 +63,24 @@ ICP1 /w 17mA on termination reads: 0
 ICP3 input should be HIGH with 0mA loop current: 1
 CS_ICP3 on ICP3AND4 TERM: 0.018 A
 ICP3 /w 8mA on termination reads: 0
-   ADC0 reading used to calculate ref_intern_1v1_uV: 861 int
-   calculated ref_intern_1v1_uV: 1088407 uV
+   ADC0 reading used to calculate ref_intern_1v1_uV: 857 int
+   calculated ref_intern_1v1_uV: 1087701 uV
 REF_EXTERN_AVCC old value found in eeprom: 4958300 uV
 REF_INTERN_1V1 old value found in eeprom: 1085884 uV
 REF_EXTERN_AVCC from eeprom is same
 ICP4 input should be HIGH with 0mA loop current: 1
 CS_ICP4 on ICP3AND4 TERM: 0.018 A
 ICP4 /w 8mA on termination reads: 0
-PWR_I at no load use INTERNAL_1V1: 0.021 A
-CS0 on ICP3&4 TERM: 0.022 A
-CS1 on ICP3&4 TERM: 0.022 A
+PWR_I at no load use INTERNAL_1V1: 0.019 A
+CS0 on ICP3&4 TERM: 0.021 A
+CS1 on ICP3&4 TERM: 0.021 A
 CS2 on ICP3&4 TERM: 0.022 A
 CS3 on ICP3&4 TERM: 0.022 A
 TX1 loopback to RX1 == HIGH
 TX1 loopback to RX1 == LOW
 TX2 loopback to RX2 == HIGH
 TX2 loopback to RX2 == LOW
+SMBUS cmd 0 provided address 49 from manager
 [PASS]
 ```
 

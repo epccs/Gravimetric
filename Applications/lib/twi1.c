@@ -63,7 +63,7 @@ static uint8_t twi1_txBuffer[TWI1_BUFFER_LENGTH];
 static volatile uint8_t twi1_txBufferIndex;
 static volatile uint8_t twi1_txBufferLength;
 
-static uint8_t twi1_rxBuffer[TWI0_BUFFER_LENGTH];
+static uint8_t twi1_rxBuffer[TWI1_BUFFER_LENGTH];
 static volatile uint8_t twi1_rxBufferIndex;
 
 static volatile uint8_t twi1_error;
