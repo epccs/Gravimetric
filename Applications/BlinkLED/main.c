@@ -16,6 +16,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
  */ 
 
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 #include <stdlib.h>
 #include "../lib/timers.h"
 #include "../lib/uart.h"
@@ -61,15 +62,21 @@ void blink(void)
     }
 }
 
-void safe_abort(void)
+// abort++. 
+void abort_safe(void)
 {
     // make sure pins are safe befor waiting on UART 
-    pinMode(STATUS_LED,INPUT);
+    pinMode(STATUS_LED,OUTPUT);
     digitalWrite(STATUS_LED,LOW);
     // wait for the UART to finish
     while (uart0_availableForWrite() != UART_TX0_BUFFER_SIZE );
-    // abort turns off interrupts and loops 
-    abort();
+    // turn off interrupts and then loop on LED toggle 
+    cli();
+    while(1) 
+    {
+        _delay_ms(100); 
+        digitalToggle(STATUS_LED);
+    }
 }
 
 int main(void)
@@ -83,6 +90,11 @@ int main(void)
         if(uart0_available()) // refer to core file in ../lib/uart.c
         {
             int input = getchar(); // standard C that gets a byte from stdin, which was redirected from the UART
+            if (input == '$') 
+            {
+                printf_P(PSTR("{\"abort\":\"egg found\"}\r\n")); 
+                abort_safe();
+            }
             printf("%c\r\n", input); //standard C that sends the byte back to stdout which was redirected to the UART
             if(input == 'a') // a will stop blinking.
             {
@@ -95,8 +107,7 @@ int main(void)
             }
             if (abort_yet >= 5) 
             {
-                printf_P(PSTR("{\"abort\":\"blue sceen\"}\r\n")); 
-                safe_abort();
+                abort_safe();
             }
         }
         if (!got_a)

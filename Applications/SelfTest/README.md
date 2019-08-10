@@ -1,5 +1,9 @@
 # Self-Test
 
+## known issue
+
+Use bootload port to view test. Remote fw on manager needs more work to recover after test mode.
+
 ## Overview
 
 Check Board Functions, runs once after a reset and then loops in a pass/fail section.
@@ -29,7 +33,7 @@ Use a power supply with CV and CC mode. Set CC at 200mA and set CV to 12.8V then
 
 ## Firmware Upload
 
-With a serial port setup for serial bootloading (see BOOT_PORT in Makefile) and optiboot installed on the RPUno run 'make' and and 'make bootload' to upload a binary image in the application area of flash memory.
+With a serial port setup for serial bootloading (see BOOT_PORT in Makefile) and optiboot installed on the DUT run 'make' and and 'make bootload' to upload a binary image in the application area of flash memory.
 
 
 ``` 
@@ -46,7 +50,9 @@ make clean
 Now connect with picocom (exit is C-a, C-x). 
 
 ``` 
-picocom -b 38400 /dev/ttyAMA0
+#picocom -b 38400 /dev/ttyAMA0
+# use bootload port
+picocom -b 38400 /dev/ttyUSB0
 ...
 Gravimetric Self Test date: Aug  9 2019
 avr-gcc --version: 5.4.0
@@ -64,16 +70,16 @@ ICP3 input should be HIGH with 0mA loop current: 1
 CS_ICP3 on ICP3AND4 TERM: 0.018 A
 ICP3 /w 8mA on termination reads: 0
    ADC0 reading used to calculate ref_intern_1v1_uV: 857 int
-   calculated ref_intern_1v1_uV: 1087701 uV
+   calculated ref_intern_1v1_uV: 1093487 uV
 REF_EXTERN_AVCC old value found in eeprom: 4958300 uV
 REF_INTERN_1V1 old value found in eeprom: 1085884 uV
 REF_EXTERN_AVCC from eeprom is same
 ICP4 input should be HIGH with 0mA loop current: 1
 CS_ICP4 on ICP3AND4 TERM: 0.018 A
 ICP4 /w 8mA on termination reads: 0
-PWR_I at no load use INTERNAL_1V1: 0.019 A
-CS0 on ICP3&4 TERM: 0.021 A
-CS1 on ICP3&4 TERM: 0.021 A
+PWR_I at no load use INTERNAL_1V1: 0.023 A
+CS0 on ICP3&4 TERM: 0.022 A
+CS1 on ICP3&4 TERM: 0.022 A
 CS2 on ICP3&4 TERM: 0.022 A
 CS3 on ICP3&4 TERM: 0.022 A
 TX1 loopback to RX1 == HIGH
@@ -81,6 +87,46 @@ TX1 loopback to RX1 == LOW
 TX2 loopback to RX2 == HIGH
 TX2 loopback to RX2 == LOW
 SMBUS cmd 0 provided address 49 from manager
+MISO loopback to MOSI == HIGH
+MISO loopback to MOSI == LOW
+SCK with Shutdown loopback == HIGH
+I2C0 Shutdown cmd is clean {5, 1}
+SCK with Shutdown loopback == LOW
+I2C0 Shutdown Detect cmd is clean {4, 1}
+
+Testmode: default trancever control bits
+I2C0 Start Test Mode cmd was clean {48, 1}
+I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
+Testmode: read  Xcvr cntl bits {50, 0xE2}
+PWR_I /w no load using INTERNAL_1V1: 0.010 A
+
+Testmode: nCTS loopback to nRTS
+I2C0 Start Test Mode cmd was clean {48, 1}
+I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
+Testmode: set  Xcvr cntl bits {51, 0xA2}
+Testmode: read  Xcvr cntl bits {50, 0x22}
+
+Testmode: Enable TX pair driver
+ I2C0 Start Test Mode cmd was clean {48, 1}
+I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
+Testmode: set  Xcvr cntl bits {51, 0xF2}
+Testmode: read  Xcvr cntl bits {50, 0xF2}
+PWR_I /w TX pair load: 0.030 A
+
+Testmode: Enable TX & RX(loopback) pair drivers
+ I2C0 Start Test Mode cmd was clean {48, 1}
+I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
+Testmode: set  Xcvr cntl bits {51, 0xD1}
+Testmode: read  Xcvr cntl bits {50, 0xD1}
+PWR_I /w TX and RX pairs loaded: 0.051 A
+RX loopback checked
+
+Testmode: Enable DTR pair driver
+I2C0 Start Test Mode cmd was clean {48, 1}
+I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
+Testmode: set  Xcvr cntl bits {51, 0xE6}
+Testmode: read  Xcvr cntl bits {50, 0xE6}
+PWR_I /w DTR pair load: 0.030 A
 [PASS]
 ```
 
