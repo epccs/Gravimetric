@@ -14,17 +14,18 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ## Inputs/Outputs/Functions
 
 ```
-        ATmega324pb programs are compiled with open source tools.
+        ATmega324pb application controler.
+        ATmega328pb managment controler.
         Input power can range from 7 to 36V DC
-        Alternat input voltage is divided down and connected to ADC4.
-        High side current sense of alternat input power is connected to ADC5.
-        High side current sense of input power is connected to ADC6.
-        Input power voltage is divided down and connected to ADC7.
-        Four analog (CH 0..3) or digital connections with level conversion.
+        Alternat input voltage is sensed (ADC4 on ^0).
+        High side current sense of alternat input power (ADC5 on ^0).
+        High side current sense of input power (ADC6 on ^0).
+        Input power voltage is sensed (ADC7 on ^0).
+        Four analog (ADC channel 0..3) or digital connections with level conversion.
         Three inputs for event capture: ICP1, ICP3, ICP4.
         Two of the event capture inputs have a one shot pulse extender: ICP3, ICP4.
         Event timers have a common crystal which eliminates correlation errors.
-        Event capture interface has a 17mA current source for sensor (hall, VR, or just a limit switch)
+        Event capture interface has a 17mA current source for pulse sensor (hall, VR, or a switch)
         Event transition occures at about 6.5mA of current returned from the sensor to a 100 Ohm resistor on board.
         Diversion control use ICP3 to START and ICP4 to STOP, and there ISR's to operate the CS_DIVERSION holding pin.
         Diversion control is nearly instantaneous with a slight delay that has repeatable timing.
@@ -73,14 +74,23 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             WIP: 
             Todo: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
+            add gap between RJ45 headers
             Power Protection
-            Manager Should Do More
-            Alternat Power Diode
-            Pin numbers need changed so PA0 with ADC0 is also pin 0 for digital Wiring functions
+            Alternat power diode replaced with a P-CH MOSFET
+            HOST_nCTS: on manager should move from PC0 to PD2
+            I2C: on ^0 TWI0 goes to the manager but that bus has to be urn as clean I2C so it can go to the user plug, the other port can go to the R-Pi SMbus pins which are not doing true I2C (a time sharing OS issue) and would be a slave SMbus if used.
+            ALT_EN, PIPWR_EN: can go to the manager 
+            ALT_I, ALT_V, PWR_I, PWR_V: can go to the manager ADC 0, 1, 6,7
+            move MGR_STATUS LED to MGR_SCK.
+            connect SHLD_VIN_EN to PB1 on bus manager
+            connect R1 (ALT_V divider to ADC4) directly to ALT input
+            add second K38 under Q9 with its gate controled from ADC4 voltage, so 5..15V is needed to turn on ALT power.
+            connect ALT_EN to PB3 (MOSI) on bus manager (and do not ICSP program the manager with alt power applied). 
+            Pin numbers need changed so PA0 with ADC0 is pin 0 for digital Wiring functions
 
-        ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly,
-            WIP: Testing,
-            Todo: Evaluation.
+        ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing,
+            WIP: Evaluation.
+            Todo: 
             *during review the Design may change without changing the revision.
 ```
 
@@ -152,5 +162,9 @@ The SMD reflow is done in a Black & Decker Model NO. TO1303SB which has the heat
 
 # How To Use
 
-TBD
+The ATmega324pb has a good selection of IO. It has three hardware serial ports so one can be dedicated to the host, one to a scale, and one to a volumetric calibration device (prover). A volumetric prover will have two events that correspond to a precisely repeatable volume. Those events can be measured with ICP3 and ICP4. The method requires precisely diverting the flow of the volume into a measuring vessel between the events. The gravimetric weight of the diverted amount is then used to determine the volume. A flow meter can input pulses into ICP1 during the events and thus be calibrated as well. A flow meter can also be used to estimate when to slow the flow down so that the diversion precision can improve.
+
+The diversion control is part hardware and part software; it is a work in progress at this time. The slow control will need flow meter pulses and values determined by a single board computer (e.g., an R-Pi); it is an idea that may turn into a work in progress. 
+
+How precise will the measurements be? Well, the idea is to sort out the method(s). I am not trying to get certified. That is for labs that want to do actual calibrations, though they may wish to ponder about this setup.
 

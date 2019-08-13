@@ -1,10 +1,8 @@
 # Makefile 
-TARGET = Adc
+TARGET = DayNight
 LIBDIR = ../lib
 OBJECTS = main.o \
-	analog.o \
-	calibrate.o \
-	references.o \
+	day_night.o \
 	../Uart/id.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/uart.o \
@@ -54,9 +52,9 @@ LDFLAGS += -Wl,--gc-sections
 ## warning this takes about 2k of program space
 LDFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm
 
-all: $(TARGET).hex $(TARGET).lst
+all: $(TARGET).hex
 
-$(TARGET): $(TARGET).hex
+$(TARGET): $(TARGET).hex  $(TARGET).lst
 
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
@@ -76,4 +74,3 @@ clean:
  
 %.lst: %.elf
 	$(OBJDUMP) -h -S $< > $@
-

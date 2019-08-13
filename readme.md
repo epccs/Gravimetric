@@ -26,7 +26,7 @@ Hardware files include a schematic, bill of materials, and various notes for tes
 
 Is this comparable to a PLC? Probably not, in general, it should be impossible to cause a PLC to crash its software, but that does not stop it from causing severe damage. Executing binary files is a whole different game; the program can both crash and do severe damage. The upshot is the application is only limited by what the microcontroller can do (the training wheels are off, so use this at your own risk).
 
-This board has a serial bus that allows multiple boards to be connected to a Single Board Computer (SBC). The 40 pin header is for a Raspberry Pi but other SBC's also work (I do not test them). I use a Pi Zero (and Zero W which has WiFi). The RJ45 connectors are for the multi-drop serial bus (not ethernet) and allow the SBC to access the other boards. 
+This board has a serial bus that allows multiple boards to be connected to a Single Board Computer (SBC). The 40 pin header is for a Raspberry Pi, but other SBC's also work (I do not test them). I use a Pi Zero (and Zero W which has WiFi). The RJ45 connectors are for the multi-drop serial bus (not ethernet) and allow the SBC to access the other boards. 
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "Gravimetric MultiDrop")
 
@@ -35,9 +35,9 @@ Diverting a calibration fluid onto a scale during a precisely measured time whil
 
 ## AVR toolchain
 
-This board uses the AVR toolchain; it is on Debian (e.g., Ubuntu and Raspbian), Windows, Mac and other Operating Systems. With the toolchain installed, the AVR application can compile locally (e.g., on a Raspberry Pi, Mac, or Windows 10 LSW). Make sure you understand that the hardware provider is not supplying the development tools, and if they are broken, then fixing them is a community effort. Also, it is worth noting that if the hardware provider changes its business model, the tools will remain available from the community.
+This board uses the AVR toolchain. I use the one from Debian on Ubuntu,  Raspbian, Windows with WSL, Mac and other Operating Systems. With the toolchain installed, the AVR application can compile locally. I am not supplying the development tools; they are a community effort. 
 
-The core files for this board are in the /lib folder. Each example application has its files and a Makefile in a seperat folder. The toolchain is available as standard packages on Ubuntu and Raspbian. 
+The core files for this board are in the /lib folder. Each example application has its files and a Makefile in a separate folder. The toolchain is available as packages. 
 
 ```
 sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
@@ -50,6 +50,4 @@ git clone https://github.com/epccs/Gravimetric
 * [avr-libc](https://packages.ubuntu.com/search?keywords=avr-libc)
 * [avrdude](https://packages.ubuntu.com/search?keywords=avrdude)
 
-The software is a guide, it is in C because that works for me. 
-
-Warning: for the 324pb Microchip has changed how AVR defines stuff (name of bits in registers mostly), so expect pain when updating libraries. 
+The software is a guide; it is in C because that works for me. 
