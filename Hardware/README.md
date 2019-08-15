@@ -6,7 +6,7 @@ This board has an ATmega324pb which has three timers (Timer1, Timer3, Timer4) th
 
 [prover]: http://asgmt.com/wp-content/uploads/2016/02/011_.pdf
 
-Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't change the hardware fuse setting which reduces programming errors that could accidentally brick the controller. 
+Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not change the hardware fuse setting. 
 
 [optiboot]: https://github.com/Optiboot/optiboot
 [xboot]: https://github.com/alexforencich/xboot
@@ -41,17 +41,15 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 ## Uses
 
 ```
-        Calibration of rotating hardware measured with input capture (ICP) hardware.
+        Calibration of rotating hardware measured with input capture (ICP1) hardware.
         Use a START (ICP3) and STOP (ICP4) sensor to capture displacer events while capturing flow meter pules.
-        Diversion and fast/slow flow control are useful for gravimetric calibration methods. 
-        One-shot pulse extenders on ICP3 and ICP4 for clean STAR and STOP switch events.
+        Diversion and fast/slow flow control are used for gravimetric calibration methods. 
+        One-shot pulse extenders on ICP3 and ICP4 for clean STAR and STOP events.
 ```
 
 ## Notice
 
 ```
-        AREF from ATmega324pb is not connected to the header.
-        3V3 is not present on the board, the header pin is not connected.
         Using SPI may trigger ICP3 if it is enabled and will cut off CS_ICP3.
 ```
 
@@ -71,8 +69,8 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
 
 ```
         ^1  Done: 
-            WIP: 
-            Todo: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+            WIP: Design,
+            Todo: Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
             add gap between RJ45 headers
             Power Protection
@@ -88,10 +86,11 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can't chan
             connect ALT_EN to PB3 (MOSI) on bus manager (and do not ICSP program the manager with alt power applied). 
             Pin numbers need changed so PA0 with ADC0 is pin 0 for digital Wiring functions
 
-        ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing,
-            WIP: Evaluation.
+        ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+            WIP: 
             Todo: 
             *during review the Design may change without changing the revision.
+            ref: the ALT power input was modifed and checked on the one of this version that was built.
 ```
 
 Debugging and fixing problems i.e. [Schooling](./Schooling/)
@@ -157,7 +156,7 @@ The board is assembled with CHIPQUIK no-clean solder SMD291AX (RoHS non-complian
 
 The SMD reflow is done in a Black & Decker Model NO. TO1303SB which has the heating elements controlled by a Solid State Relay and an RPUno loaded with this [Reflow] firmware.
 
-[Reflow]: ../Reflow
+[Reflow]: https://github.com/epccs/RPUno/tree/master/Reflow
 
 
 # How To Use

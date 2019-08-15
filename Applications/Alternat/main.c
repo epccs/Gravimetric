@@ -1,6 +1,6 @@
 /*
-DayNight is a command line controled demonstration of how the photovoltaic voltage can be usd to track the day and night.
-Copyright (C) 2016 Ronald Sutherland
+Alternat is a CLI demonstration to show Alternat power input sending photovoltaic power to a battery.
+Copyright (C) 2018 Ronald Sutherland
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -26,13 +26,15 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
 #include "../Uart/id.h"
-#include "day_night.h"
+#include "../Adc/analog.h"
+#include "../DayNight/day_night.h"
+#include "alternat.h"
 
-#define ADC_DELAY_MILSEC 200UL
+#define ADC_DELAY_MILSEC 50UL
 static unsigned long adc_started_at;
 
-//pins are defined in ../lib/pins_board.h
 #define STATUS_LED CS0_EN
+
 #define DAYNIGHT_STATUS_LED CS1_EN
 #define DAYNIGHT_BLINK 500UL
 static unsigned long day_status_blink_started_at;
@@ -46,37 +48,49 @@ void ProcessCmd()
 { 
     if ( (strcmp_P( command, PSTR("/id?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        Id("DayNight"); // ../Uart/id.c
+        Id("Alternat"); // ../Uart/id.c
+    }
+    if ( (strcmp_P( command, PSTR("/analog?")) == 0) && ( (arg_count >= 1 ) && (arg_count <= 5) ) )
+    {
+        Analog(20000UL); // ../Adc/analog.c: show every 20 sec until terminated
     }
     if ( (strcmp_P( command, PSTR("/day?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        Day(5000UL); // day_night.c: show every 5 sec until terminated
+        Day(60000UL); // ../DayNight/day_night.c: show every 60 sec until terminated
+    }
+    if ( (strcmp_P( command, PSTR("/alt")) == 0) && ( (arg_count == 0 ) ) )
+    {
+        EnableAlt(); // alternat.c
+    }
+    if ( (strcmp_P( command, PSTR("/altcnt?")) == 0) && ( (arg_count == 0 ) ) )
+    {
+        AltCount(); // alternat.c
     }
 }
 
-//At start of each day do this
-void callback_for_day_attach(void)
-{
-    // This shows where to place a task to run when the dayState changes to DAYNIGHT_WORK_STATE
-    printf_P(PSTR("WaterTheGarden\r\n")); // used for debuging
-    return;
-}
-
-//At start of each night do this
+//At start of night turn off Alternat power input
 void callback_for_night_attach(void)
 {
-    // This shows where to place a task to run when the dayState changes to DAYNIGHT_WORK_STATE
-    printf_P(PSTR("TurnOnLED's\r\n")); // used for debuging
-    return;
+    alt_enable = 0;
+}
+
+//At start of day turn on Alternat power input
+void callback_for_day_attach(void)
+{
+    alt_enable = 1;
+    alt_count = 0; // this value helps to tell if the battery got a full charge
 }
 
 void setup(void) 
 {
     pinMode(STATUS_LED,OUTPUT);
     digitalWrite(STATUS_LED,HIGH);
-    
+
     pinMode(DAYNIGHT_STATUS_LED,OUTPUT);
     digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
+
+    pinMode(ALT_EN,OUTPUT);
+    digitalWrite(ALT_EN,LOW);
     
     // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
     initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
@@ -111,11 +125,11 @@ void setup(void)
         rpu_addr = '0';
         blink_delay = BLINK_DELAY/4;
     }
-    
-    // register callback(s) to do the work.
-    Day_AttachWork(callback_for_day_attach);
-    Night_AttachWork(callback_for_night_attach);
 
+    // register callbacks for DayNight state machine events
+    Night_AttachWork(callback_for_night_attach);
+    Day_AttachWork(callback_for_day_attach);
+    
     // default debounce is 15 min (e.g. 900,000 millis)
     evening_debouce = 18000UL; // 18 sec
     morning_debouce = 18000UL;
@@ -125,6 +139,8 @@ void setup(void)
     // ALT_V reading of 320*5.0/1024.0*(11/1) is about 17.18V
     evening_threshold = 40; 
     morning_threshold = 80;
+    
+    alt_count = 0;
 }
 
 void blink(void)
@@ -139,7 +155,7 @@ void blink(void)
     }
 }
 
-void day_status(void)
+void blink_day_status(void)
 {
     unsigned long kRuntime = millis() - day_status_blink_started_at;
     uint8_t state = DayState();
@@ -178,14 +194,19 @@ void day_status(void)
     }
 }
 
-void adc_burst(void)
+uint8_t adc_burst(void)
 {
     unsigned long kRuntime= millis() - adc_started_at;
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
         enable_ADC_auto_conversion(BURST_MODE);
         adc_started_at += ADC_DELAY_MILSEC; 
+        return 1;
     } 
+    else
+    {
+        return 0;
+    }
 }
 
 int main(void) 
@@ -194,63 +215,74 @@ int main(void)
 
     while(1) 
     { 
-        // use LED to show if I2C has a bus manager
+        // use STATUS_LED to show if I2C has a bus manager
         blink();
 
-        // use LED to show day_state
-        day_status();
-
-        // Check Day Light is a function that operates a day-night state machine.
-        CheckingDayLight(); // day_night.c
+        // use DAYNIGHT_STATUS_LED to show day_state
+        blink_day_status();
 
         // delay between ADC burst
-        adc_burst();
+        if ( adc_burst() )
+        {
+            // ALT_EN is turned off when Checking Day Light for the day-night state machine.
+            if ( !CheckingDayLight() ) // ../DayNight/day_night.c
+            {
+                if ( DayState() == DAYNIGHT_DAY_STATE)
+                {
+                    // turn off alt if battery voltage is high
+                    check_if_alt_should_be_on(PWR_V, 115.8/15.8, 13.6);
+                }
+                else 
+                {
+                    digitalWrite(ALT_EN,LOW);
+                }
+                    
+            }
+        }
 
         // check if character is available to assemble a command, e.g. non-blocking
         if ( (!command_done) && uart0_available() ) // command_done is an extern from parse.h
         {
             // get a character from stdin and use it to assemble a command
-            AssembleCommand(getchar()); // ../lib/parse.c
+            AssembleCommand(getchar());
 
             // address is an ascii value, warning: a null address would terminate the command string. 
-            StartEchoWhenAddressed(rpu_addr); // ../lib/parse.c
+            StartEchoWhenAddressed(rpu_addr);
         }
-
-        // check if a character is available, and if so flush transmit buffer and nuke the command in process.
+        
+        // check if a character is available, and if so flush transmit buffer and stop any command that is running.
         // A multi-drop bus can have another device start transmitting after getting an address byte so
         // the first byte is used as a warning, it is the onlly chance to detect a possible collision.
         if ( command_done && uart0_available() )
         {
             // dump the transmit buffer to limit a collision 
-            uart0_flush();  // ../lib/uart.c
+            uart0_flush(); 
             initCommandBuffer();
         }
-
+        
         // finish echo of the command line befor starting a reply (or the next part of a reply)
         if ( command_done && (uart0_availableForWrite() == UART_TX0_BUFFER_SIZE) )
         {
             if ( !echo_on  )
             { // this happons when the address did not match 
-                initCommandBuffer(); // ../lib/parse.c
+                initCommandBuffer();
             }
             else
             {
-                if (command_done == 1) 
-                { 
-                    findCommand(); // ../lib/parse.c
-                    // steps 2..9 are skipped. Reserved for more complex parse
+                if (command_done == 1)  
+                {
+                    findCommand();
                     command_done = 10;
                 }
-
+                
                 // do not overfill the serial buffer since that blocks looping, e.g. process a command in 32 byte chunks
                 if ( (command_done >= 10) && (command_done < 250) )
                 {
-                    // setps 10..249 are moved through by the procedure selected
                      ProcessCmd();
                 }
                 else 
                 {
-                    initCommandBuffer(); // ../lib/parse.c
+                    initCommandBuffer();
                 }
             }
         }

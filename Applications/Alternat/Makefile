@@ -1,9 +1,12 @@
 # Makefile 
-TARGET = DayNight
+TARGET = Alternat
 LIBDIR = ../lib
 OBJECTS = main.o \
-	day_night.o \
+	alternat.o \
 	../Uart/id.o \
+	../Adc/analog.o \
+	../Adc/references.o \
+	../DayNight/day_night.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/uart.o \
 	$(LIBDIR)/twi0.o \
@@ -54,7 +57,7 @@ LDFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm
 
 all: $(TARGET).hex $(TARGET).lst
 
-$(TARGET): $(TARGET).hex  
+$(TARGET): $(TARGET).hex
 
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@

@@ -3,7 +3,7 @@
 
 extern void Day(unsigned long);
 
-extern void CheckDayLight(uint8_t);
+extern uint8_t CheckingDayLight(void);
 extern uint8_t DayState(void);
 
 // Warning the pointer to function will be NULL if it is not set (registered) during initialization.

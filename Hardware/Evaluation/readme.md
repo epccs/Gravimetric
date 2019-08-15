@@ -7,9 +7,32 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^0 Alternat Power Modified
 1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^0 Alternat Power Modified
+
+Alternate power has been modified so that D1 was replaced with a P-channel MOSFET with source facing Q2, and its gate tied to the gate of Q2. 
+
+R1 used for ALT_V was cut and tied directly to ALT input. 
+
+R4 was moved between the source of Q2 and the new P-channel MOSFET. 
+
+Power protection was verified to work (e.g., backward polarity) while ALT_EN is off.
+
+ALT_I checked. 
+
+ALT_V checked. 
+
+[DayNight] state machine, and [Alternat] power charging on a 12V battery checked.
+
+[DayNight]: https://github.com/epccs/Gravimetric/tree/master/Applications/DayNight
+[Alternat]: https://github.com/epccs/Gravimetric/tree/master/Applications/Alternat
+
+These changes will show up on ^1, so they were hacked onto ^0 for evaluation.
 
 
 ## ^0 Bootload

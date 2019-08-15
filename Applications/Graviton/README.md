@@ -8,6 +8,7 @@ Water is diverted into a tank for a time determined by the ICP3 (START) and ICP4
 
 A program running on a host computer will take the integers (e.g., pulse counts, timing counts, timing events) and calculate floating-point values (e.g., the meter K factor). The AVR's single time-domain keeps the relation between events, counts, and control simple; it is accurate to within one crystal clock. A high-speed MCU that runs with a clock derived from a PPL and input pins in their time domain is very likely less precise. In this occasion, the simple AVR time-domain means a more repeatable measurement with accuracy that is wholly dependent on the crystal accuracy without any wordsmithing (e.g., no Double-Timing Pulse Interpolation.) Once the precision data is collected, it can be passed to the sausage factory that is a modern computer for processing and networking. An FPGA could do this also, but there is several MCU's that have surfactant capture hardware to do the task.
 
+./Waterdraw-vs-Gravimetric.pdf
 
 ## Scale
 
