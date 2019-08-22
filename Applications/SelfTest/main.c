@@ -681,6 +681,7 @@ void test(void)
 
     // enable CS_DIVERSION
     digitalWrite(CS_DIVERSION,HIGH);
+    init_ADC_single_conversion(EXTERNAL_AVCC); 
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has CS_DIVERSION on it
@@ -762,6 +763,7 @@ void test(void)
     // enable CS_ICP4
     digitalWrite(CS_DIVERSION,LOW);
     digitalWrite(CS_ICP4,HIGH);
+    init_ADC_single_conversion(INTERNAL_1V1); 
     _delay_ms(100); // busy-wait delay
 
     // ICP3_TERM and ICP4_TERM (50Ohm) has CS_ICP4 on it
@@ -804,11 +806,8 @@ void test(void)
         printf_P(PSTR(">>> Input curr is to low.\r\n"));
     }
 
-    //swap back to the AVCC referance 
+    //swap back to the AVCC referance and enable CS0 (through red LED)
     init_ADC_single_conversion(EXTERNAL_AVCC); 
-    _delay_ms(100); // busy-wait delay
-
-    // enable CS0 (through red LED)
     digitalWrite(CS0_EN,HIGH);
     _delay_ms(100); // busy-wait delay
 
