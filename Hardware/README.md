@@ -31,26 +31,27 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
         Diversion control is nearly instantaneous with a slight delay that has repeatable timing.
         Control of a PMOS enables an alternate power supply (e.g. battery charging).
         Control of a PMOS disables power to the 40PIN SBC header.
-        SPI between SBC and ATmega324pb has a buffer with IOFF for SBC power off.
-        UART from SBC to transceivers has a buffer with IOFF for SBC power off.
-        I2C between SBC and bus manager is for SMBus and so SBC can power off.
-        I2C between ATmega324pb and bus manager is on a seperate port.
-        Serial (RPUbus) continues working when SBC is powered off.
+        SPI between SBC and ATmega324pb with IOFF buffer so SBC can power off.
+        SMBus between SBC and ATmega328pb manag, SBC can power off without locking I2C.
+        I2C0 between ATmega324pb and ATmega328pb manager does not lockup on SBC power down.
+        I2C1 from ATmega324pb is for user and can be a master or slave.
+        Serial0 from ATmega324pb continues working with other RPUbus host when SBC is powered down.
+        Serial1 and Serial2 from ATmega324pb is for user.
 ```
 
 ## Uses
 
 ```
-        Calibration of rotating hardware measured with input capture (ICP1) hardware.
+        Calibration of volumetric controlled rotation measured with input capture (ICP1) hardware.
         Use a START (ICP3) and STOP (ICP4) sensor to capture displacer events while capturing flow meter pules.
         Diversion and fast/slow flow control are used for gravimetric calibration methods. 
-        One-shot pulse extenders on ICP3 and ICP4 for clean STAR and STOP events.
+        One-shot pulse extenders on ICP3 and ICP4 for precise STAR and STOP events.
 ```
 
 ## Notice
 
 ```
-        Using SPI may trigger ICP3 if it is enabled and will cut off CS_ICP3.
+        Use SPI only after ICP3 event is done, it will cut off CS_ICP3.
 ```
 
 
@@ -68,23 +69,25 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^1  Done: 
-            WIP: Design,
-            Todo: Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+        ^1  Done: Design, 
+            WIP: Layout (#=done),
+            Todo: BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
-            add gap between RJ45 headers
-            Power Protection
-            Alternat power diode replaced with a P-CH MOSFET
-            HOST_nCTS: on manager should move from PC0 to PD2
-            I2C: on ^0 TWI0 goes to the manager but that bus has to be urn as clean I2C so it can go to the user plug, the other port can go to the R-Pi SMbus pins which are not doing true I2C (a time sharing OS issue) and would be a slave SMbus if used.
-            ALT_EN, PIPWR_EN: can go to the manager 
-            ALT_I, ALT_V, PWR_I, PWR_V: can go to the manager ADC 0, 1, 6,7
-            move MGR_STATUS LED to MGR_SCK.
-            connect SHLD_VIN_EN to PB1 on bus manager
-            connect R1 (ALT_V divider to ADC4) directly to ALT input
-            add second K38 under Q9 with its gate controled from ADC4 voltage, so 5..15V is needed to turn on ALT power.
-            connect ALT_EN to PB3 (MOSI) on bus manager (and do not ICSP program the manager with alt power applied). 
-            Pin numbers need changed so PA0 with ADC0 is pin 0 for digital Wiring functions
+            # add gap between RJ45 headers
+            # Power Protection
+            # Alternat power diode replaced with a P-CH MOSFET
+            # HOST_nCTS: on manager should move from PC0 to PD2
+            # keep I2C like ^0: TWI0 goes to the manager as I2C master, the other port TWI1 can be slave or master I2C.
+            # connect R1 (ALT_V divider to ADC4) directly to ALT input
+            # add second K38 under Q9 with its gate controled from ADC4 voltage, so 5..15V is needed to turn on ALT power.
+            # move MGR_STATUS LED to MGR_SCK.
+            # ALT_EN, PIPWR_EN: can go to the manager PB3, PB1
+            # connect PIPWR_EN to PB1 on bus manager
+            # connect ALT_EN to PB3 (MOSI) on bus manager (and do not ICSP program the manager with alt power applied). 
+            # ALT_I, ALT_V, PWR_I, PWR_V: can go to the manager ADC 0, 1, 6,7
+            # connect ADC4..ADC7 to test points
+            # connect PB3 and PB1 to test points
+            # change pin numbers so PA0 (with ADC0) is pin 0 for both digital and analog functions
 
         ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             WIP: 
