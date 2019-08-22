@@ -496,6 +496,46 @@ void test(void)
     }
     digitalWrite(CS_ICP1,LOW);
 
+    // enable CS4_EN
+    digitalWrite(CS4_EN,HIGH);
+    _delay_ms(100); // busy-wait delay
+
+    // ICP1_TERM has CS4_EN on it
+    float adc1_cs4_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs4_i = adc1_cs4_v / ICP1_TERM;
+    printf_P(PSTR("CS4 on ICP1 TERM: %1.3f A\r\n"), adc1_cs4_i);
+    if (adc1_cs4_i < 0.018) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS4 curr is to low.\r\n"));
+    }
+    if (adc1_cs4_i > 0.026) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS4 curr is to high.\r\n"));
+    }
+    digitalWrite(CS4_EN,LOW);
+
+    // enable CS_FAST
+    digitalWrite(CS_FAST,HIGH);
+    _delay_ms(100); // busy-wait delay
+
+    // ICP1_TERM has CS_FAST on it
+    float adc1_cs_fast_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs_fast_i = adc1_cs_fast_v / ICP1_TERM;
+    printf_P(PSTR("CS_FAST on ICP1 TERM: %1.3f A\r\n"), adc1_cs_fast_i);
+    if (adc1_cs_fast_i < 0.018) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_FAST curr is to low.\r\n"));
+    }
+    if (adc1_cs_fast_i > 0.026) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_FAST curr is to high.\r\n"));
+    }
+    digitalWrite(CS_FAST,LOW);
+
     // ICP3 pin is inverted from the plug interface, its Termination should have zero mA. 
     printf_P(PSTR("ICP3 input should be HIGH with 0mA loop current: %d \r\n"), digitalRead(ICP3));
     if (!digitalRead(ICP3)) 
@@ -504,7 +544,66 @@ void test(void)
         printf_P(PSTR(">>> ICP3 should be high.\r\n"));
     }
 
-    // enable CS_ICP3
+    // enable CS_ICP3 which will cause ICP3 to go low and enable CS_DIVERSION that sends current to ICP1 input
+    unsigned long ICP3_one_shot_started_at = millis();
+    unsigned long ICP3_one_shot_time = 0;
+    digitalWrite(CS_ICP3,HIGH);
+    unsigned long ICP3_one_shot_delay = 0;
+    digitalWrite(CS_ICP3,LOW);
+    uint8_t wait_for_ICP1_low = 0;
+    uint8_t wait_for_ICP1_high = 0;
+    uint8_t timeout = 0;
+    while(!wait_for_ICP1_low && !timeout)
+    {
+        if ( (millis() - ICP3_one_shot_started_at) > 100) 
+        {
+            timeout =1;
+            passing = 0; 
+            printf_P(PSTR(">>> ICP3 CS_DIVERSION not seen on ICP1 timeout: %d\r\n"),millis() - ICP3_one_shot_started_at);
+        }
+        if (!digitalRead(ICP1))
+        {
+            ICP3_one_shot_delay = millis() - ICP3_one_shot_started_at;
+            wait_for_ICP1_low =1;
+        }
+    }
+    if (wait_for_ICP1_low) 
+    { 
+        timeout = 0;
+        while(!wait_for_ICP1_high && !timeout)
+        {
+            if ( (millis() - ICP3_one_shot_started_at) > 1000)
+            {
+                timeout =1;
+                passing = 0; 
+                ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
+                printf_P(PSTR(">>> ICP3 CS_DIVERSION did not end befor timeout: %d\r\n"),ICP3_one_shot_time);
+            }
+            if (digitalRead(ICP1))
+            {
+                ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
+                wait_for_ICP1_high =1;
+            }
+        }
+        // time is measured so uart blocking is OK 
+        printf_P(PSTR("ICP3 one-shot delay: %d mSec\r\n"), ICP3_one_shot_delay); 
+        printf_P(PSTR("ICP3 one-shot time: %d mSec\r\n"), ICP3_one_shot_time);
+        if (ICP3_one_shot_time > 5) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> ICP3 one-shot is to long.\r\n"));
+        }
+        if (ICP3_one_shot_time < 1) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> ICP3 one-shot is to short.\r\n"));
+        }
+    }
+    else
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> ICP3 one-shot runs CS_DIVERSION but that curr was not sent to ICP1.\r\n"));
+    }
     digitalWrite(CS_ICP3,HIGH);
     _delay_ms(100); // busy-wait delay
 
@@ -580,7 +679,88 @@ void test(void)
         printf_P(PSTR(">>> ICP4 should be high.\r\n"));
     }
 
+    // enable CS_DIVERSION
+    digitalWrite(CS_DIVERSION,HIGH);
+    _delay_ms(100); // busy-wait delay
+
+    // ICP1_TERM has CS_DIVERSION on it
+    float adc1_cs_diversion_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs_diversion_i = adc1_cs_diversion_v / ICP1_TERM;
+    printf_P(PSTR("CS_DIVERSION on ICP1 TERM: %1.3f A\r\n"), adc1_cs_diversion_i);
+    if (adc1_cs_diversion_i < 0.018) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_DIVERSION curr is to low.\r\n"));
+    }
+    if (adc1_cs_diversion_i > 0.026) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_DIVERSION curr is to high.\r\n"));
+    }
+
+    // enable CS_ICP4 which will cause ICP4 to go low and disable CS_DIVERSION
+    unsigned long ICP4_one_shot_started_at = millis();
+    unsigned long ICP4_one_shot_time = 0;
+    digitalWrite(CS_ICP4,HIGH);
+    unsigned long ICP4_one_shot_delay = 0;
+    digitalWrite(CS_ICP4,LOW);
+    wait_for_ICP1_high = 0;
+    wait_for_ICP1_low = 0;
+    timeout = 0;
+    while(!wait_for_ICP1_high && !timeout)
+    {
+        if ( (millis() - ICP4_one_shot_started_at) > 100) 
+        {
+            timeout =1;
+            passing = 0; 
+            printf_P(PSTR(">>> ICP4 CS_DIVERSION did not end befor timeout: %d\r\n"),millis() - ICP4_one_shot_started_at);
+        }
+        if (digitalRead(ICP1))
+        {
+            ICP4_one_shot_delay = millis() - ICP4_one_shot_started_at;
+            wait_for_ICP1_high =1;
+        }
+    }
+    if (wait_for_ICP1_high) 
+    { 
+        timeout = 0;
+        while(!wait_for_ICP1_low && !timeout)
+        {
+            if ( (millis() - ICP4_one_shot_started_at) > 1000)
+            {
+                timeout =1;
+                passing = 0; 
+                ICP4_one_shot_time = millis() - ICP4_one_shot_started_at;
+                printf_P(PSTR(">>> ICP4 CS_DIVERSION did not restart befor timeout: %d\r\n"),ICP4_one_shot_time);
+            }
+            if (digitalRead(ICP1))
+            {
+                ICP4_one_shot_time = millis() - ICP4_one_shot_started_at;
+                wait_for_ICP1_low =1;
+            }
+        }
+        // time is measured so uart blocking is OK 
+        printf_P(PSTR("ICP4 one-shot delay: %d mSec\r\n"), ICP4_one_shot_delay); 
+        printf_P(PSTR("ICP4 one-shot time: %d mSec\r\n"), ICP4_one_shot_time);
+        if (ICP4_one_shot_time > 5) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> ICP4 one-shot is to long.\r\n"));
+        }
+        if (ICP4_one_shot_time < 1) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> ICP4 one-shot is to short.\r\n"));
+        }
+    }
+    else
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> ICP4 one-shot ends CS_DIVERSION but that was not seen on ICP1.\r\n"));
+    }
+
     // enable CS_ICP4
+    digitalWrite(CS_DIVERSION,LOW);
     digitalWrite(CS_ICP4,HIGH);
     _delay_ms(100); // busy-wait delay
 
