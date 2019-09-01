@@ -69,9 +69,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^1  Done: Design, 
-            WIP: Layout (#=done),
-            Todo: BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+        ^1  Done: Design, Layout, BOM,
+            WIP: Review*,
+            Todo: Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
             # add gap between RJ45 headers
             # Power Protection
