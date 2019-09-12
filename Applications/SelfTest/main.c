@@ -35,8 +35,9 @@ http://www.gnu.org/licenses/gpl-2.0.html
 // measure AVCC and put it hear in uV 
 #define REF_EXTERN_AVCC 4958300UL
 
-
-#define ICP3AND4_TERM 50.0
+// ICP3 has 100 Ohm and R1 in parallel
+#define ICP3_TERM 50.0
+#define ICP4_TERM 100.0
 #define ICP1_TERM 100.0
 
 static unsigned long blink_started_at;
@@ -559,7 +560,7 @@ void test(void)
         {
             timeout =1;
             passing = 0; 
-            printf_P(PSTR(">>> ICP3 CS_DIVERSION not seen on ICP1 timeout: %d\r\n"),millis() - ICP3_one_shot_started_at);
+            printf_P(PSTR(">>> CS_DIVERSION not seen after ICP3 timeout: %d\r\n"),millis() - ICP3_one_shot_started_at);
         }
         if (!digitalRead(ICP1))
         {
@@ -577,7 +578,7 @@ void test(void)
                 timeout =1;
                 passing = 0; 
                 ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
-                printf_P(PSTR(">>> ICP3 CS_DIVERSION did not end befor timeout: %d\r\n"),ICP3_one_shot_time);
+                printf_P(PSTR(">>> CS_DIVERSION did not end from ICP3 befor timeout: %d\r\n"),ICP3_one_shot_time);
             }
             if (digitalRead(ICP1))
             {
@@ -607,9 +608,9 @@ void test(void)
     digitalWrite(CS_ICP3,HIGH);
     _delay_ms(100); // busy-wait delay
 
-    // ICP3_TERM and ICP4_TERM (50Ohm) has CS_ICP3 on it
+    // ICP3_TERM has R1 in parrallel (50Ohm) 
     float adc0_cs_icp3_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs_icp3_i = adc0_cs_icp3_v / ICP3AND4_TERM;
+    float adc0_cs_icp3_i = adc0_cs_icp3_v / ICP3_TERM;
     printf_P(PSTR("CS_ICP3 on ICP3AND4 TERM: %1.3f A\r\n"), adc0_cs_icp3_i);
     if (adc0_cs_icp3_i < 0.012) 
     { 
@@ -635,7 +636,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
     int adc0_used_for_ref_intern_1v1_uV = analogRead(ADC0);
     printf_P(PSTR("   ADC0 reading used to calculate ref_intern_1v1_uV: %d int\r\n"), adc0_used_for_ref_intern_1v1_uV);
-    float _ref_intern_1v1_uV = 1.0E6*1024.0 * ((adc0_cs_icp3_i * ICP3AND4_TERM) / adc0_used_for_ref_intern_1v1_uV);
+    float _ref_intern_1v1_uV = 1.0E6*1024.0 * ((adc0_cs_icp3_i * ICP3_TERM) / adc0_used_for_ref_intern_1v1_uV);
     uint32_t temp_ref_intern_1v1_uV = (uint32_t)_ref_intern_1v1_uV;
     printf_P(PSTR("   calculated ref_intern_1v1_uV: %lu uV\r\n"), temp_ref_intern_1v1_uV);
     uint32_t temp_ref_extern_avcc_uV = ref_extern_avcc_uV;
@@ -699,12 +700,16 @@ void test(void)
         printf_P(PSTR(">>> CS_DIVERSION curr is to high.\r\n"));
     }
 
-    // enable CS_ICP4 which will cause ICP4 to go low and disable CS_DIVERSION
-    unsigned long ICP4_one_shot_started_at = millis();
-    unsigned long ICP4_one_shot_time = 0;
+    // enable CS_ICP4 which will cause ICP4 to go low and disable CS_DIVERSION for one or two mSec
+    if (digitalRead(ICP1)) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> ICP1 should be low befor turning on CS_ICP4.\r\n"));
+    }
     digitalWrite(CS_ICP4,HIGH);
+    unsigned long ICP4_one_shot_started_at = millis();
+    unsigned long ICP4_one_shot_event = 0;
     unsigned long ICP4_one_shot_delay = 0;
-    digitalWrite(CS_ICP4,LOW);
     wait_for_ICP1_high = 0;
     wait_for_ICP1_low = 0;
     timeout = 0;
@@ -714,7 +719,7 @@ void test(void)
         {
             timeout =1;
             passing = 0; 
-            printf_P(PSTR(">>> ICP4 CS_DIVERSION did not end befor timeout: %d\r\n"),millis() - ICP4_one_shot_started_at);
+            printf_P(PSTR(">>> CS_DIVERSION did not end from ICP4 befor timeout: %d\r\n"), millis() - ICP4_one_shot_started_at);
         }
         if (digitalRead(ICP1))
         {
@@ -722,6 +727,32 @@ void test(void)
             wait_for_ICP1_high =1;
         }
     }
+    
+    // ICP4_TERM with CS_ICP4 is measured with ADC3
+    float adc3_cs_icp4_v = analogRead(ADC3)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc3_cs_icp4_i = adc3_cs_icp4_v / ICP4_TERM;
+    printf_P(PSTR("CS_ICP4 on ICP4_TERM: %1.3f A\r\n"), adc3_cs_icp4_i);
+    if (adc3_cs_icp4_i < 0.012) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_ICP4 curr is to low.\r\n"));
+    }
+    if (adc3_cs_icp4_i > 0.020) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_ICP4 curr is to high.\r\n"));
+    }
+
+    // ICP4 pin is inverted logic, and should a low when 17 mA is on the ICP4_TERM Termination
+    printf_P(PSTR("ICP4 /w 17mA on termination reads: %d \r\n"), digitalRead(ICP4));
+    if (digitalRead(ICP4)) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> ICP4 should be low with 17mA.\r\n"));
+    }
+
+    // ICP4 is on the gate of an n-channel level shift that will cut-off CS_DIVERSION when it is low
+    digitalWrite(CS_ICP4,LOW);
     if (wait_for_ICP1_high) 
     { 
         timeout = 0;
@@ -731,24 +762,24 @@ void test(void)
             {
                 timeout =1;
                 passing = 0; 
-                ICP4_one_shot_time = millis() - ICP4_one_shot_started_at;
-                printf_P(PSTR(">>> ICP4 CS_DIVERSION did not restart befor timeout: %d\r\n"),ICP4_one_shot_time);
+                ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
+                printf_P(PSTR(">>> CS_DIVERSION did not restart from ICP4 befor timeout: %d\r\n"),ICP4_one_shot_event);
             }
             if (digitalRead(ICP1))
             {
-                ICP4_one_shot_time = millis() - ICP4_one_shot_started_at;
+                ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
                 wait_for_ICP1_low =1;
             }
         }
         // time is measured so uart blocking is OK 
         printf_P(PSTR("ICP4 one-shot delay: %d mSec\r\n"), ICP4_one_shot_delay); 
-        printf_P(PSTR("ICP4 one-shot time: %d mSec\r\n"), ICP4_one_shot_time);
-        if (ICP4_one_shot_time > 5) 
+        printf_P(PSTR("ICP4 one-shot time: %d mSec\r\n"), ICP4_one_shot_event - ICP4_one_shot_delay);
+        if (ICP4_one_shot_event - ICP4_one_shot_delay > 25) 
         { 
             passing = 0; 
             printf_P(PSTR(">>> ICP4 one-shot is to long.\r\n"));
         }
-        if (ICP4_one_shot_time < 1) 
+        if (ICP4_one_shot_event - ICP4_one_shot_delay < 1) 
         { 
             passing = 0; 
             printf_P(PSTR(">>> ICP4 one-shot is to short.\r\n"));
@@ -760,39 +791,16 @@ void test(void)
         printf_P(PSTR(">>> ICP4 one-shot ends CS_DIVERSION but that was not seen on ICP1.\r\n"));
     }
 
-    // enable CS_ICP4
+    // everything off for input current measurement
     digitalWrite(CS_DIVERSION,LOW);
-    digitalWrite(CS_ICP4,HIGH);
-    init_ADC_single_conversion(INTERNAL_1V1); 
-    _delay_ms(100); // busy-wait delay
-
-    // ICP3_TERM and ICP4_TERM (50Ohm) has CS_ICP4 on it
-    float adc0_cs_icp4_v = analogRead(ADC0)*((ref_intern_1v1_uV/1.0E6)/1024.0);
-    float adc0_cs_icp4_i = adc0_cs_icp4_v / ICP3AND4_TERM;
-    printf_P(PSTR("CS_ICP4 on ICP3AND4 TERM: %1.3f A\r\n"), adc0_cs_icp4_i);
-    if (adc0_cs_icp4_i < 0.012) 
-    { 
-        passing = 0; 
-        printf_P(PSTR(">>> CS_ICP4 curr is to low.\r\n"));
-    }
-    if (adc0_cs_icp4_i > 0.020) 
-    { 
-        passing = 0; 
-        printf_P(PSTR(">>> CS_ICP4 curr is to high.\r\n"));
-    }
-
-    // ICP4 pin is inverted from to the plug interface, and should have 17 mA on the combined Termination
-    printf_P(PSTR("ICP4 /w 8mA on termination reads: %d \r\n"), digitalRead(ICP3));
-    if (digitalRead(ICP1)) 
-    { 
-        passing = 0; 
-        printf_P(PSTR(">>> ICP4 should be low with 8mA.\r\n"));
-    }
     digitalWrite(CS_ICP4,LOW);
-    _delay_ms(100); // busy-wait delay
+    init_ADC_single_conversion(INTERNAL_1V1); 
+    _delay_ms(1500); // busy-wait delay
     
     // Input current at no load with 1V1 band-gap referance
     float input_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
+    printf_P(PSTR("PWR_I at no load use INTERNAL_1V1: %1.3f A\r\n"), input_i);
+    input_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
     printf_P(PSTR("PWR_I at no load use INTERNAL_1V1: %1.3f A\r\n"), input_i);
     if (input_i > 0.026) 
     { 
@@ -800,7 +808,7 @@ void test(void)
         printf_P(PSTR(">>> Input curr is to high.\r\n"));
         return;
     }
-    if (input_i < 0.013) 
+    if (input_i < 0.007) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> Input curr is to low.\r\n"));
@@ -813,8 +821,8 @@ void test(void)
 
     // CS0 drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs0_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs0_i = adc0_cs0_v / ICP3AND4_TERM;
-    printf_P(PSTR("CS0 on ICP3&4 TERM: %1.3f A\r\n"), adc0_cs0_i);
+    float adc0_cs0_i = adc0_cs0_v / ICP3_TERM;
+    printf_P(PSTR("CS0 on ICP3_TERM: %1.3f A\r\n"), adc0_cs0_i);
     if (adc0_cs0_i < 0.018) 
     { 
         passing = 0; 
@@ -833,8 +841,8 @@ void test(void)
     
     // CS1  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs1_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs1_i = adc0_cs1_v / ICP3AND4_TERM;
-    printf_P(PSTR("CS1 on ICP3&4 TERM: %1.3f A\r\n"), adc0_cs1_i);
+    float adc0_cs1_i = adc0_cs1_v / ICP3_TERM;
+    printf_P(PSTR("CS1 on ICP3_TERM: %1.3f A\r\n"), adc0_cs1_i);
     if (adc0_cs1_i < 0.018) 
     { 
         passing = 0; 
@@ -853,8 +861,8 @@ void test(void)
     
     // CS2  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs2_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs2_i = adc0_cs2_v / ICP3AND4_TERM;
-    printf_P(PSTR("CS2 on ICP3&4 TERM: %1.3f A\r\n"), adc0_cs2_i);
+    float adc0_cs2_i = adc0_cs2_v / ICP3_TERM;
+    printf_P(PSTR("CS2 on ICP3_TERM: %1.3f A\r\n"), adc0_cs2_i);
     if (adc0_cs2_i < 0.018) 
     { 
         passing = 0; 
@@ -873,8 +881,8 @@ void test(void)
     
     // CS3  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs3_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs3_i = adc0_cs3_v / ICP3AND4_TERM;
-    printf_P(PSTR("CS3 on ICP3&4 TERM: %1.3f A\r\n"), adc0_cs3_i);
+    float adc0_cs3_i = adc0_cs3_v / ICP3_TERM;
+    printf_P(PSTR("CS3 on ICP3_TERM: %1.3f A\r\n"), adc0_cs3_i);
     if (adc0_cs3_i < 0.018) 
     { 
         passing = 0; 

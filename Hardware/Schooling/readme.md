@@ -4,10 +4,15 @@ Some lessons I learned doing Gravimetric.
 
 # Table Of Contents:
 
+1. ^0 N-CH Cutoff
 1. ^0 Power Protection 
 1. ^0 Manager Should Do More
 1. ^0 Alternat Power Diode
 
+
+## ^0 N-CH Cutoff
+
+Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low. The source and drain need to be swapped to work correctly, and sadly I have ^1 on order, so that means I will have to fix them on ^2.
 
 ## ^0  Power Protection
 

@@ -2,8 +2,6 @@
 
 ## known issues
 
-Problem CS_DIVERSION does not stop for ICP4, welp ICP3 and ICP4 are both triggured at the same time so this set up has to change, but that will happen after ^1. 
-
 Use bootload port to view test, since "Remote" firmware on remote managers does not recover after test mode.
 
 
@@ -57,11 +55,11 @@ Now connect with picocom (exit is C-a, C-x).
 # use bootload port
 picocom -b 38400 /dev/ttyUSB0
 ...
-Gravimetric Self Test date: Aug 22 2019
+Gravimetric Self Test date: Sep 11 2019
 avr-gcc --version: 5.4.0
 I2C provided address 0x31 from RPUadpt serial bus manager
-adc reading for PWR_V: 361 int
-PWR at: 12.811 V
+adc reading for PWR_V: 359 int
+PWR at: 12.740 V
 ADC0 at ICP3&4 TERM /W all CS off: 0.000 V
 ADC1 at ICP1 TERM /w all CS off: 0.000 V
 ADC2 at ICP3&4 TERM /W all CS off: 0.000 V
@@ -76,22 +74,23 @@ ICP3 one-shot delay: 0 mSec
 ICP3 one-shot time: 1 mSec
 CS_ICP3 on ICP3AND4 TERM: 0.018 A
 ICP3 /w 8mA on termination reads: 0
-   ADC0 reading used to calculate ref_intern_1v1_uV: 867 int
-   calculated ref_intern_1v1_uV: 1080875 uV
+   ADC0 reading used to calculate ref_intern_1v1_uV: 859 int
+   calculated ref_intern_1v1_uV: 1090941 uV
 REF_EXTERN_AVCC old value found in eeprom: 4958300 uV
 REF_INTERN_1V1 old value found in eeprom: 1085884 uV
 REF_EXTERN_AVCC from eeprom is same
 ICP4 input should be HIGH with 0mA loop current: 1
-CS_DIVERSION on ICP1 TERM: 0.021 A
->>> ICP4 CS_DIVERSION did not end befor timeout: 101
->>> ICP4 one-shot ends CS_DIVERSION but that was not seen on ICP1.
-CS_ICP4 on ICP3AND4 TERM: 0.018 A
-ICP4 /w 8mA on termination reads: 0
-PWR_I at no load use INTERNAL_1V1: 0.024 A
-CS0 on ICP3&4 TERM: 0.021 A
-CS1 on ICP3&4 TERM: 0.022 A
-CS2 on ICP3&4 TERM: 0.022 A
-CS3 on ICP3&4 TERM: 0.022 A
+CS_DIVERSION on ICP1 TERM: 0.022 A
+CS_ICP4 on ICP4_TERM: 0.018 A
+ICP4 /w 17mA on termination reads: 0
+ICP4 one-shot delay: 0 mSec
+ICP4 one-shot time: 19 mSec
+PWR_I at no load use INTERNAL_1V1: 0.009 A
+PWR_I at no load use INTERNAL_1V1: 0.008 A
+CS0 on ICP3_TERM: 0.022 A
+CS1 on ICP3_TERM: 0.022 A
+CS2 on ICP3_TERM: 0.022 A
+CS3 on ICP3_TERM: 0.022 A
 TX1 loopback to RX1 == HIGH
 TX1 loopback to RX1 == LOW
 TX2 loopback to RX2 == HIGH
@@ -108,7 +107,7 @@ Testmode: default trancever control bits
 I2C0 Start Test Mode cmd was clean {48, 1}
 I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
 Testmode: read  Xcvr cntl bits {50, 0xE2}
-PWR_I /w no load using INTERNAL_1V1: 0.009 A
+PWR_I /w no load using INTERNAL_1V1: 0.011 A
 
 Testmode: nCTS loopback to nRTS
 I2C0 Start Test Mode cmd was clean {48, 1}
@@ -121,14 +120,14 @@ Testmode: Enable TX pair driver
 I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
 Testmode: set  Xcvr cntl bits {51, 0xF2}
 Testmode: read  Xcvr cntl bits {50, 0xF2}
-PWR_I /w TX pair load: 0.029 A
+PWR_I /w TX pair load: 0.030 A
 
 Testmode: Enable TX & RX(loopback) pair drivers
  I2C0 Start Test Mode cmd was clean {48, 1}
 I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
 Testmode: set  Xcvr cntl bits {51, 0xD1}
 Testmode: read  Xcvr cntl bits {50, 0xD1}
-PWR_I /w TX and RX pairs loaded: 0.051 A
+PWR_I /w TX and RX pairs loaded: 0.050 A
 RX loopback checked
 
 Testmode: Enable DTR pair driver
@@ -136,7 +135,7 @@ I2C0 Start Test Mode cmd was clean {48, 1}
 I2C0 End Test Mode hex is Xcvr cntl bits {49, 0xD5}
 Testmode: set  Xcvr cntl bits {51, 0xE6}
 Testmode: read  Xcvr cntl bits {50, 0xE6}
-PWR_I /w DTR pair load: 0.030 A
-[FAIL]
+PWR_I /w DTR pair load: 0.029 A
+[PASS]
 ```
 

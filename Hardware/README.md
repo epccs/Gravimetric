@@ -69,9 +69,15 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
-        ^1  Done: Design, Layout, BOM,
-            WIP: Review*,
-            Todo: Order Boards, Assembly, Testing, Evaluation.
+        ^2  Done: 
+            WIP: 
+            Todo: Design, Layout (#=done), BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+            *during review the Design may change without changing the revision.
+            Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low.
+
+        ^1  Done: Design, Layout, BOM, Review*, Order Boards,
+            WIP: Assembly,
+            Todo: Testing, Evaluation.
             *during review the Design may change without changing the revision.
             # add gap between RJ45 headers
             # Power Protection
