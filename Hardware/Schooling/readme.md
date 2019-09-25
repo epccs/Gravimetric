@@ -4,15 +4,22 @@ Some lessons I learned doing Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 Reflow Disaster
 1. ^0 N-CH Cutoff
 1. ^0 Power Protection 
 1. ^0 Manager Should Do More
 1. ^0 Alternat Power Diode
 
 
+## ^1 Reflow Disaster
+
+When humidity is high, it may be more productive to procrastinate. Almost 30% of the parts went flying. I have seen this before, but this time I did it to my board, I stopped at the start of the flux activation stage when I recognized what was happening. It reflowed after sorting through the missing parts, and some preheat treatment at about 80 deg C to dry things before going through the typical profile. Do I need to log the RH and reflow results, probably that would be useful to figure out what range I can tolerate.
+
+
 ## ^0 N-CH Cutoff
 
 Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low. The source and drain need to be swapped to work correctly, and sadly I have ^1 on order, so that means I will have to fix them on ^2.
+
 
 ## ^0  Power Protection
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This board has an ATmega324pb which has three timers (Timer1, Timer3, Timer4) that have input capture (ICP) hardware. The main idea is to calibrate flow meters with a gravimetric method, so that means it needs to capture flow meter events (pulses) and calibrate them with a volume corrected weight. This method can also be used for [prover]. ICP1 is used with the flow meter which produces pulses as a unit of volume flows (e.g. a magnet on a spinning turbine triggering a sensor). ICP3 is used to measure a volume start event and ICP4 a stop event. A one-shot pulse extender is used with the ICP3 and ICP4 inputs. Gravimetric proving is fairly easy with a flow meter alone but may also benefit from ideas found on volume provers. To do a gravimetric calibration on a volume prover a diversion needs to operate in a way I'm going to liken to a bistable switch. The diversion fills a bucket (or ilk) that will be weighted. The one-shot that feds ICP3 on the ATmega324pb is also used to start the diversion and the ISR that ICP3 runs enables a pin that holds the diversion. The ICP4 (stop event) has a way to override the hold on the diversion control. The ISR that ICP4 runs needs to disable the pin that holds the diversion so it will stay off after the ICP4 one-shot ends. The result is that flow is diverted from the instant START occurs to the instant STOP occurs. One helpful thing to do is slow the flow near the start and stop events, but that requires the magic of a computer (and SBC like an R-Pi) and estimates of when those events will occur in relation to the flow meter pulse counts.
+This board has an ATmega324pb which has three timers (Timer1, Timer3, Timer4) that have input capture (ICP) hardware all running from the same crystal. The main idea is to calibrate flow meters with a gravimetric method, so that means it needs to capture flow meter events (pulses) so they can be calibrated them with a volume corrected weight. This method is also the preferred way to calibrate [provers]. ICP1 connects with the flow meter which produces pulses as a unit of volume flows (e.g., a magnet on a spinning turbine triggering a sensor). ICP3 is used to measure a start event and ICP4 a stop event. ICP3 and ICP4 inputs each have a one-shot pulse extender. Gravimetric proving is reasonably natural with a flow meter alone but may also benefit from ideas seen in flow labs. A diversion needs to switch the flow from the unmeasured path to measurement side like a bistable switch. Usually, the measurement side fills a bucket (or ilk) that will be weighted. The one-shot that feds ICP3 on the ATmega324pb is also a circuit that starts the diversion instantly and gives the interrupt service routine (ISR) some time to latch the diversion. The one-shot pulse extender on ICP4 can override the diversion latch to send the flow away from the bucket. The ISR that ICP4 runs can then disable the latch that holds the diversion so it will stay off after the ICP4 one-shot ends. The result is that flow is immediately diverted from the instant START occurs to the instant STOP occurs. One helpful thing to do is slow the flow near the start and stop events, but that requires the magic of a computer (and SBC like an R-Pi) which needs to estimate when those events will occur relative to the flow meter pulse counts and is a somewhat iterative method.
 
 [prover]: http://asgmt.com/wp-content/uploads/2016/02/011_.pdf
 
@@ -17,10 +17,10 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
         ATmega324pb application controler.
         ATmega328pb managment controler.
         Input power can range from 7 to 36V DC
-        Alternat input voltage is sensed (ADC4 on ^0).
-        High side current sense of alternat input power (ADC5 on ^0).
-        High side current sense of input power (ADC6 on ^0).
-        Input power voltage is sensed (ADC7 on ^0).
+        Alternat input voltage (ALT_V) is sensed with manager ADC channel 1.
+        High side current sense of alternat input current (ALT_I) is sensed with manager ADC channel 0.
+        High side current sense of input current (PWR_I) is sensed with manager ADC channel 6.
+        Input voltage (PWR_V) is sensed with manager ADC channel 7.
         Four analog (ADC channel 0..3) or digital connections with level conversion.
         Three inputs for event capture: ICP1, ICP3, ICP4.
         Two of the event capture inputs have a one shot pulse extender: ICP3, ICP4.
@@ -52,6 +52,8 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
 
 ```
         Use SPI only after ICP3 event is done, it will cut off CS_ICP3.
+        ADC channel 4..7 are not used at this time, the do have test points.
+        PB2 and PD7 are not used at this time, and also have test points.
 ```
 
 
@@ -75,9 +77,9 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             *during review the Design may change without changing the revision.
             Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low.
 
-        ^1  Done: Design, Layout, BOM, Review*, Order Boards,
-            WIP: Assembly,
-            Todo: Testing, Evaluation.
+        ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly,
+            WIP: Testing, 
+            Todo: Evaluation.
             *during review the Design may change without changing the revision.
             # add gap between RJ45 headers
             # Power Protection
