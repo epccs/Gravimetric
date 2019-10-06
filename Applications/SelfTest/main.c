@@ -731,25 +731,9 @@ void test(void)
     // ICP4_TERM with CS_ICP4 is measured with ADC3
     float adc3_cs_icp4_v = analogRead(ADC3)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc3_cs_icp4_i = adc3_cs_icp4_v / ICP4_TERM;
-    printf_P(PSTR("CS_ICP4 on ICP4_TERM: %1.3f A\r\n"), adc3_cs_icp4_i);
-    if (adc3_cs_icp4_i < 0.012) 
-    { 
-        passing = 0; 
-        printf_P(PSTR(">>> CS_ICP4 curr is to low.\r\n"));
-    }
-    if (adc3_cs_icp4_i > 0.020) 
-    { 
-        passing = 0; 
-        printf_P(PSTR(">>> CS_ICP4 curr is to high.\r\n"));
-    }
 
     // ICP4 pin is inverted logic, and should a low when 17 mA is on the ICP4_TERM Termination
-    printf_P(PSTR("ICP4 /w 17mA on termination reads: %d \r\n"), digitalRead(ICP4));
-    if (digitalRead(ICP4)) 
-    { 
-        passing = 0; 
-        printf_P(PSTR(">>> ICP4 should be low with 17mA.\r\n"));
-    }
+    uint8_t  icp4_befor_cs_turned_off = digitalRead(ICP4);
 
     // ICP4 is on the gate of an n-channel level shift that will cut-off CS_DIVERSION when it is low
     digitalWrite(CS_ICP4,LOW);
@@ -765,21 +749,39 @@ void test(void)
                 ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
                 printf_P(PSTR(">>> CS_DIVERSION did not restart from ICP4 befor timeout: %d\r\n"),ICP4_one_shot_event);
             }
-            if (digitalRead(ICP1))
+            if (!digitalRead(ICP1))
             {
                 ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
-                wait_for_ICP1_low =1;
+                wait_for_ICP1_low =1; // it was high befor turning off cs_icp4, so the one shot is the only thing holding cs_diversion off
             }
         }
-        // time is measured so uart blocking is OK 
+        
+        // time is measured so uart blocking is OK now
+        printf_P(PSTR("CS_ICP4 on ICP4_TERM: %1.3f A\r\n"), adc3_cs_icp4_i);
+        if (adc3_cs_icp4_i < 0.012) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> CS_ICP4 curr is to low.\r\n"));
+        }
+        if (adc3_cs_icp4_i > 0.020) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> CS_ICP4 curr is to high.\r\n"));
+        }
+        printf_P(PSTR("ICP4 /w 17mA on termination reads: %d \r\n"), icp4_befor_cs_turned_off);
+        if (icp4_befor_cs_turned_off) 
+        { 
+            passing = 0; 
+            printf_P(PSTR(">>> ICP4 should be low with 17mA.\r\n"));
+        }
         printf_P(PSTR("ICP4 one-shot delay: %d mSec\r\n"), ICP4_one_shot_delay); 
-        printf_P(PSTR("ICP4 one-shot time: %d mSec\r\n"), ICP4_one_shot_event - ICP4_one_shot_delay);
-        if (ICP4_one_shot_event - ICP4_one_shot_delay > 25) 
+        printf_P(PSTR("ICP4 one-shot time: %d mSec\r\n"), ICP4_one_shot_event);
+        if (ICP4_one_shot_event > 3) 
         { 
             passing = 0; 
             printf_P(PSTR(">>> ICP4 one-shot is to long.\r\n"));
         }
-        if (ICP4_one_shot_event - ICP4_one_shot_delay < 1) 
+        if (ICP4_one_shot_event  < 1) 
         { 
             passing = 0; 
             printf_P(PSTR(">>> ICP4 one-shot is to short.\r\n"));

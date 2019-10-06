@@ -7,10 +7,38 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^0 Start One Shot
+1. ^0 Stop One Shot
 1. ^0 Alternat Power Modified
 1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^0 Start One Shot
+
+The pulse extender (one-shot) is evident in the image. The START input is toggled for 50uSec, and the One-Shot holds the ICP3 pin for about 1100 uSec. The CS_DIVERSION is sending 22mA to the ICP1 input resistor (100 Ohm, R119), and it is on during the One-Shot.
+
+![StartOneShot](./17341^0_StartOneShot.jpg "Start One Shot")
+
+Changing the time scale to 500 nSec/div we can see what the hardware signal timing looks like, the timing is fixed by hardware and is repeatable (e.g., this does not reduce measurement repeatability).
+
+![StartOneShotFixed](./17341^0_StartOneShot_fixedOffset.jpg "Start One Shot Fixed Offset")
+
+Reworked Q105 and Q118 was done to fix N-CH Cutoff issue noted in schooling for this.
+
+
+## ^0 Stop One Shot
+
+The pulse extender (one-shot) is evident in the image. The STOP input is toggled for 200uSec, and the One-Shot holds the ICP4 pin for about 1100 uSec. The CS_DIVERSION is sending 22mA to the ICP1 input resistor (100 Ohm, R119), and it is cut off during the One-Shot.
+
+![StopOneShot](./17341^0_StopOneShot.jpg "Stop One Shot")
+
+Changing the time scale to 500 nSec/div we can see what the hardware signal timing looks like, the timing is fixed by hardware and is repeatable (e.g., this does not reduce measurement repeatability).
+
+![StopOneShotFixed](./17341^0_StopOneShot_fixedOffset.jpg "Stop One Shot Fixed Offset")
+
+Reworked Q105 and Q118 was done to fix N-CH Cutoff issue noted in schooling for this.
 
 
 ## ^0 Alternat Power Modified
