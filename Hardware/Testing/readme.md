@@ -13,13 +13,13 @@ This is a list of Test preformed on each Gravimetric board after assembly.
 4. Power Protection
 5. Power Without SMPS
 6. Bias +5V
-7. Install Bootloader
+7. Install Manager and Bootloader
 8. Install SMPS
 9. Self Test
 
 ## Basics
 
-These tests are for an assembled Gravimetric board 17341^0 which may be referred to as a Unit Under Test (UUT). If the UUT fails and can be reworked then do so, otherwise it needs to be scraped. 
+These tests are for an assembled Gravimetric board 17341^1 which may be referred to as a Unit Under Test (UUT). If the UUT fails and can be reworked then do so, otherwise it needs to be scraped. 
 
 **Warning: never use a soldering iron to rework crystals or ceramic capacitors due to the thermal shock.**
     
@@ -43,7 +43,9 @@ This is a simplified In-Circuit Test (ICT). It could become more valuable if the
 
 ## Power Protection
 
-Apply a current limited (20mA) supply set with 5V to the PWR and 0V connector J8 in reverse and verify that the voltage does not get through. Adjust the supply to 36V and verify no current is passing.
+Apply a current limited (20mA) supply set with 5V to the PWR and 0V connector J8 pin 1 and pin 2 in reverse and verify that the voltage does not get through. Adjust the supply to 36V and verify no current is passing.
+
+Apply a current limited (20mA) supply set with 5V to the ALT and 0V connector J8 pin 3 and pin 2 in reverse and verify that the input is 100k Ohm (e.g., 0.36mA@36V). Adjust the supply to 36V and verify.
 
 
 ## Power Without SMPS
@@ -53,9 +55,9 @@ Apply a current limited (20mA) supply set with 7V to the PWR and 0V connector J7
 NOTE for referance the zener voltage on Q5 is 7.75V at 30V.
 
 ```
-{ "LEDON_V":[10.6,],
-  "PWR@7V_mA":[0.125,],
-  "PWR@30V_mA":[1.5,] }
+{ "LEDON_V":[10.6,10.6,],
+  "PWR@7V_mA":[0.125,0.07,],
+  "PWR@30V_mA":[1.5,1.7,] }
 ```
 
 
@@ -64,13 +66,13 @@ NOTE for referance the zener voltage on Q5 is 7.75V at 30V.
 Apply a 30mA current limited 5V source to +5V (J1). Check that the input current is for two blank MCU (e.g., manager and application). Turn off the power.
 
 ```
-{ "I_IN_BLANKMCU_mA":[4.7,]}
+{ "I_IN_BLANKMCU_mA":[4.7,6.2,]}
 ```
 
-Note: Internal clock/8 (=1MHz) and IO pins are floating (a test fixture is needed).
+Note: Internal clock/8 (=1MHz) and IO pins are floating (thus the current will change).
 
 
-## Install Bootloader
+## Install Manager and Bootloader
 
 Install Git and AVR toolchain on Ubuntu (18.04). 
 
@@ -96,7 +98,7 @@ make isp
 Verify that the uploader finished without errors and measure the input current to verify it is running with the crystal.
 
 ```
-{ "I_IN_MGR_FLAGS_SET_mA":[19.4,]}
+{ "I_IN_MGR_FLAGS_SET_mA":[19.4,opps,]}
 
 Next upload the bootloader on the application controller port (J12).
 
@@ -109,7 +111,7 @@ make isp
 Measure the input current, wait for the power to be settled. Turn off the power.
 
 ```
-{ "I_IN_MGR_AND_APP_FLAGS_SET_mA":[33.5,]}
+{ "I_IN_MGR_AND_APP_FLAGS_SET_mA":[33.5,34.2,]}
 ```
 
 Add U3 to the board now.

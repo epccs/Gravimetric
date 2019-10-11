@@ -1,8 +1,12 @@
-# Graviton
+# Time-WeightCal
 
 ## Overview
 
-This firmware is not done; it is aimed at helping to understand the gravimetric calibration method for liquid metering devices. I will deal with integers on the MCU so for fun I am going to call this Graviton. It will be an interactive command-line program that demonstrates control options of this board to do Gravimetric calibration, the program source documents how that is achieved. 
+This firmware is not done; it is aimed at helping to understand the time-weight gravimetric calibration method for liquid metering devices. Essentially this method consists of a bucket on a scale with a stopwatch to time the filling of the bucket. The bucket can be a large tank, and the scale highly accurate. This board provides the stopwatch with sensor-based timing and a crystal-controlled clock.
+
+Gravimetric calibration incorporates reservoir tanks, pumps, diverter valves, and flow straighteners. After setting the desired flow rate for the calibration run, the diverter valve STARTS a calibration by changing from the flow loop path to the measured reservoir (e.g., into the holding tank). At the end of the run, the diverter valve returns the fluid flow to the regular flow loop again, and the system weighs the diverted volume of fluid to determine a mass that corresponds with the flow meters flow count.
+
+I will deal with integers on the MCU so for fun I am going to call this Graviton. It will be an interactive command-line program that demonstrates control options of this board to do Gravimetric calibration, the program source documents how that is achieved. 
 
 Water is diverted into a tank for a time determined by the ICP3 (START) and ICP4 (STOP) events. The weight of the collected water is measured. The pulses from a flow meter are input with ICP1 between the START and STOP time to calculate a meter constant (the meters K factor). 
 

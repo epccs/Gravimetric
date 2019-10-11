@@ -282,22 +282,17 @@ void watchdogConfig(uint8_t x) {
     7f84:	08 95       	ret
 
 00007f86 <verifySpace>:
+void getNch(uint8_t count) {
   do getch(); while (--count);
   verifySpace();
 }
 
 void verifySpace() {
-  if (getch() != CRC_EOP) {
     7f86:	ed df       	rcall	.-38     	; 0x7f62 <getch>
     7f88:	80 32       	cpi	r24, 0x20	; 32
-    watchdogConfig(WATCHDOG_16MS);    // shorten WD timeout
     7f8a:	19 f0       	breq	.+6      	; 0x7f92 <verifySpace+0xc>
     7f8c:	88 e0       	ldi	r24, 0x08	; 8
     7f8e:	f5 df       	rcall	.-22     	; 0x7f7a <watchdogConfig>
-    while (1)			      // and busy-loop so that WD causes
-      ;				      //  a reset and app start.
-  }
-  putch(STK_INSYNC);
     7f90:	ff cf       	rjmp	.-2      	; 0x7f90 <verifySpace+0xa>
     7f92:	84 e1       	ldi	r24, 0x14	; 20
     7f94:	df cf       	rjmp	.-66     	; 0x7f54 <putch>
