@@ -19,29 +19,35 @@
 #ifndef Pins_Board_h
 #define Pins_Board_h
 
-#define DTR_RXD 0
-#define DTR_TXD 1
-#define HOST_nDTR 2
-#define HOST_nRTS 3
-#define RX_nRE 4
-#define TX_DE 5
-#define DTR_nRE 6
-#define DTR_DE 7
+// ADC channels 0..7
+#define ALT_I  0
+#define ALT_V 1
+#define TX_nRE 2
+#define RX_DE 3
+#define SDA0 4
+#define SCL0 5
+#define PWR_I  6
+#define PWR_V 7
+
 #define SHUTDOWN 8
+#define PIPWR_EN 9
+#define MGR_nSS 10
+#define MGR_MOSI 11
+#define ALT_EN 11
+#define MGR_MISO 12
+#define MGR_SCK 13
+#define LED_BUILTIN 13
 
-#define LED_BUILTIN 9
+#define DTR_RXD 14
+#define DTR_TXD 15
+#define HOST_nCTS 16
+#define HOST_nRTS 17
+#define RX_nRE 18
+#define TX_DE 19
+#define DTR_nRE 20
+#define DTR_DE 21
 
-#define nSS 10
-#define MOSI 11
-#define MISO 12
-#define SCK 13
-
-#define HOST_nCTS 14
-#define HOST_nDSR 15
-#define TX_nRE 16
-#define RX_DE 17
-
-#define SDA 18
-#define SCL 19
+#define SDA1 22
+#define SCL1 23
 
 #endif // Pins_Board_h

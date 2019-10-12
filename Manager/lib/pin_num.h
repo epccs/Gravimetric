@@ -45,28 +45,28 @@ typedef struct {
 
 #define NUM_DIGITAL_PINS 24
 static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
-    [0] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD0 }, // DTR_RXD
-    [1] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD1 }, // DTR_TXD
-    [2] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD2 }, // HOST_nDTR
-    [3] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD3 }, // HOST_nRTS
-    [4] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD4 }, // RX_nRE
-    [5] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD5 }, // TX_DE
-    [6] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD6 }, // DTR_nRE
-    [7] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD7 }, // DTR_DE
-    [8] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB0 }, // SHUTDWN 
-    [9] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB1 }, // LED_BUILTIN
-    [10] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB2 }, // nSS
-    [11] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB3 }, // MOSI
-    [12] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB4 }, // MISO
-    [13] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB5 }, // SCK
-    [14] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC0 }, // HOST_nCTS
-    [15] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC1 }, // HOST_nDSR
-    [16] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC2 }, // TX_nRE
-    [17] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC3 }, //  RX_DE
-    [18] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC4 }, // SDA0
-    [19] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC5 }, //  SCL0
-    [20] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE2 }, // 
-    [21] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 }, // 
+    [0] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC0 }, // ALT_I
+    [1] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC1 }, // ALT_V
+    [2] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC2 }, // TX_nRE
+    [3] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC3 }, // RX_DE
+    [4] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC4 }, // SDA0
+    [5] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PC5 }, // SCL0
+    [6] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE2 }, // PWR_I
+    [7] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 }, // PWR_V
+    [8] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB0 }, // SHUTDOWN 
+    [9] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB1 }, // PIPWR_EN
+    [10] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB2 }, // MGR_nSS
+    [11] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB3 }, // MGR_MOSI/ALT_EN
+    [12] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB4 }, // MGR_MISO
+    [13] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB5 }, // MGR_SCK/LED_BUILTIN
+    [14] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD0 }, // DTR_RXD
+    [15] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD1 }, // DTR_TXD
+    [16] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD2 }, // HOST_nCTS
+    [17] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD3 }, // HOST_nRTS
+    [18] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD4 }, // RX_nRE
+    [19] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD5 }, // TX_DE
+    [20] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD6 }, // DTR_nRE
+    [21] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD7 }, // DTR_DE
     [22] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE0 }, // SDA1
     [23] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE1 } // SCL1
 };

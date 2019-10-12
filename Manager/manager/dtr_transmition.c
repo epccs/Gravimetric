@@ -36,14 +36,13 @@ void check_DTR(void)
 {
     if (!host_is_foreign) 
     {
-        if ( !digitalRead(HOST_nDTR) || !digitalRead(HOST_nRTS) )  // if HOST_nDTR or HOST_nRTS are set (active low) then assume avrdude wants to use the bootloader
+        if ( !digitalRead(HOST_nRTS) )  // if HOST_nRTS is set (active low) then assume avrdude wants to use the bootloader
         {
             if ( !(status_byt & (1<<HOST_LOCKOUT_STATUS)) )
             {
                 if (digitalRead(HOST_nCTS))
                 { // tell the host that it is OK to use serial
                     digitalWrite(HOST_nCTS, LOW);
-                    digitalWrite(HOST_nDSR, LOW);
                 }
                 else
                 {
@@ -71,7 +70,6 @@ void check_DTR(void)
                 digitalWrite(LED_BUILTIN, HIGH);
                 localhost_active = 0;
                 digitalWrite(HOST_nCTS, HIGH);
-                digitalWrite(HOST_nDSR, HIGH);
             }
         }
     }
@@ -199,9 +197,9 @@ void check_uart(void)
 
                 // start the bootloader
                 bootloader_started = 1;
-                digitalWrite(nSS, LOW);   // nSS goes through a open collector buffer to nRESET
+                digitalWrite(MGR_nSS, LOW);   // nSS goes through a open collector buffer to nRESET
                 _delay_ms(20);  // hold reset low for a short time 
-                digitalWrite(nSS, HIGH); // this will release the buffer with open colllector on MCU nRESET.
+                digitalWrite(MGR_nSS, HIGH); // this will release the buffer with open colllector on MCU nRESET.
                 local_mcu_is_rpu_aware = 0; // after a reset it may be loaded with new software
                 blink_started_at = millis();
                 bootloader_started_at = millis();

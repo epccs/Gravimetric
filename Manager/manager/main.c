@@ -40,10 +40,6 @@ void setup(void)
     digitalWrite(HOST_nRTS, HIGH); // with AVR when the pin DDR is set as an input setting pin high will trun on a weak pullup 
     pinMode(HOST_nCTS, OUTPUT);
     digitalWrite(HOST_nCTS, HIGH);
-    pinMode(HOST_nDTR, INPUT);
-    digitalWrite(HOST_nDTR, HIGH); // another weak pullup 
-    pinMode(HOST_nDSR, OUTPUT);
-    digitalWrite(HOST_nDSR, HIGH);
     pinMode(RX_DE, OUTPUT);
     digitalWrite(RX_DE, HIGH);  // allow RX pair driver to enable if FTDI_TX is low
     pinMode(RX_nRE, OUTPUT);
@@ -56,8 +52,8 @@ void setup(void)
     digitalWrite(DTR_DE, LOW);  // use this to block UART startup glitch
     pinMode(DTR_nRE, OUTPUT);
     digitalWrite(DTR_nRE, LOW); 
-    pinMode(nSS, OUTPUT); // nSS is input to a Open collector buffer used to pull to MCU nRESET low
-    digitalWrite(nSS, HIGH); 
+    pinMode(MGR_nSS, OUTPUT); // nSS is input to a Open collector buffer used to pull to MCU nRESET low
+    digitalWrite(MGR_nSS, HIGH); 
     pinMode(SHUTDOWN, INPUT);
     digitalWrite(SHUTDOWN, HIGH); // trun on a weak pullup 
 
