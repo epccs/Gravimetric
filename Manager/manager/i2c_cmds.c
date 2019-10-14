@@ -21,11 +21,13 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/timers.h"
 #include "../lib/twi0.h"
 #include "../lib/uart.h"
+#include "../lib/adc.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
 #include "rpubus_manager_state.h"
 #include "dtr_transmition.h"
 #include "i2c_cmds.h"
+#include "adc_burst.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
@@ -38,7 +40,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     {
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnNull, fnNull, fnNull, fnNull, fnNull, fnNull},
-        {fnNull, fnNull, fnNull, fnNull, fnNull, fnNull, fnNull, fnNull},
+        {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnNull, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
     };
 
@@ -228,8 +230,60 @@ void fnRdArduinMode(uint8_t* i2cBuffer)
     i2cBuffer[1] = arduino_mode;
 }
 
-/********* RESERVED ***********
-  *  for PWR_I, PWR_V reading     */
+/********* POWER MANAGER ***********
+  *  for ALT_I, ALT_V, PWR_I, PWR_V reading     */
+
+// I2C command to read analog channel 0
+void fnRdAdcAltI(uint8_t* i2cBuffer)
+{
+    uint16_t adc_buffer = analogRead(ALT_I);
+    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
+    i2cBuffer[2] =  adc_buffer & 0xFF; // low byte. Again Mask should optimize out
+}
+
+// I2C command to read analog channel 1
+void fnRdAdcAltV(uint8_t* i2cBuffer)
+{
+    uint16_t adc_buffer = analogRead(ALT_V);
+    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF;
+    i2cBuffer[2] =  adc_buffer & 0xFF;
+}
+
+// I2C command to read analog channel 6
+void fnRdAdcPwrI(uint8_t* i2cBuffer)
+{
+    uint16_t adc_buffer = analogRead(PWR_I);
+    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF;
+    i2cBuffer[2] =  adc_buffer & 0xFF;
+}
+
+// I2C command to read analog channel 7
+void fnRdAdcPwrV(uint8_t* i2cBuffer)
+{
+    uint16_t adc_buffer = analogRead(PWR_V);
+    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF;
+    i2cBuffer[2] =  adc_buffer & 0xFF; 
+}
+
+// I2C command to read timed accumulation of analog channel ALT_I
+void fnRdTimedAccumAltI(uint8_t* i2cBuffer)
+{
+    // there are four bytes in the unsigned long accumulate_alt_ti
+    i2cBuffer[1] =  (accumulate_alt_ti>>24) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
+    i2cBuffer[2] =  (accumulate_alt_ti>>16) & 0xFF;
+    i2cBuffer[3] =  (accumulate_alt_ti>>8) & 0xFF;
+    i2cBuffer[4] =  accumulate_alt_ti & 0xFF; // low byte. Again Mask should optimize out
+}
+
+// I2C command to read timed accumulation of analog channel PWR_I
+void fnRdTimedAccumPwrI(uint8_t* i2cBuffer)
+{
+    // there are four bytes in the unsigned long accumulate_alt_ti
+    i2cBuffer[1] =  (accumulate_pwr_ti>>24) & 0xFF;
+    i2cBuffer[2] =  (accumulate_pwr_ti>>16) & 0xFF;
+    i2cBuffer[3] =  (accumulate_pwr_ti>>8) & 0xFF;
+    i2cBuffer[4] =  accumulate_pwr_ti & 0xFF;
+}
 
 /********* TEST MODE ***********
   *    trancever control for testing      */

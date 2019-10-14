@@ -27,8 +27,13 @@ extern void fnWtStatus(uint8_t*);
 extern void fnWtArduinMode(uint8_t*);
 extern void fnRdArduinMode(uint8_t*);
 
-// Prototypes for reserved (e.g. power management?) commands
-// TBD
+// Prototypes for Power Management commands
+extern void fnRdAdcAltI(uint8_t*);
+extern void fnRdAdcAltV(uint8_t*);
+extern void fnRdAdcPwrI(uint8_t*);
+extern void fnRdAdcPwrV(uint8_t*);
+extern void fnRdTimedAccumAltI(uint8_t*);
+extern void fnRdTimedAccumPwrI(uint8_t*);
 
 // Prototypes for test mode commands
 extern void fnStartTestMode(uint8_t*);

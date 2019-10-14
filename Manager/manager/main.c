@@ -23,6 +23,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/twi0.h"
 #include "../lib/twi1.h"
 #include "../lib/uart.h"
+#include "../lib/adc.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
 #include "rpubus_manager_state.h"
@@ -30,7 +31,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "i2c_cmds.h"
 #include "smbus_cmds.h"
 #include "id_in_ee.h"
-
+#include "adc_burst.h"
 
 void setup(void) 
 {
@@ -81,6 +82,11 @@ void setup(void)
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers();
 
+    // Initialize ADC and put in Auto Trigger mode to fetch an array of channels
+    init_ADC_single_conversion(EXTERNAL_AVCC); // warning AREF must not be connected to anything
+    enable_ADC_auto_conversion(BURST_MODE);
+    adc_started_at = millis();
+
     /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stdout = stdin = uartstream0_init(BAUD);
 
@@ -102,7 +108,7 @@ void setup(void)
     digitalWrite(DTR_DE, HIGH);  // then allow DTR pair driver to enable
 
     // Use eeprom value for rpu_address if ID was valid    
-    if (check_for_eeprom_id() )
+    if (check_for_eeprom_id())
     {
         rpu_address = eeprom_read_byte((uint8_t*)(EE_RPU_ADDRESS));
     }
@@ -146,6 +152,7 @@ int main(void)
         }
         if(write_rpu_address_to_eeprom) save_rpu_addr_state();
         check_uart();
+        adc_burst();
         if (smbus_has_numBytes_to_handle) handle_smbus_receive();
     }    
 }

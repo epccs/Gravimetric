@@ -8,7 +8,9 @@ OBJECTS = main.o \
 	i2c_cmds.o \
 	smbus_cmds.o \
 	id_in_ee.o \
+	adc_burst.o \
 	$(LIBDIR)/uart.o \
+	$(LIBDIR)/adc.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/twi1.o
