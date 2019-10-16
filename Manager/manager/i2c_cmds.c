@@ -28,6 +28,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "dtr_transmition.h"
 #include "i2c_cmds.h"
 #include "adc_burst.h"
+#include "references.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
@@ -40,7 +41,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     {
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnNull, fnNull, fnNull, fnNull, fnNull, fnNull},
-        {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnNull, fnNull},
+        {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
     };
 
@@ -283,6 +284,64 @@ void fnRdTimedAccumPwrI(uint8_t* i2cBuffer)
     i2cBuffer[2] =  (accumulate_pwr_ti>>16) & 0xFF;
     i2cBuffer[3] =  (accumulate_pwr_ti>>8) & 0xFF;
     i2cBuffer[4] =  accumulate_pwr_ti & 0xFF;
+}
+
+// I2C command for Analog referance EXTERNAL_AVCC
+/* swap the I2C buffer with the ref_extern_avcc_uV in use
+    set ref_loaded so main loop will try to save it to eeprom
+    the main loop will reload eeprom or default value if new is out of range
+*/ 
+void fnAnalogRefExternAVCC(uint8_t* i2cBuffer)
+{
+    // ref_extern_avcc_uV is a uint32_t and has four bytes
+    uint8_t temp = (ref_extern_avcc_uV>>24) & 0xFF;
+    ref_extern_avcc_uV = 0x00FFFFFF & ref_extern_avcc_uV; // mask out the old value
+    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_extern_avcc_uV; // stuff in the new value to save
+    i2cBuffer[1] =  temp; // return the old value
+    
+    temp = (ref_extern_avcc_uV>>16) & 0xFF;
+    ref_extern_avcc_uV = 0xFF00FFFF & ref_extern_avcc_uV;
+    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[2])<<16) & ref_extern_avcc_uV; 
+    i2cBuffer[2] =  temp;
+
+    temp = (ref_extern_avcc_uV>>8) & 0xFF;
+    ref_extern_avcc_uV = 0xFFFF00FF & ref_extern_avcc_uV;
+    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[3])<<8) & ref_extern_avcc_uV; 
+    i2cBuffer[3] =  temp;
+
+    temp = ref_extern_avcc_uV & 0xFF;
+    ref_extern_avcc_uV = 0xFFFFFF00 & ref_extern_avcc_uV;
+    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[4])) & ref_extern_avcc_uV;  
+    i2cBuffer[4] =  temp;
+    
+    ref_loaded = REF_AVCC_TOSAVE; // main loop will reload eeprom or default value if new value is out of range
+}
+
+// I2C command for Analog referance INTERNAL_1V1
+void fnAnalogRefIntern1V1(uint8_t* i2cBuffer)
+{
+    // ref_intern_1v1_uV is a uint32_t and has four bytes
+    uint8_t temp = (ref_intern_1v1_uV>>24) & 0xFF;
+    ref_intern_1v1_uV = 0x00FFFFFF & ref_intern_1v1_uV; // mask out the old value
+    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_intern_1v1_uV; // stuff in the new value to save
+    i2cBuffer[1] =  temp; // return the old value
+    
+    temp = (ref_intern_1v1_uV>>16) & 0xFF;
+    ref_intern_1v1_uV = 0xFF00FFFF & ref_intern_1v1_uV;
+    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[2])<<16) & ref_intern_1v1_uV; 
+    i2cBuffer[2] =  temp;
+
+    temp = (ref_intern_1v1_uV>>8) & 0xFF;
+    ref_intern_1v1_uV = 0xFFFF00FF & ref_intern_1v1_uV;
+    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[3])<<8) & ref_intern_1v1_uV; 
+    i2cBuffer[3] =  temp;
+
+    temp = ref_intern_1v1_uV & 0xFF;
+    ref_intern_1v1_uV = 0xFFFFFF00 & ref_intern_1v1_uV;
+    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[4])) & ref_intern_1v1_uV;  
+    i2cBuffer[4] =  temp;
+    
+    ref_loaded = REF_1V1_TOSAVE; // main loop will reload eeprom or default value if new value is out of range
 }
 
 /********* TEST MODE ***********

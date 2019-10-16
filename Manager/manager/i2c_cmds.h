@@ -34,6 +34,9 @@ extern void fnRdAdcPwrI(uint8_t*);
 extern void fnRdAdcPwrV(uint8_t*);
 extern void fnRdTimedAccumAltI(uint8_t*);
 extern void fnRdTimedAccumPwrI(uint8_t*);
+extern void fnAnalogRefExternAVCC(uint8_t*);
+extern void fnAnalogRefIntern1V1(uint8_t*);
+
 
 // Prototypes for test mode commands
 extern void fnStartTestMode(uint8_t*);

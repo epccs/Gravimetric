@@ -52,7 +52,7 @@ void Analog(unsigned long serial_print_delay_milsec)
                 return;
             }
         }
-        // laod reference calibration or show an error if they are not in eeprom
+        // load reference calibration or show an error if they are not in eeprom
         if ( ! LoadAnalogRefFromEEPROM() )
         {
             printf_P(PSTR("{\"err\":\"AdcRefNotInEeprom\"}\r\n"));

@@ -52,25 +52,26 @@ sudo usermod -a -G i2c your_username
 ```
 
 
-## Addressing
+## RPUbus Addressing
 
-The Address '1' on the RPU_BUS is 0x31, (e.g., not 0x1 but the ASCII value for the character).
+The Address '1' on the multidrop serial bus is 0x31, (e.g., not 0x1 but the ASCII value for the character).
 
 When HOST_nRTS is pulled active from a host trying to connect to the serial bus, the local bus manager will set localhost_active and send the bootloader_address over the DTR pair. If an address received by way of the DTR pair matches the local RPU_ADDRESS the bus manager will enter bootloader mode (marked with bootloader_started), and connect the shield RX/TX to the RS-422 (see connect_bootload_mode() function), all other addresses are locked out. After a LOCKOUT_DELAY time or when a normal mode byte is seen on the DTR pair, the lockout ends and normal mode resumes. The node that has bootloader_started broadcast the return to normal mode byte on the DTR pair when that node has the RPU_ADDRESS read from its bus manager over I2C (otherwise it will time out and not connect the controller RX/TX to serial).
 
 
 ## Bus Manager Modes
 
-In Normal Mode, the RPU bus manager connects the local controller to the RPU bus if it is RPU aware (e.g., ask for RPU_ADDRESS over I2C). Otherwise, it will not attach the local MCU's TX to the bus but does connect RX. The host side of the transceivers connects unless it is foreign (e.g., keep out the locals when foreigners are around).
+In Normal Mode, the manager connects the local application controller (ATmega324pb) to the RPUbus if it is RPU aware (e.g., ask for RPU_ADDRESS over I2C). Otherwise, it will not attach the local MCU. The host side of the transceivers connects unless it is foreign (e.g., keep out the locals when foreigners are around).
 
-In bootload mode, the RPU bus manager connects the local controller to the serial bus. Also, the host will be connected unless it is foreign. It is expected that all other nodes are in lockout mode. Note the BOOTLOADER_ACTIVE delay is less than the LOCKOUT_DELAY, but it needs to be in bootload mode long enough to allow uploading. A slow bootloader will require longer delays.
+In bootload mode, the manager connects the local application controller to the multi-drop serial bus. Also, the host will be connected unless it is foreign. It is expected that all other nodes are in lockout mode. Note the BOOTLOADER_ACTIVE delay is less than the LOCKOUT_DELAY, but it needs to be in bootload mode long enough to allow uploading. A slow bootloader will require longer delays.
 
 In lockout mode, if the host is foreign, both the local controller and Host are disconnected from the bus. Otherwise, the host remains connected.
 
 
-## I2C and SMBus Slave
+## I2C and SMBus Interfaces
 
 There are two TWI interfaces one acts as an I2C slave and is used to connect with the local microcontroller, while the other is an SMBus slave and connects with the local host (e.g., an R-Pi.) The commands sent are the same in both cases, but Linux does not like repeated starts or clock stretching so the SMBus read is done as a second bus transaction. I'm not sure the method is correct, but it seems to work, I echo back the previous transaction for an SMBus read. The masters sent (slave received) data is used to size the reply, so add a byte after the command for the manager to fill in with the reply. The I2C address is 0x29 (dec 41) and SMBus is 0x2A (dec 42). It is organized as an array of commands. 
+
 
 [Point To Multi-Point] commands 0..15 (Ox00..0x0F | 0b00000000..0b00001111)
 
@@ -85,23 +86,36 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 6. reads status bits [0:DTR readback timeout, 1:twi transmit fail, 2:DTR readback not match, 3:host lockout].
 7. writes (or clears) status.
 
-[Point To Point] commands (control unit must not read the manager address or it will set up multi-point) 64..127 (Ox10..0x1F | 0b00010000..0b00011111)
+[Point To Point] and Management commands (application controller must not read the manager address or it will switch back to multi-point) 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
 [Point To Point]: ./PointToPoint.md
 
 16. set arduino_mode 
 17. read arduino_mode
 
-reserved (for PWR_I, PWR_V reading) 32..47 (Ox20..0x2F | 0b10000000..0b10111111)
 
-test_mode commands 48..63 (Ox30..0x3F | 0b00110000..0b00111111)
+[Power Management] commands 32..47 (Ox20..0x2F | 0b00100000..0b00101111)
+
+[Power Management]: ./PowerManagement.md
+
+32. Analog channel 0 for ALT_I (uint16_t)
+33. Analog channel 1 for ALT_V (uint16_t)
+34. Analog channel 6 for PWR_I (uint16_t)
+35. Analog channel 7 for PWR_V (uint16_t)
+36. Analog timed accumulation for ALT_IT (uint32_t)
+37. Analog timed accumulation for PWR_IT (uint32_t)
+38. Analog referance for EXTERNAL_AVCC (uint32_t)
+39. Analog referance for INTERNAL_1V1 (uint32_t)
+
+
+[Test Mode] commands 48..63 (Ox30..0x3F | 0b00110000..0b00111111)
+
+[Test Mode]: ./TestMode.md
 
 48. save trancever control bits HOST_nRTS:HOST_nCTS:TX_nRE:TX_DE:DTR_nRE:DTR_DE:RX_nRE:RX_DE for test_mode.
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
-
-[Test Mode]: ./TestMode.md
 
 
 Connect to i2c-debug on an RPUno with an RPU shield using picocom (or ilk). 
@@ -111,9 +125,9 @@ picocom -b 38400 /dev/ttyUSB0
 ``` 
 
 
-## RPU /w i2c-debug scan
+## Scan I2C0 with i2c-debug
 
-Scan for the I2C0 slave address of shield and address.
+Scan for the address on I2C0.
 
 ``` 
 picocom -b 38400 /dev/ttyUSB0
@@ -124,7 +138,7 @@ picocom -b 38400 /dev/ttyUSB0
 ```
 
 
-## Raspberry Pi to scan the shields SMBus address
+## Scan I2C1 with Raspberry Pi
 
 The I2C1 port is for SMBus access. A Raspberry Pi is set up as follows.
 

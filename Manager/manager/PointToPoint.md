@@ -1,9 +1,15 @@
-# Point To Point Commands
+# Point To Point and Management Commands
 
 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
 16. set arduino_mode 
 17. read arduino_mode
+18.
+19.
+20.
+21.
+22.
+23. Day-Night state machine based on ALT_V
 
 ## Cmd 16 from a controller /w i2c-debug set p2p mode
 

@@ -9,6 +9,7 @@ OBJECTS = main.o \
 	smbus_cmds.o \
 	id_in_ee.o \
 	adc_burst.o \
+	references.o \
 	$(LIBDIR)/uart.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/timers.o \

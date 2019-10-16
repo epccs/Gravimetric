@@ -32,6 +32,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "smbus_cmds.h"
 #include "id_in_ee.h"
 #include "adc_burst.h"
+#include "references.h"
 
 void setup(void) 
 {
@@ -107,6 +108,9 @@ void setup(void)
     _delay_ms(50); // wait for UART glitch to clear
     digitalWrite(DTR_DE, HIGH);  // then allow DTR pair driver to enable
 
+    // load reference calibration
+    LoadAnalogRefFromEEPROM();
+
     // Use eeprom value for rpu_address if ID was valid    
     if (check_for_eeprom_id())
     {
@@ -153,6 +157,7 @@ int main(void)
         if(write_rpu_address_to_eeprom) save_rpu_addr_state();
         check_uart();
         adc_burst();
+        if (ref_loaded > REF_DEFAULT) ref2ee();
         if (smbus_has_numBytes_to_handle) handle_smbus_receive();
     }    
 }

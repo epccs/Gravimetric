@@ -9,7 +9,7 @@
 36. Analog timed accumulation for ALT_IT (uint32_t)
 37. Analog timed accumulation for PWR_IT (uint32_t)
 38. Analog referance for EXTERNAL_AVCC (uint32_t)
-39. Day-Night state machine based on ALT_V
+39. Analog referance for INTERNAL_1V1 (uint32_t)
 
 ## Cmd 32 from the application controller /w i2c-debug running
 
