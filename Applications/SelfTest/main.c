@@ -33,7 +33,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 
 // Save the Value of the References for ADC converter 
 // measure AVCC and put it hear in uV 
-#define REF_EXTERN_AVCC 4958300UL
+#define REF_EXTERN_AVCC 4978470UL
 
 // ICP3 has 100 Ohm and R1 in parallel
 #define ICP3_TERM 50.0
@@ -406,6 +406,36 @@ void i2c_testmode_set_xcvrbits(uint8_t xcvrbits)
     }
 }
 
+/* i2c power management commands 32, 33, 34 and 35 to read ALT_I,ALT_V,PWR_I and PWR_V
+*/
+int i2c_rd_adc_on_328pb(uint8_t command)
+{
+    if ((command<32) | (command>35)) return 0;
+    uint8_t i2c_address = 0x29;
+    uint8_t length = 3;
+    uint8_t wait = 1;
+    uint8_t sendStop = 0; // use a repeated start after write
+    uint8_t txBuffer[3] = {0x00,0xFF,0xFF}; // init the buffer sinse it is on the stack and can have old values 
+    txBuffer[0] = command; // replace the command byte (which can not be put in flash 
+    uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
+    if (twi_returnCode != 0)
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> I2C0 cmd %d write fail, twi_returnCode: %d\r\n"), command, twi_returnCode);
+        return 0;
+    }
+    uint8_t rxBuffer[3] = {0x00,0x00,0x00};
+    sendStop = 1;
+    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+    if ( bytes_read != length )
+    {
+        passing = 0; 
+        printf_P(PSTR(">>> I2C0 cmd %d read missing %d bytes \r\n"), command, (length-bytes_read) );
+    }
+    int value = ((int)(rxBuffer[1])<<8) + rxBuffer[2]; //  least significant byte is at end.
+    return value;
+}
+
 void test(void)
 {
     // Info from some Predefined Macros
@@ -424,11 +454,24 @@ void test(void)
         return;
     }
 
+    if (ref_extern_avcc_uV > 5100000UL) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> REF_EXTERN_AVCC is to high.\r\n"));
+        return;
+    }
+    if (ref_extern_avcc_uV < 4900000UL) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> REF_EXTERN_AVCC is to low.\r\n"));
+        return;
+    }
+
     // With current sources off measure input current
     _delay_ms(1000) ; // busy-wait to let the 1uF settle
     
     // Input voltage
-    int adc_pwr_v = analogRead(PWR_V);
+    int adc_pwr_v = i2c_rd_adc_on_328pb(35); //PWR_V
     printf_P(PSTR("adc reading for PWR_V: %d int\r\n"), adc_pwr_v);
     float input_v = adc_pwr_v*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8);
     printf_P(PSTR("PWR at: %1.3f V\r\n"), input_v);
@@ -796,14 +839,12 @@ void test(void)
     // everything off for input current measurement
     digitalWrite(CS_DIVERSION,LOW);
     digitalWrite(CS_ICP4,LOW);
-    init_ADC_single_conversion(INTERNAL_1V1); 
+    // init_ADC_single_conversion(INTERNAL_1V1); // use ref_intern_1v1_uV
     _delay_ms(1500); // busy-wait delay
     
-    // Input current at no load with 1V1 band-gap referance
-    float input_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
-    printf_P(PSTR("PWR_I at no load use INTERNAL_1V1: %1.3f A\r\n"), input_i);
-    input_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
-    printf_P(PSTR("PWR_I at no load use INTERNAL_1V1: %1.3f A\r\n"), input_i);
+    // Input current at no load 
+    float input_i =  i2c_rd_adc_on_328pb(34)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0); //PWR_I
+    printf_P(PSTR("PWR_I at no load : %1.3f A\r\n"), input_i);
     if (input_i > 0.026) 
     { 
         passing = 0; 
@@ -817,7 +858,7 @@ void test(void)
     }
 
     //swap back to the AVCC referance and enable CS0 (through red LED)
-    init_ADC_single_conversion(EXTERNAL_AVCC); 
+    //init_ADC_single_conversion(EXTERNAL_AVCC); 
     digitalWrite(CS0_EN,HIGH);
     _delay_ms(100); // busy-wait delay
 
@@ -1042,12 +1083,12 @@ void test(void)
     printf_P(PSTR("\r\n"));
     printf_P(PSTR("Testmode: default trancever control bits\r\n"));
     i2c_testmode_start();
-    init_ADC_single_conversion(INTERNAL_1V1);
+    //init_ADC_single_conversion(INTERNAL_1V1); // use ref_intern_1v1_uV
     _delay_ms(1000) ; // busy-wait delay for input current measurement
     // check xcvr bits after start of testmode. Note printf is done after end of testmode.
     uint8_t xcvrbits_after_testmode_start = 0xE2;
     i2c_testmode_test_xcvrbits(xcvrbits_after_testmode_start);
-    float noload_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float noload_i = i2c_rd_adc_on_328pb(34)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0); //PWR_I
 
     // End test mode 
     i2c_testmode_end();
@@ -1069,7 +1110,7 @@ void test(void)
     {
         printf_P(PSTR(">>> Xcvr cntl bits should be %x but report was %x\r\n"), xcvrbits_after_testmode_start, delayed_data[7]);
     }
-    printf_P(PSTR("PWR_I /w no load using INTERNAL_1V1: %1.3f A\r\n"), noload_i);
+    printf_P(PSTR("PWR_I /w no load using REF_EXTERN_AVCC: %1.3f A\r\n"), noload_i);
     if (noload_i > 0.020) 
     { 
         passing = 0; 
@@ -1150,7 +1191,7 @@ void test(void)
     i2c_testmode_set_xcvrbits(xcvrbits_enable_xtde);
     i2c_testmode_test_xcvrbits(xcvrbits_enable_xtde); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
-    float load_txde_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float load_txde_i = i2c_rd_adc_on_328pb(34)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0); //PWR_I
 
     // End test mode 
     digitalWrite(TX0,HIGH); // strong pullup
@@ -1222,7 +1263,7 @@ void test(void)
     i2c_testmode_set_xcvrbits(xcvrbits_enable_xtrx);
     i2c_testmode_test_xcvrbits(xcvrbits_enable_xtrx); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
-    float load_txrx_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float load_txrx_i = i2c_rd_adc_on_328pb(34)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0); //PWR_I
     uint8_t rx_loopback = digitalRead(RX0); 
 
     // End test mode 
@@ -1302,7 +1343,7 @@ void test(void)
     i2c_testmode_set_xcvrbits(xcvrbits_enable_dtr);
     i2c_testmode_test_xcvrbits(xcvrbits_enable_dtr); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
-    float load_dtr_i = analogRead(PWR_I)*((ref_intern_1v1_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float load_dtr_i = i2c_rd_adc_on_328pb(34)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0); //PWR_I
 
     // End test mode will setup the DTR_TXD line and enable the manager's UART as it recovers
     i2c_testmode_end();

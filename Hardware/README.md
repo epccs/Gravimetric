@@ -77,10 +77,11 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             *during review the Design may change without changing the revision.
             Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low.
 
-        ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly,
-            WIP: Testing, 
+        ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, 
+            WIP: Testing,
             Todo: Evaluation.
             *during review the Design may change without changing the revision.
+            Add to testing: calculate and save ref_intern_1v1 on manager 
             # add gap between RJ45 headers
             # Power Protection
             # Alternat power diode replaced with a P-CH MOSFET
@@ -96,12 +97,6 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             # connect ADC4..ADC7 to test points
             # connect PB3 and PB1 to test points
             # change pin numbers so PA0 (with ADC0) is pin 0 for both digital and analog functions
-
-        ^0  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
-            WIP: 
-            Todo: 
-            *during review the Design may change without changing the revision.
-            ref: the ALT power input was modifed and checked on the one of this version that was built.
 ```
 
 Debugging and fixing problems i.e. [Schooling](./Schooling/)
