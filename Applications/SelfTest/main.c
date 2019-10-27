@@ -431,6 +431,7 @@ int i2c_rd_adc_on_328pb(uint8_t command)
     {
         passing = 0; 
         printf_P(PSTR(">>> I2C0 cmd %d read missing %d bytes \r\n"), command, (length-bytes_read) );
+        return 0;
     }
     int value = ((int)(rxBuffer[1])<<8) + rxBuffer[2]; //  least significant byte is at end.
     return value;

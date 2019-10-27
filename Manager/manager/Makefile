@@ -10,6 +10,7 @@ OBJECTS = main.o \
 	id_in_ee.o \
 	adc_burst.o \
 	references.o \
+	power_manager.o \
 	$(LIBDIR)/uart.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/timers.o \

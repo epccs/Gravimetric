@@ -1,10 +1,10 @@
 # Day-Night State Machine
 
-Hack: ^0 needs a hack to connect R1 (ALT_V divider input) to ALT input directly.
-
 ## Overview
 
 Use the photovoltaic voltage on the ALT power input to tell if it is day or night. 
+
+This is run on the 324pb application controler. I plan to add a state machine like this to the 328pb manager also.
 
 Note: use the Day_AttachDayWork() and Night_AttachWork() functions to register a callback that will be run at the start of each day. This framework is how I debugged the day-night stat machine.
 

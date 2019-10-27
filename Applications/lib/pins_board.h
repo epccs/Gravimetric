@@ -100,9 +100,6 @@
 #define ADC1 1
 #define ADC2 2
 #define ADC3 3
-#define ALT_V 4
-#define ALT_I 5
-#define PWR_I 6 
-#define PWR_V 7
+
 
 #endif // Pins_Board_h

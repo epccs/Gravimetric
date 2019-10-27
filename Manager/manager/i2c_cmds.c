@@ -29,6 +29,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "i2c_cmds.h"
 #include "adc_burst.h"
 #include "references.h"
+#include "power_manager.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
@@ -187,13 +188,17 @@ void fnWtShtdnDtct(uint8_t* i2cBuffer)
 // I2C_COMMAND_TO_READ_STATUS
 void fnRdStatus(uint8_t* i2cBuffer)
 {
-    i2cBuffer[1] = status_byt;
+    i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
+    i2cBuffer[1] &= digitalRead(ALT_EN)<<4; // report if alternat power is enabled
+    i2cBuffer[1] &= digitalRead(PIPWR_EN)<<5; // report if sbc has power
 }
 
 // I2C_COMMAND_TO_SET_STATUS
 void fnWtStatus(uint8_t* i2cBuffer)
 {
-    status_byt = i2cBuffer[1];
+    enable_alternate_power = (i2cBuffer[1] & 0x10)>>4;
+    if ( (i2cBuffer[1] & 0x20) && !shutdown_started && !shutdown_detected ) enable_sbc_power = 1;
+    status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
 }
 
 /********* PIONT TO POINT MODE ***********

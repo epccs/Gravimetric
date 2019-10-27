@@ -28,15 +28,15 @@ uint8_t set_Rpu_shutdown(void)
 { 
     uint8_t twi_returnCode;
 
-    uint8_t RPU_mgr_i2c_address = I2C_ADDR_OF_BUS_MGR;
+    //uint8_t RPU_mgr_i2c_address = I2C_ADDR_OF_BUS_MGR;
 
     // ping I2C for an RPU bus manager
-    uint8_t address = RPU_mgr_i2c_address;
+    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t data = 0;
     uint8_t length = 0;
     uint8_t wait = 1;
     uint8_t sendStop = 1;
-    twi_returnCode = twi0_writeTo(address, &data, length, wait, sendStop); 
+    twi_returnCode = twi0_writeTo(i2c_address, &data, length, wait, sendStop); 
     
     if (twi_returnCode != 0)
     { 
@@ -48,7 +48,7 @@ uint8_t set_Rpu_shutdown(void)
     uint8_t txBuffer[RPU_BUS_MSTR_CMD_SZ] = {0x05,0x01}; //host shutdown comand 0x05, data 0x01;
     length = RPU_BUS_MSTR_CMD_SZ;
     sendStop = 0;  //this will cause a I2C repeated Start durring read
-    twi_returnCode = twi0_writeTo(address, txBuffer, length, wait, sendStop); 
+    twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
     if (twi_returnCode != 0)
     {
         return 0; // nack failed
@@ -58,7 +58,7 @@ uint8_t set_Rpu_shutdown(void)
     uint8_t rxBuffer[RPU_BUS_MSTR_CMD_SZ];
     sendStop = 1;
     uint8_t quantity = RPU_BUS_MSTR_CMD_SZ;
-    uint8_t bytes_read = twi0_readFrom(address, rxBuffer, quantity, sendStop);
+    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, quantity, sendStop);
     if ( bytes_read != quantity )
     {
         return 0;
@@ -80,15 +80,15 @@ uint8_t detect_Rpu_shutdown(void)
 { 
     uint8_t twi_returnCode;
 
-    uint8_t RPU_mgr_i2c_address = I2C_ADDR_OF_BUS_MGR;
+    // uint8_t RPU_mgr_i2c_address = I2C_ADDR_OF_BUS_MGR;
 
     // ping I2C for an RPU bus manager
-    uint8_t address = RPU_mgr_i2c_address;
+    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t data = 0;
     uint8_t length = 0;
     uint8_t wait = 1;
     uint8_t sendStop = 1;
-    twi_returnCode = twi0_writeTo(address, &data, length, wait, sendStop); 
+    twi_returnCode = twi0_writeTo(i2c_address, &data, length, wait, sendStop); 
     
     if (twi_returnCode != 0)
     { 
@@ -100,7 +100,7 @@ uint8_t detect_Rpu_shutdown(void)
     uint8_t txBuffer[RPU_BUS_MSTR_CMD_SZ] = {0x04,0xFF}; //detect host shutdown comand 0x04, data place holder 0xFF;
     length = RPU_BUS_MSTR_CMD_SZ;
     sendStop = 0;  //this will cause a I2C repeated Start durring read
-    twi_returnCode = twi0_writeTo(address, txBuffer, length, wait, sendStop); 
+    twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
     if (twi_returnCode != 0)
     {
         return 0; // nack failed
@@ -110,7 +110,7 @@ uint8_t detect_Rpu_shutdown(void)
     uint8_t rxBuffer[RPU_BUS_MSTR_CMD_SZ];
     sendStop = 1;
     uint8_t quantity = RPU_BUS_MSTR_CMD_SZ;
-    uint8_t bytes_read = twi0_readFrom(address, rxBuffer, quantity, sendStop);
+    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, quantity, sendStop);
     if ( bytes_read != quantity )
     {
         return 0;
@@ -121,21 +121,23 @@ uint8_t detect_Rpu_shutdown(void)
     }
 }
 
+/* i2c command 0 gives RPUbus address
+*/
 char get_Rpu_address(void)
 { 
     uint8_t twi_returnCode;
 
-    uint8_t RPU_mgr_i2c_address = I2C_ADDR_OF_BUS_MGR;
+    // uint8_t RPU_mgr_i2c_address = I2C_ADDR_OF_BUS_MGR;
 
     // ping I2C for an RPU bus manager
-    uint8_t address = RPU_mgr_i2c_address;
+    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t data = 0;
     uint8_t length = 0;
     uint8_t wait = 1;
     uint8_t sendStop = 1;
     for (uint8_t i =0;1; i++)
     {
-        twi_returnCode = twi0_writeTo(address, &data, length, wait, sendStop); 
+        twi_returnCode = twi0_writeTo(i2c_address, &data, length, wait, sendStop); 
         if (twi_returnCode == 0) break; // error free code
         if (i>5) return 0; // give up after 5 trys
     }
@@ -147,14 +149,14 @@ char get_Rpu_address(void)
     sendStop = 0;  //this will cause a I2C repeated Start durring read
     for (uint8_t i =0;1; i++)
     {
-        twi_returnCode = twi0_writeTo(address, txBuffer, length, wait, sendStop); 
+        twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
         if (twi_returnCode == 0) break;
         if (i>5) return 0; // give up after 5 trys
     }
     uint8_t rxBuffer[RPU_BUS_MSTR_CMD_SZ];
     sendStop = 1;
     uint8_t quantity = RPU_BUS_MSTR_CMD_SZ;
-    uint8_t bytes_read = twi0_readFrom(address, rxBuffer, quantity, sendStop);
+    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, quantity, sendStop);
     if ( bytes_read != quantity )
     {
         return 0;
@@ -165,3 +167,29 @@ char get_Rpu_address(void)
     }
 }
 
+/* i2c power management commands 32, 33, 34 and 35 to read ALT_I,ALT_V,PWR_I and PWR_V
+*/
+int get_adc_from_328pb(uint8_t command)
+{
+    if ((command<32) | (command>35)) return 0;
+    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
+    uint8_t length = 3;
+    uint8_t wait = 1;
+    uint8_t sendStop = 0; // use a repeated start after write
+    uint8_t txBuffer[3] = {0x00,0xFF,0xFF}; // init the buffer sinse it is on the stack and can have old values 
+    txBuffer[0] = command; // replace the command byte (which can not be put in flash 
+    uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
+    if (twi_returnCode != 0)
+    {
+        return 0;
+    }
+    uint8_t rxBuffer[3] = {0x00,0x00,0x00};
+    sendStop = 1;
+    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+    if ( bytes_read != length )
+    {
+        return 0;
+    }
+    int value = ((int)(rxBuffer[1])<<8) + rxBuffer[2]; //  least significant byte is at end.
+    return value;
+}

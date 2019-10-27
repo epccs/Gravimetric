@@ -2,22 +2,33 @@
 
 0..15 (Ox00..0xF | 0b00000000..0b00001111)
 
-0. read the RPU_BUS address and activate normal mode (broadcast if localhost_active).
-1. set the RPU_BUS address and write it to EEPROM.
-2. read the address sent when DTR/RTS toggles.
-3. write the address that will be sent when DTR/RTS toggles
+0. read the multi-drop bus address.
+1. set the multi-drop bus address and write it to EEPROM.
+2. read the multi-drop bootload address sent when DTR/RTS toggles.
+3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
 5. set shutdown switch (pull down ICP1 for SHUTDOWN_TIME to cause the host to halt).
-6. reads status bits [0:DTR readback timeout, 1:twi transmit fail, 2:DTR readback not match, 3:host lockout].
-7. writes (or clears) status.
+6. read status bits.
+7. write (or clear) status.
+
+status bits: 
+
+0. DTR readback timeout
+1. twi transmit fail
+2. DTR readback not match
+3. host lockout
+4. alternate power enable (ALT_EN)
+5. SBC power enable (PIPWR_EN)
 
 
-## Cmd 0 from a controller /w i2c-debug read the shield address
+## Cmd 0 from the application controller /w i2c-debug read the serial multi-drop address
 
-The local RPU address can be read.
+The application controller can read the local serial multi-drop address from the manager.
+
+This will activate (broadcast) normal multi-drop mode (e.g., after bootload or point to point mode).
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 0,255
@@ -27,9 +38,11 @@ picocom -b 38400 /dev/ttyUSB0
 ``` 
 
 
-## Cmd 0 from a Raspberry Pi read the shield address
+## Cmd 0 from a Raspberry Pi read the serial multi-drop address
 
-The host can read the local RPU_ADDRESS with the I2C1 port.
+The local host can read the local serial multi-drop address from the manager.
+
+This will not active normal mode.
 
 ``` 
 python3
@@ -43,14 +56,14 @@ print(bus.read_i2c_block_data(42, 0, 2))
 ``` 
 
 
-## Cmd 1 from a controller /w i2c-debug set RPU_BUS address
+## Cmd 1 from the application controller /w i2c-debug set the serial multi-drop address
 
-__Warning:__ this changes eeprom, flashing with ICSP does not clear eeprom due to fuse setting.
+__Warning:__ this changes eeprom on the manager, flashing the manager ICSP may clear its eeprom.
 
-Using an RPUno and an RPUftdi shield, connect another RPUno with i2c-debug firmware to the RPUpi shield that needs its address set. The default RPU_BUS address can be changed from '1' to any other value. 
+The application controller can set the local serial multi-drop address on the manager. The default address can be changed from '1' to any other value. 
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 1,50
@@ -59,7 +72,7 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x1"},{"data":"0x32"}]}
 ``` 
 
-The RPU program normally reads the address during setup in which case it needs a reset to get the update. The reset can be done by setting its bootload address (bellow).
+Although the manager immediately knows its new address, the application controller program needs to read the new address; I commonly have it do this once during the applications setup section. I can reset the application controller to load the update. The reset can be done by setting the bootload address (bellow) and then opening the port with picocom.
 
 ```
 /2/id?
@@ -67,12 +80,12 @@ The RPU program normally reads the address during setup in which case it needs a
 ``` 
 
 
-## Cmd 2 from a controller /w i2c-debug read the address sent when DTR/RTS toggles
+## Cmd 2 from the application controller /w i2c-debug read the address sent when serial handshake RTS toggless
 
-I2C0 can be used by the RPU to Read the local bootload address that it will send when a host connects to it.
+The application controller can read the serial multi-drop bootload address that is sent when the local host opens its serial port.  
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 2,255
@@ -81,12 +94,12 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
 ``` 
 
-Address 0x30 is ascii '0' so the RPU at that location will be reset and connected to the serial bus when a host connects to the shield at address '1'. 
+Address 0x30 is ASCII '0'. The manager with that address will reset its application controller, and the serial multi-drop bus will switch to a point to point connection between the host and the application controller connected to that manager. The point to point serial allows the uploader tool to send a new application image to the bootloader, which places it in the flash execution memory. 
 
 
-## Cmd 2 from a Raspberry Pi read the address sent when DTR/RTS toggles
+## Cmd 2 from a Raspberry Pi read the address sent when serial handshake RTS toggles
 
-I2C1 can be used by the host to Read the local bootload address that it will send when a host connects to it.
+The local host can read the serial multi-drop bootload address that is sent when the local host opens its serial port.
 
 ``` 
 python3
@@ -99,17 +112,17 @@ print(bus.read_i2c_block_data(42, 2, 2))
 [2, 48]
 ``` 
 
-Address 48 is 0x30 or ascii '0' so the RPU at that location will be reset and connected to the serial bus when the Raspberry Pi connects to the shield at this location (use command 1 to find the local address).
+Address 48 is 0x30 or ASCII '0'. The manager with that address will reset its application controller, and the serial multi-drop bus will switch to a point to point connection between the host and the application controller connected to that manager. The point to point serial allows the uploader tool to send a new application image to the bootloader, which places it in the flash execution memory. 
 
 
-## Cmd 3 from a controller /w i2c-debug set the bootload address
+## Cmd 3 from the application controller /w i2c-debug set the address sent when serial handshake RTS toggles
 
-__Note__: this valuse is not saved in eeprom so a power loss will set it back to '0'.
+__Note__: this valuse is not saved in eeprom so a power loss will set it back to default ('0').
 
-I2C0 can be used by the RPU to set the local bootload address that it will send when a host connects to it. When DTR/RTS toggles send ('2' is 0x32 is 50).
+The application controller can set the serial multi-drop bootload address that is sent when the local host opens its serial port.  When RTS toggles, send bootload address '2' (ASCII 0x32 or 50) on the side channel.
 
 ```
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 3,50
@@ -123,15 +136,15 @@ exit picocom with C-a, C-x.
 Connect with picocom again. 
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 ``` 
 
-This will toggle RTS on the RPUpi shield and the manager will send 0x32 on the DTR pair. The RPUpi shield should blink slow to indicate a lockout, while the shield with address '2' blinks fast to indicate bootloader mode. The lockout timeout LOCKOUT_DELAY can be adjusted in firmware.
+Opening the serial port will toggle the RTS from the host, and the manager will see it and send 0x32 on the side channel (DTR pair). The manager(s) that do not have that address should blink there LED slow to indicate lockout, while the manager with address '2' blinks fast to indicate bootloader mode. Adjust the lockout timeout LOCKOUT_DELAY with the source firmware.
 
 
-## Cmd 3 from a Raspberry Pi set the bootload address
+## Cmd 3 from a Raspberry Pi set the address sent when RTS toggles
 
-__Note__: this valuse is not saved in eeprom so a power loss will set it back to '0'.
+__Note__: this valuse is not saved in eeprom so a power loss will set it back to default ('0').
 
 I2C1 can be used by the host to set the local bootload address that it will send when a host connects to it. When DTR/RTS toggles send ('2' is 0x32 is 50).
 
@@ -144,15 +157,24 @@ bus = smbus.SMBus(1)
 bus.write_i2c_block_data(42, 3, [50])
 print(bus.read_i2c_block_data(42, 3, 2))
 [3, 50]
+exit()
 ``` 
 
-
-## Cmd 4 from a controller /w i2c-debug read if HOST shutdown detected
-
-To check if host got a manual hault command (e.g. if the shutdown button got pressed) send the I2C shutdown command 4 (first byte), with place holder data (second byte). This clears shutdown_detected flag that was used to keep the LED_BUILTIN from blinking.
+exit python and connect with picocom. 
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
+``` 
+
+Opening the serial port will toggle the RTS from the host, and the manager will see it and send 0x32 on the side channel (DTR pair). The manager(s) that do not have that address should blink there LED slow to indicate lockout, while the manager with address '2' blinks fast to indicate bootloader mode. Adjust the lockout timeout LOCKOUT_DELAY with the source firmware.
+
+
+## Cmd 4 from the application controller /w i2c-debug read if the host shutdown detected.
+
+The application controller can check if the host got a manual halt command (e.g., if the shutdown button got pressed). Reading will clear the shutdown_detected flag that was used to keep the LED_BUILTIN from blinking.
+
+``` 
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 4,255
@@ -165,17 +187,15 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x4"},{"data":"0x0"}]}
 ``` 
 
-The above used a remote host and shield.
-
-Second value in rxBuffer has shutdown_detected value 0x1, it is cleared after reading.
+The above interaction with a remote host was over the multi-drop serial. The second reading shows that shutdown_detected cleared.
 
 
-## Cmd 5 from a controller /w i2c-debug set HOST to shutdown
+## Cmd 5 from the application controller /w i2c-debug set host shutdown.
 
-To hault the host send the I2C shutdown command 5 (first byte), with data 1 (second byte) which sets shutdown_started, clears shutdown_detected and pulls down the SHUTDOWN (ICP1) pin. The shutdown_started flag is also used to stop blinking of the LED_BUILTIN to reduce power usage noise so that the host power usage can be clearly seen.
+The application controller can have the manager pull down the shutdown as though it was a manual (e.g., the shutdown button got pressed). Use command 4 to read and clear the shutdown_detected flag.
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 5,1
@@ -184,20 +204,24 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x5"},{"data":"0x1"}]}
 ``` 
 
-The above used a remote host and shield.
+The above interaction with a remote host was over the multi-drop serial.
 
 
 ## Cmd 6 from a controller /w i2c-debug read status bits
 
-I2C0 can be used by the RPU to read the local status bits.
+The application controller can read the status of the manager. 
+
+status bits: 
 
 0. DTR readback timeout
-1. twi transmit fail 
+1. twi transmit fail
 2. DTR readback not match
 3. host lockout
+4. alternate power enable (ALT_EN)
+5. SBC power enable (PIPWR_EN)
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 6,255
@@ -209,12 +233,7 @@ picocom -b 38400 /dev/ttyUSB0
 
 ## Cmd 6 from a Raspberry Pi read status bits
 
-I2C1 can be used by the host to read the local status bits.
-
-0. DTR readback timeout
-1. twi transmit fail 
-2. DTR readback not match
-3. host lockout
+The local host can read status bits.
 
 ``` 
 python3
@@ -227,20 +246,24 @@ print(bus.read_i2c_block_data(42, 6, 2))
 [6, 8]
 ``` 
 
-Bit 3 is set so the host can not connect until that has been cleared.
+Bit 3 is set so the host lockout is set until that has been cleared.
 
 
-## Cmd 7 from a controller /w i2c-debug set status bits
+## Cmd 7 from the application controller /w i2c-debug set status bits.
 
-I2C0 can be used by the RPU to set the local status bits.
+The application controller can set the status of the manager. 
+
+status bits: 
 
 0. DTR readback timeout
-1. twi transmit fail 
+1. twi transmit fail
 2. DTR readback not match
 3. host lockout
+4. enable alternate power enable (allows manager to use ALT_EN)
+5. enable SBC power (starts up PIPWR_EN)
 
 ``` 
-picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 7,8
@@ -249,14 +272,11 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x7"},{"data":"0x0"}]}
 ``` 
 
-## Cmd 7 from a Raspberry Pi sets status bits
 
-I2C1 can be used by the host to set the local status bits.
+## Cmd 7 from a Raspberry Pi set status bits.
 
-0. DTR readback timeout
-1. twi transmit fail 
-2. DTR readback not match
-3. host lockout
+The local host can set or clear status bits (except PIPWR_EN).
+
 
 ``` 
 python3
@@ -275,5 +295,5 @@ Terminal ready
 # C-a, C-x.
 ``` 
 
-The Raspberry Pi can bootload a target on the RPU serial bus.
+The Raspberry Pi has cleared the host lockout bit (3) and can now bootload a target on the multi-drop serial bus. Once PIPWR_EN is set it will not clear (see command 5 for shutdown). 
 

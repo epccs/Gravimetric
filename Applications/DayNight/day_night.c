@@ -24,6 +24,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/parse.h"
 #include "../lib/adc.h"
 #include "../lib/timers.h"
+#include "../lib/rpu_mgr.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
 #include "day_night.h"
@@ -192,7 +193,7 @@ uint8_t CheckingDayLight()
         chk_light_started_at += CHK_SOLAR_DELAY; 
 
         // take sensor value and return power to its previous state
-        int sensor_val = analogRead(ALT_V);
+        int sensor_val = get_adc_from_328pb(ALT_V);
         digitalWrite(ALT_EN,alt_power_value);
         alt_power_is_checking_light = 0;
         

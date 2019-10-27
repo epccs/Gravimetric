@@ -33,6 +33,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "id_in_ee.h"
 #include "adc_burst.h"
 #include "references.h"
+#include "power_manager.h"
 
 void setup(void) 
 {
@@ -123,6 +124,10 @@ void setup(void)
 
     // is foreign host in control? (ask over the DTR pair)
     uart_has_TTL = 0;
+
+    // default values for 12V LA are measured from PWR_V channel 
+    battery_high_limit = 397; // 14.2/(((5.0)/1024.0)*(115.8/15.8))
+    battery_low_limit = 374; // 13.4/(((5.0)/1024.0)*(115.8/15.8))
 
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 
