@@ -85,7 +85,7 @@ i2c0Buffer          0x20              i2c_cmds.o
 host_is_foreign     0x1               rpubus_manager_state.o
 adc                 0x12              ../lib/adc.o
 blink_started_at    0x4               rpubus_manager_state.o
-battery_high_limit  0x2               power_manager.o
+battery_high_limit  0x2               battery_limits.o
 uart_started_at     0x4               dtr_transmition.o
 arduino_mode        0x1               rpubus_manager_state.o
 shutdown_started_at
@@ -101,9 +101,10 @@ uart_has_TTL        0x1               rpubus_manager_state.o
 ADC_auto_conversion
                     0x1               ../lib/adc.o
 smbus_oldBuffer     0x20              smbus_cmds.o
+bat_limit_loaded    0x1               battery_limits.o
 test_mode           0x1               rpubus_manager_state.o
 __iob               0x6               /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
-battery_low_limit   0x2               power_manager.o
+battery_low_limit   0x2               battery_limits.o
 
 Discarded input sections
 
@@ -136,8 +137,9 @@ Discarded input sections
  .text          0x0000000000000000        0x0 power_manager.o
  .data          0x0000000000000000        0x0 power_manager.o
  .bss           0x0000000000000000        0x0 power_manager.o
- .text.check_if_alt_should_be_on
-                0x0000000000000000       0x5c power_manager.o
+ .text          0x0000000000000000        0x0 battery_limits.o
+ .data          0x0000000000000000        0x0 battery_limits.o
+ .bss           0x0000000000000000        0x0 battery_limits.o
  .text          0x0000000000000000        0x0 ../lib/uart.o
  .data          0x0000000000000000        0x0 ../lib/uart.o
  .bss           0x0000000000000000        0x0 ../lib/uart.o
@@ -375,6 +377,7 @@ LOAD id_in_ee.o
 LOAD adc_burst.o
 LOAD references.o
 LOAD power_manager.o
+LOAD battery_limits.o
 LOAD ../lib/uart.o
 LOAD ../lib/adc.o
 LOAD ../lib/timers.o
@@ -484,7 +487,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000     0x2a4c
+.text           0x0000000000000000     0x2c68
  *(.vectors)
  .vectors       0x0000000000000000       0xb4 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
                 0x0000000000000000                __vectors
@@ -587,318 +590,345 @@ END GROUP
                 0x00000000000000f4                __vector_42
                 0x00000000000000f8                . = ALIGN (0x2)
  *(.text.*)
- .text.setup    0x00000000000000f8      0x1ca main.o
+ .text.setup    0x00000000000000f8      0x1b6 main.o
                 0x00000000000000f8                setup
  .text.startup.main
-                0x00000000000002c2       0x64 main.o
-                0x00000000000002c2                main
+                0x00000000000002ae       0x74 main.o
+                0x00000000000002ae                main
  .text.connect_normal_mode
-                0x0000000000000326       0x6a rpubus_manager_state.o
-                0x0000000000000326                connect_normal_mode
+                0x0000000000000322       0x6a rpubus_manager_state.o
+                0x0000000000000322                connect_normal_mode
  .text.connect_bootload_mode
-                0x0000000000000390       0x4a rpubus_manager_state.o
-                0x0000000000000390                connect_bootload_mode
+                0x000000000000038c       0x4a rpubus_manager_state.o
+                0x000000000000038c                connect_bootload_mode
  .text.connect_lockout_mode
-                0x00000000000003da       0x4a rpubus_manager_state.o
-                0x00000000000003da                connect_lockout_mode
+                0x00000000000003d6       0x4a rpubus_manager_state.o
+                0x00000000000003d6                connect_lockout_mode
  .text.blink_on_activate
-                0x0000000000000424      0x15e rpubus_manager_state.o
-                0x0000000000000424                blink_on_activate
+                0x0000000000000420      0x15e rpubus_manager_state.o
+                0x0000000000000420                blink_on_activate
  .text.check_Bootload_Time
-                0x0000000000000582       0x52 rpubus_manager_state.o
-                0x0000000000000582                check_Bootload_Time
+                0x000000000000057e       0x52 rpubus_manager_state.o
+                0x000000000000057e                check_Bootload_Time
  .text.check_lockout
-                0x00000000000005d4       0x52 rpubus_manager_state.o
-                0x00000000000005d4                check_lockout
+                0x00000000000005d0       0x52 rpubus_manager_state.o
+                0x00000000000005d0                check_lockout
  .text.check_shutdown
-                0x0000000000000626       0xa2 rpubus_manager_state.o
-                0x0000000000000626                check_shutdown
+                0x0000000000000622       0xa2 rpubus_manager_state.o
+                0x0000000000000622                check_shutdown
  .text.check_DTR
-                0x00000000000006c8      0x174 dtr_transmition.o
-                0x00000000000006c8                check_DTR
+                0x00000000000006c4      0x174 dtr_transmition.o
+                0x00000000000006c4                check_DTR
  .text.check_uart
-                0x000000000000083c      0x416 dtr_transmition.o
-                0x000000000000083c                check_uart
+                0x0000000000000838      0x41e dtr_transmition.o
+                0x0000000000000838                check_uart
  .text.fnWtMgrAddr
-                0x0000000000000c52       0x10 i2c_cmds.o
-                0x0000000000000c52                fnWtMgrAddr
+                0x0000000000000c56       0x10 i2c_cmds.o
+                0x0000000000000c56                fnWtMgrAddr
  .text.fnRdBootldAddr
-                0x0000000000000c62        0xa i2c_cmds.o
-                0x0000000000000c62                fnRdBootldAddr
+                0x0000000000000c66        0xa i2c_cmds.o
+                0x0000000000000c66                fnRdBootldAddr
  .text.fnWtBootldAddr
-                0x0000000000000c6c        0xa i2c_cmds.o
-                0x0000000000000c6c                fnWtBootldAddr
+                0x0000000000000c70        0xa i2c_cmds.o
+                0x0000000000000c70                fnWtBootldAddr
  .text.fnRdShtdnDtct
-                0x0000000000000c76        0xe i2c_cmds.o
-                0x0000000000000c76                fnRdShtdnDtct
+                0x0000000000000c7a        0xe i2c_cmds.o
+                0x0000000000000c7a                fnRdShtdnDtct
  .text.fnRdStatus
-                0x0000000000000c84       0x12 i2c_cmds.o
-                0x0000000000000c84                fnRdStatus
+                0x0000000000000c88       0x12 i2c_cmds.o
+                0x0000000000000c88                fnRdStatus
  .text.fnWtStatus
-                0x0000000000000c96       0x30 i2c_cmds.o
-                0x0000000000000c96                fnWtStatus
+                0x0000000000000c9a       0x30 i2c_cmds.o
+                0x0000000000000c9a                fnWtStatus
  .text.fnRdArduinMode
-                0x0000000000000cc6        0xa i2c_cmds.o
-                0x0000000000000cc6                fnRdArduinMode
+                0x0000000000000cca        0xa i2c_cmds.o
+                0x0000000000000cca                fnRdArduinMode
  .text.fnRdTimedAccumAltI
-                0x0000000000000cd0       0x1c i2c_cmds.o
-                0x0000000000000cd0                fnRdTimedAccumAltI
+                0x0000000000000cd4       0x1c i2c_cmds.o
+                0x0000000000000cd4                fnRdTimedAccumAltI
  .text.fnRdTimedAccumPwrI
-                0x0000000000000cec       0x1c i2c_cmds.o
-                0x0000000000000cec                fnRdTimedAccumPwrI
+                0x0000000000000cf0       0x1c i2c_cmds.o
+                0x0000000000000cf0                fnRdTimedAccumPwrI
  .text.fnAnalogRefExternAVCC
-                0x0000000000000d08       0x62 i2c_cmds.o
-                0x0000000000000d08                fnAnalogRefExternAVCC
+                0x0000000000000d0c       0x62 i2c_cmds.o
+                0x0000000000000d0c                fnAnalogRefExternAVCC
  .text.fnAnalogRefIntern1V1
-                0x0000000000000d6a       0x62 i2c_cmds.o
-                0x0000000000000d6a                fnAnalogRefIntern1V1
- .text.fnNull   0x0000000000000dcc        0x2 i2c_cmds.o
-                0x0000000000000dcc                fnNull
+                0x0000000000000d6e       0x62 i2c_cmds.o
+                0x0000000000000d6e                fnAnalogRefIntern1V1
+ .text.fnNull   0x0000000000000dd0        0x2 i2c_cmds.o
+                0x0000000000000dd0                fnNull
  .text.fnRdMgrAddr
-                0x0000000000000dce      0x148 i2c_cmds.o
-                0x0000000000000dce                fnRdMgrAddr
+                0x0000000000000dd2      0x148 i2c_cmds.o
+                0x0000000000000dd2                fnRdMgrAddr
  .text.fnRdAdcAltI
-                0x0000000000000f16       0x16 i2c_cmds.o
-                0x0000000000000f16                fnRdAdcAltI
+                0x0000000000000f1a       0x16 i2c_cmds.o
+                0x0000000000000f1a                fnRdAdcAltI
  .text.fnRdAdcAltV
-                0x0000000000000f2c       0x16 i2c_cmds.o
-                0x0000000000000f2c                fnRdAdcAltV
+                0x0000000000000f30       0x16 i2c_cmds.o
+                0x0000000000000f30                fnRdAdcAltV
  .text.fnRdAdcPwrI
-                0x0000000000000f42       0x16 i2c_cmds.o
-                0x0000000000000f42                fnRdAdcPwrI
+                0x0000000000000f46       0x16 i2c_cmds.o
+                0x0000000000000f46                fnRdAdcPwrI
  .text.fnRdAdcPwrV
-                0x0000000000000f58       0x16 i2c_cmds.o
-                0x0000000000000f58                fnRdAdcPwrV
+                0x0000000000000f5c       0x16 i2c_cmds.o
+                0x0000000000000f5c                fnRdAdcPwrV
  .text.fnRdXcvrCntlInTestMode
-                0x0000000000000f6e       0xee i2c_cmds.o
-                0x0000000000000f6e                fnRdXcvrCntlInTestMode
+                0x0000000000000f72       0xee i2c_cmds.o
+                0x0000000000000f72                fnRdXcvrCntlInTestMode
  .text.fnWtXcvrCntlInTestMode
-                0x000000000000105c       0xf4 i2c_cmds.o
-                0x000000000000105c                fnWtXcvrCntlInTestMode
+                0x0000000000001060       0xf4 i2c_cmds.o
+                0x0000000000001060                fnWtXcvrCntlInTestMode
  .text.fnWtShtdnDtct
-                0x0000000000001150       0x46 i2c_cmds.o
-                0x0000000000001150                fnWtShtdnDtct
+                0x0000000000001154       0x46 i2c_cmds.o
+                0x0000000000001154                fnWtShtdnDtct
  .text.fnWtArduinMode
-                0x0000000000001196       0x9e i2c_cmds.o
-                0x0000000000001196                fnWtArduinMode
+                0x000000000000119a       0x9e i2c_cmds.o
+                0x000000000000119a                fnWtArduinMode
  .text.fnStartTestMode
-                0x0000000000001234       0xa4 i2c_cmds.o
-                0x0000000000001234                fnStartTestMode
+                0x0000000000001238       0xa4 i2c_cmds.o
+                0x0000000000001238                fnStartTestMode
  .text.fnEndTestMode
-                0x00000000000012d8       0xdc i2c_cmds.o
-                0x00000000000012d8                fnEndTestMode
+                0x00000000000012dc       0xdc i2c_cmds.o
+                0x00000000000012dc                fnEndTestMode
  .text.receive_i2c_event
-                0x00000000000013b4       0x7a i2c_cmds.o
-                0x00000000000013b4                receive_i2c_event
+                0x00000000000013b8       0x7a i2c_cmds.o
+                0x00000000000013b8                receive_i2c_event
  .text.transmit_i2c_event
-                0x000000000000142e       0x1c i2c_cmds.o
-                0x000000000000142e                transmit_i2c_event
+                0x0000000000001432       0x1c i2c_cmds.o
+                0x0000000000001432                transmit_i2c_event
  .text.fnRdMgrAddrQuietly
-                0x000000000000144a        0xa i2c_cmds.o
-                0x000000000000144a                fnRdMgrAddrQuietly
+                0x000000000000144e        0xa i2c_cmds.o
+                0x000000000000144e                fnRdMgrAddrQuietly
  .text.receive_smbus_event
-                0x0000000000001454       0x12 smbus_cmds.o
-                0x0000000000001454                receive_smbus_event
+                0x0000000000001458       0x12 smbus_cmds.o
+                0x0000000000001458                receive_smbus_event
  .text.handle_smbus_receive
-                0x0000000000001466       0xe0 smbus_cmds.o
-                0x0000000000001466                handle_smbus_receive
+                0x000000000000146a       0xe0 smbus_cmds.o
+                0x000000000000146a                handle_smbus_receive
  .text.transmit_smbus_event
-                0x0000000000001546       0x12 smbus_cmds.o
-                0x0000000000001546                transmit_smbus_event
+                0x000000000000154a       0x12 smbus_cmds.o
+                0x000000000000154a                transmit_smbus_event
  .text.save_rpu_addr_state
-                0x0000000000001558       0x52 id_in_ee.o
-                0x0000000000001558                save_rpu_addr_state
+                0x000000000000155c       0x52 id_in_ee.o
+                0x000000000000155c                save_rpu_addr_state
  .text.check_for_eeprom_id
-                0x00000000000015aa       0x36 id_in_ee.o
-                0x00000000000015aa                check_for_eeprom_id
+                0x00000000000015ae       0x36 id_in_ee.o
+                0x00000000000015ae                check_for_eeprom_id
  .text.adc_burst
-                0x00000000000015e0       0xcc adc_burst.o
-                0x00000000000015e0                adc_burst
+                0x00000000000015e4       0xcc adc_burst.o
+                0x00000000000015e4                adc_burst
  .text.IsValidValForAvccRef
-                0x00000000000016ac       0x22 references.o
-                0x00000000000016ac                IsValidValForAvccRef
+                0x00000000000016b0       0x22 references.o
+                0x00000000000016b0                IsValidValForAvccRef
  .text.IsValidValFor1V1Ref
-                0x00000000000016ce       0x22 references.o
-                0x00000000000016ce                IsValidValFor1V1Ref
+                0x00000000000016d2       0x22 references.o
+                0x00000000000016d2                IsValidValFor1V1Ref
  .text.WriteEeReferenceId
-                0x00000000000016f0       0x28 references.o
-                0x00000000000016f0                WriteEeReferenceId
+                0x00000000000016f4       0x28 references.o
+                0x00000000000016f4                WriteEeReferenceId
  .text.WriteEeReferenceAvcc
-                0x0000000000001718       0x3c references.o
-                0x0000000000001718                WriteEeReferenceAvcc
+                0x000000000000171c       0x3c references.o
+                0x000000000000171c                WriteEeReferenceAvcc
  .text.WriteEeReference1V1
-                0x0000000000001754       0x3c references.o
-                0x0000000000001754                WriteEeReference1V1
+                0x0000000000001758       0x3c references.o
+                0x0000000000001758                WriteEeReference1V1
  .text.LoadAnalogRefFromEEPROM
-                0x0000000000001790       0x80 references.o
-                0x0000000000001790                LoadAnalogRefFromEEPROM
- .text.ref2ee   0x0000000000001810       0x5c references.o
-                0x0000000000001810                ref2ee
+                0x0000000000001794       0x80 references.o
+                0x0000000000001794                LoadAnalogRefFromEEPROM
+ .text.ref2ee   0x0000000000001814       0x5c references.o
+                0x0000000000001814                ref2ee
+ .text.check_if_alt_should_be_on
+                0x0000000000001870       0x5c power_manager.o
+                0x0000000000001870                check_if_alt_should_be_on
+ .text.IsValidBatHighLimFor12V
+                0x00000000000018cc       0x16 battery_limits.o
+                0x00000000000018cc                IsValidBatHighLimFor12V
+ .text.IsValidBatLowLimFor12V
+                0x00000000000018e2       0x16 battery_limits.o
+                0x00000000000018e2                IsValidBatLowLimFor12V
+ .text.IsValidBatHighLimFor24V
+                0x00000000000018f8       0x16 battery_limits.o
+                0x00000000000018f8                IsValidBatHighLimFor24V
+ .text.IsValidBatLowLimFor24V
+                0x000000000000190e       0x16 battery_limits.o
+                0x000000000000190e                IsValidBatLowLimFor24V
+ .text.WriteEEBatHighLim
+                0x0000000000001924       0x2c battery_limits.o
+                0x0000000000001924                WriteEEBatHighLim
+ .text.WriteEEBatLowLim
+                0x0000000000001950       0x2c battery_limits.o
+                0x0000000000001950                WriteEEBatLowLim
+ .text.LoadBatLimitsFromEEPROM
+                0x000000000000197c       0xae battery_limits.o
+                0x000000000000197c                LoadBatLimitsFromEEPROM
+ .text.BatLimitsFromI2CtoEE
+                0x0000000000001a2a       0x5e battery_limits.o
+                0x0000000000001a2a                BatLimitsFromI2CtoEE
  .text.__vector_18
-                0x000000000000186c       0x6a ../lib/uart.o
-                0x000000000000186c                __vector_18
+                0x0000000000001a88       0x6a ../lib/uart.o
+                0x0000000000001a88                __vector_18
  .text.__vector_19
-                0x00000000000018d6       0x58 ../lib/uart.o
-                0x00000000000018d6                __vector_19
+                0x0000000000001af2       0x58 ../lib/uart.o
+                0x0000000000001af2                __vector_19
  .text.uart0_init
-                0x000000000000192e       0x32 ../lib/uart.o
-                0x000000000000192e                uart0_init
+                0x0000000000001b4a       0x32 ../lib/uart.o
+                0x0000000000001b4a                uart0_init
  .text.uart0_getc
-                0x0000000000001960       0x3a ../lib/uart.o
-                0x0000000000001960                uart0_getc
+                0x0000000000001b7c       0x3a ../lib/uart.o
+                0x0000000000001b7c                uart0_getc
  .text.uart0_putc
-                0x000000000000199a       0x32 ../lib/uart.o
-                0x000000000000199a                uart0_putc
+                0x0000000000001bb6       0x32 ../lib/uart.o
+                0x0000000000001bb6                uart0_putc
  .text.uartstream0_putchar
-                0x00000000000019cc        0xa ../lib/uart.o
+                0x0000000000001be8        0xa ../lib/uart.o
  .text.uart0_available
-                0x00000000000019d6       0x16 ../lib/uart.o
-                0x00000000000019d6                uart0_available
+                0x0000000000001bf2       0x16 ../lib/uart.o
+                0x0000000000001bf2                uart0_available
  .text.uartstream0_getchar
-                0x00000000000019ec       0x1a ../lib/uart.o
+                0x0000000000001c08       0x1a ../lib/uart.o
  .text.uartstream0_init
-                0x0000000000001a06       0x4e ../lib/uart.o
-                0x0000000000001a06                uartstream0_init
+                0x0000000000001c22       0x4e ../lib/uart.o
+                0x0000000000001c22                uartstream0_init
  .text.__vector_21
-                0x0000000000001a54       0xa6 ../lib/adc.o
-                0x0000000000001a54                __vector_21
+                0x0000000000001c70       0xa6 ../lib/adc.o
+                0x0000000000001c70                __vector_21
  .text.init_ADC_single_conversion
-                0x0000000000001afa       0x36 ../lib/adc.o
-                0x0000000000001afa                init_ADC_single_conversion
+                0x0000000000001d16       0x36 ../lib/adc.o
+                0x0000000000001d16                init_ADC_single_conversion
  .text.enable_ADC_auto_conversion
-                0x0000000000001b30       0x4c ../lib/adc.o
-                0x0000000000001b30                enable_ADC_auto_conversion
+                0x0000000000001d4c       0x4c ../lib/adc.o
+                0x0000000000001d4c                enable_ADC_auto_conversion
  .text.analogRead
-                0x0000000000001b7c       0x58 ../lib/adc.o
-                0x0000000000001b7c                analogRead
+                0x0000000000001d98       0x58 ../lib/adc.o
+                0x0000000000001d98                analogRead
  .text.__vector_16
-                0x0000000000001bd4       0x94 ../lib/timers.o
-                0x0000000000001bd4                __vector_16
- .text.millis   0x0000000000001c68       0x18 ../lib/timers.o
-                0x0000000000001c68                millis
+                0x0000000000001df0       0x94 ../lib/timers.o
+                0x0000000000001df0                __vector_16
+ .text.millis   0x0000000000001e84       0x18 ../lib/timers.o
+                0x0000000000001e84                millis
  .text.initTimers
-                0x0000000000001c80       0x88 ../lib/timers.o
-                0x0000000000001c80                initTimers
+                0x0000000000001e9c       0x88 ../lib/timers.o
+                0x0000000000001e9c                initTimers
  .text.transmit0_default
-                0x0000000000001d08        0x2 ../lib/twi0.o
-                0x0000000000001d08                transmit0_default
+                0x0000000000001f24        0x2 ../lib/twi0.o
+                0x0000000000001f24                transmit0_default
  .text.receive0_default
-                0x0000000000001d0a        0x2 ../lib/twi0.o
-                0x0000000000001d0a                receive0_default
+                0x0000000000001f26        0x2 ../lib/twi0.o
+                0x0000000000001f26                receive0_default
  .text.twi0_init
-                0x0000000000001d0c       0x3c ../lib/twi0.o
-                0x0000000000001d0c                twi0_init
+                0x0000000000001f28       0x3c ../lib/twi0.o
+                0x0000000000001f28                twi0_init
  .text.twi0_setAddress
-                0x0000000000001d48        0x8 ../lib/twi0.o
-                0x0000000000001d48                twi0_setAddress
+                0x0000000000001f64        0x8 ../lib/twi0.o
+                0x0000000000001f64                twi0_setAddress
  .text.twi0_transmit
-                0x0000000000001d50       0x32 ../lib/twi0.o
-                0x0000000000001d50                twi0_transmit
+                0x0000000000001f6c       0x32 ../lib/twi0.o
+                0x0000000000001f6c                twi0_transmit
  .text.twi0_attachSlaveRxEvent
-                0x0000000000001d82        0xa ../lib/twi0.o
-                0x0000000000001d82                twi0_attachSlaveRxEvent
+                0x0000000000001f9e        0xa ../lib/twi0.o
+                0x0000000000001f9e                twi0_attachSlaveRxEvent
  .text.twi0_attachSlaveTxEvent
-                0x0000000000001d8c        0xa ../lib/twi0.o
-                0x0000000000001d8c                twi0_attachSlaveTxEvent
+                0x0000000000001fa8        0xa ../lib/twi0.o
+                0x0000000000001fa8                twi0_attachSlaveTxEvent
  .text.twi0_stop
-                0x0000000000001d96       0x14 ../lib/twi0.o
-                0x0000000000001d96                twi0_stop
+                0x0000000000001fb2       0x14 ../lib/twi0.o
+                0x0000000000001fb2                twi0_stop
  .text.twi0_releaseBus
-                0x0000000000001daa        0xc ../lib/twi0.o
-                0x0000000000001daa                twi0_releaseBus
+                0x0000000000001fc6        0xc ../lib/twi0.o
+                0x0000000000001fc6                twi0_releaseBus
  .text.__vector_24
-                0x0000000000001db6      0x25a ../lib/twi0.o
-                0x0000000000001db6                __vector_24
+                0x0000000000001fd2      0x25a ../lib/twi0.o
+                0x0000000000001fd2                __vector_24
  .text.transmit1_default
-                0x0000000000002010        0x2 ../lib/twi1.o
-                0x0000000000002010                transmit1_default
+                0x000000000000222c        0x2 ../lib/twi1.o
+                0x000000000000222c                transmit1_default
  .text.receive1_default
-                0x0000000000002012        0x2 ../lib/twi1.o
-                0x0000000000002012                receive1_default
+                0x000000000000222e        0x2 ../lib/twi1.o
+                0x000000000000222e                receive1_default
  .text.twi1_init
-                0x0000000000002014       0x48 ../lib/twi1.o
-                0x0000000000002014                twi1_init
+                0x0000000000002230       0x48 ../lib/twi1.o
+                0x0000000000002230                twi1_init
  .text.twi1_setAddress
-                0x000000000000205c        0x8 ../lib/twi1.o
-                0x000000000000205c                twi1_setAddress
+                0x0000000000002278        0x8 ../lib/twi1.o
+                0x0000000000002278                twi1_setAddress
  .text.twi1_transmit
-                0x0000000000002064       0x32 ../lib/twi1.o
-                0x0000000000002064                twi1_transmit
+                0x0000000000002280       0x32 ../lib/twi1.o
+                0x0000000000002280                twi1_transmit
  .text.twi1_attachSlaveRxEvent
-                0x0000000000002096        0xa ../lib/twi1.o
-                0x0000000000002096                twi1_attachSlaveRxEvent
+                0x00000000000022b2        0xa ../lib/twi1.o
+                0x00000000000022b2                twi1_attachSlaveRxEvent
  .text.twi1_attachSlaveTxEvent
-                0x00000000000020a0        0xa ../lib/twi1.o
-                0x00000000000020a0                twi1_attachSlaveTxEvent
+                0x00000000000022bc        0xa ../lib/twi1.o
+                0x00000000000022bc                twi1_attachSlaveTxEvent
  .text.twi1_stop
-                0x00000000000020aa       0x14 ../lib/twi1.o
-                0x00000000000020aa                twi1_stop
+                0x00000000000022c6       0x14 ../lib/twi1.o
+                0x00000000000022c6                twi1_stop
  .text.twi1_releaseBus
-                0x00000000000020be        0xc ../lib/twi1.o
-                0x00000000000020be                twi1_releaseBus
+                0x00000000000022da        0xc ../lib/twi1.o
+                0x00000000000022da                twi1_releaseBus
  .text.__vector_40
-                0x00000000000020ca      0x284 ../lib/twi1.o
-                0x00000000000020ca                __vector_40
+                0x00000000000022e6      0x284 ../lib/twi1.o
+                0x00000000000022e6                __vector_40
  .text.libgcc.div
-                0x000000000000234e       0x44 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
-                0x000000000000234e                __udivmodsi4
+                0x000000000000256a       0x44 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
+                0x000000000000256a                __udivmodsi4
  .text.avr-libc
-                0x0000000000002392       0x7c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
-                0x0000000000002392                fgetc
+                0x00000000000025ae       0x7c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fgetc.o)
+                0x00000000000025ae                fgetc
  .text.avr-libc
-                0x000000000000240e       0x2c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
-                0x000000000000240e                printf
+                0x000000000000262a       0x2c /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o)
+                0x000000000000262a                printf
  .text.avr-libc
-                0x000000000000243a      0x3c2 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
-                0x000000000000243a                vfprintf
+                0x0000000000002656      0x3c2 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o)
+                0x0000000000002656                vfprintf
  .text.avr-libc
-                0x00000000000027fc       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
-                0x00000000000027fc                strnlen_P
+                0x0000000000002a18       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen_P.o)
+                0x0000000000002a18                strnlen_P
  .text.avr-libc
-                0x0000000000002812       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
-                0x0000000000002812                strnlen
+                0x0000000000002a2e       0x16 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(strnlen.o)
+                0x0000000000002a2e                strnlen
  .text.avr-libc
-                0x0000000000002828       0x78 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
-                0x0000000000002828                fputc
+                0x0000000000002a44       0x78 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(fputc.o)
+                0x0000000000002a44                fputc
  .text.avr-libc
-                0x00000000000028a0       0xbc /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
-                0x00000000000028a0                __ultoa_invert
+                0x0000000000002abc       0xbc /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
+                0x0000000000002abc                __ultoa_invert
  .text.avr-libc
-                0x000000000000295c       0x10 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
-                0x000000000000295c                eeprom_read_byte
+                0x0000000000002b78       0x10 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+                0x0000000000002b78                eeprom_read_byte
  .text.avr-libc
-                0x000000000000296c        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
-                0x000000000000296c                eeprom_read_dword
-                0x000000000000296c                eeprom_read_float
+                0x0000000000002b88        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+                0x0000000000002b88                eeprom_read_dword
+                0x0000000000002b88                eeprom_read_float
  .text.avr-libc
-                0x0000000000002978        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
-                0x0000000000002978                eeprom_read_word
+                0x0000000000002b94        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+                0x0000000000002b94                eeprom_read_word
  .text.avr-libc
-                0x0000000000002984       0x1c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
-                0x0000000000002984                eeprom_write_byte
-                0x0000000000002986                eeprom_write_r18
+                0x0000000000002ba0       0x1c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_byte.o)
+                0x0000000000002ba0                eeprom_write_byte
+                0x0000000000002ba2                eeprom_write_r18
  .text.avr-libc
-                0x00000000000029a0       0x10 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_dword.o)
-                0x00000000000029a0                eeprom_write_float
-                0x00000000000029a0                eeprom_write_dword
+                0x0000000000002bbc       0x10 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_dword.o)
+                0x0000000000002bbc                eeprom_write_float
+                0x0000000000002bbc                eeprom_write_dword
  .text.avr-libc
-                0x00000000000029b0        0xa ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_word.o)
-                0x00000000000029b0                eeprom_write_word
+                0x0000000000002bcc        0xa ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eewr_word.o)
+                0x0000000000002bcc                eeprom_write_word
  .text.avr-libc
-                0x00000000000029ba       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
-                0x00000000000029ba                eeprom_read_block
-                0x00000000000029be                eeprom_read_blraw
+                0x0000000000002bd6       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+                0x0000000000002bd6                eeprom_read_block
+                0x0000000000002bda                eeprom_read_blraw
  .text.libgcc.prologue
-                0x00000000000029da       0x38 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
-                0x00000000000029da                __prologue_saves__
+                0x0000000000002bf6       0x38 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
+                0x0000000000002bf6                __prologue_saves__
  .text.libgcc.prologue
-                0x0000000000002a12       0x36 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
-                0x0000000000002a12                __epilogue_restores__
-                0x0000000000002a48                . = ALIGN (0x2)
+                0x0000000000002c2e       0x36 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
+                0x0000000000002c2e                __epilogue_restores__
+                0x0000000000002c64                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000002a48        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
-                0x0000000000002a48                exit
-                0x0000000000002a48                _exit
+ .fini9         0x0000000000002c64        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+                0x0000000000002c64                exit
+                0x0000000000002c64                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -917,11 +947,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000002a48        0x4 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
+ .fini0         0x0000000000002c64        0x4 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000002a4c                _etext = .
+                0x0000000000002c68                _etext = .
 
-.data           0x0000000000800100       0x9c load address 0x0000000000002a4c
+.data           0x0000000000800100       0x9c load address 0x0000000000002c68
                 0x0000000000800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -951,7 +981,7 @@ END GROUP
                 0x000000000080019c                _edata = .
                 0x000000000080019c                PROVIDE (__data_end, .)
 
-.bss            0x000000000080019c      0x20d
+.bss            0x000000000080019c      0x20e
                 0x000000000080019c                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
@@ -1090,28 +1120,30 @@ END GROUP
                 0x000000000080037d                ref_loaded
                 0x000000000080037e                ref_extern_avcc_uV
                 0x0000000000800382                ref_intern_1v1_uV
- COMMON         0x0000000000800386        0x8 power_manager.o
+ COMMON         0x0000000000800386        0x4 power_manager.o
                 0x0000000000800386                enable_alternate_power
                 0x0000000000800387                enable_sbc_power
                 0x0000000000800388                alt_count
+ COMMON         0x000000000080038a        0x5 battery_limits.o
                 0x000000000080038a                battery_high_limit
-                0x000000000080038c                battery_low_limit
- COMMON         0x000000000080038e       0x15 ../lib/adc.o
-                0x000000000080038e                adc_channel
-                0x000000000080038f                analog_reference
-                0x0000000000800390                adc
-                0x00000000008003a2                ADC_auto_conversion
- COMMON         0x00000000008003a3        0x6 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
-                0x00000000008003a3                __iob
-                0x00000000008003a9                PROVIDE (__bss_end, .)
-                0x0000000000002a4c                __data_load_start = LOADADDR (.data)
-                0x0000000000002ae8                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x000000000080038c                bat_limit_loaded
+                0x000000000080038d                battery_low_limit
+ COMMON         0x000000000080038f       0x15 ../lib/adc.o
+                0x000000000080038f                adc_channel
+                0x0000000000800390                analog_reference
+                0x0000000000800391                adc
+                0x00000000008003a3                ADC_auto_conversion
+ COMMON         0x00000000008003a4        0x6 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(iob.o)
+                0x00000000008003a4                __iob
+                0x00000000008003aa                PROVIDE (__bss_end, .)
+                0x0000000000002c68                __data_load_start = LOADADDR (.data)
+                0x0000000000002d04                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00000000008003a9        0x0
+.noinit         0x00000000008003aa        0x0
                 [!provide]                        PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                        PROVIDE (__noinit_end, .)
-                0x00000000008003a9                _end = .
+                0x00000000008003aa                _end = .
                 [!provide]                        PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
@@ -1133,39 +1165,41 @@ END GROUP
 .user_signatures
  *(.user_signatures*)
 
-.stab           0x0000000000000000     0x9ba0
+.stab           0x0000000000000000     0xa584
  *(.stab)
- .stab          0x0000000000000000     0x1260 main.o
- .stab          0x0000000000001260     0x17b8 rpubus_manager_state.o
+ .stab          0x0000000000000000     0x1278 main.o
+ .stab          0x0000000000001278     0x17b8 rpubus_manager_state.o
                                        0x19f8 (size before relaxing)
- .stab          0x0000000000002a18     0x13bc dtr_transmition.o
-                                       0x1614 (size before relaxing)
- .stab          0x0000000000003dd4     0x1b18 i2c_cmds.o
+ .stab          0x0000000000002a30     0x1428 dtr_transmition.o
+                                       0x1680 (size before relaxing)
+ .stab          0x0000000000003e58     0x1b18 i2c_cmds.o
                                        0x1d64 (size before relaxing)
- .stab          0x00000000000058ec      0x600 smbus_cmds.o
+ .stab          0x0000000000005970      0x600 smbus_cmds.o
                                         0x858 (size before relaxing)
- .stab          0x0000000000005eec      0x480 id_in_ee.o
+ .stab          0x0000000000005f70      0x480 id_in_ee.o
                                         0x69c (size before relaxing)
- .stab          0x000000000000636c      0x384 adc_burst.o
+ .stab          0x00000000000063f0      0x384 adc_burst.o
                                         0x564 (size before relaxing)
- .stab          0x00000000000066f0      0x7d4 references.o
+ .stab          0x0000000000006774      0x7d4 references.o
                                         0xa08 (size before relaxing)
- .stab          0x0000000000006ec4      0x348 power_manager.o
-                                        0x75c (size before relaxing)
- .stab          0x000000000000720c      0x918 ../lib/uart.o
+ .stab          0x0000000000006f48      0x4ec power_manager.o
+                                        0x744 (size before relaxing)
+ .stab          0x0000000000007434      0x7bc battery_limits.o
+                                        0xa50 (size before relaxing)
+ .stab          0x0000000000007bf0      0x918 ../lib/uart.o
                                         0xc78 (size before relaxing)
- .stab          0x0000000000007b24      0x6f0 ../lib/adc.o
+ .stab          0x0000000000008508      0x6f0 ../lib/adc.o
                                         0x924 (size before relaxing)
- .stab          0x0000000000008214      0x57c ../lib/timers.o
+ .stab          0x0000000000008bf8      0x57c ../lib/timers.o
                                         0x828 (size before relaxing)
- .stab          0x0000000000008790      0x9e4 ../lib/twi0.o
+ .stab          0x0000000000009174      0x9e4 ../lib/twi0.o
                                         0xfcc (size before relaxing)
- .stab          0x0000000000009174      0xa2c ../lib/twi1.o
+ .stab          0x0000000000009b58      0xa2c ../lib/twi1.o
                                        0x1014 (size before relaxing)
 
-.stabstr        0x0000000000000000     0x2889
+.stabstr        0x0000000000000000     0x2a22
  *(.stabstr)
- .stabstr       0x0000000000000000     0x2889 main.o
+ .stabstr       0x0000000000000000     0x2a22 main.o
 
 .stab.excl
  *(.stab.excl)
@@ -1191,6 +1225,7 @@ END GROUP
  .comment       0x0000000000000011       0x12 adc_burst.o
  .comment       0x0000000000000011       0x12 references.o
  .comment       0x0000000000000011       0x12 power_manager.o
+ .comment       0x0000000000000011       0x12 battery_limits.o
  .comment       0x0000000000000011       0x12 ../lib/uart.o
  .comment       0x0000000000000011       0x12 ../lib/adc.o
  .comment       0x0000000000000011       0x12 ../lib/timers.o

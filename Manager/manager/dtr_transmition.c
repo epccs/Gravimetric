@@ -157,7 +157,8 @@ void check_uart(void)
             {
                 // fill transceiver_state with HOST_nRTS:HOST_nCTS:TX_nRE:TX_DE:DTR_nRE:DTR_DE:RX_nRE:RX_DE
                 transceiver_state = (digitalRead(HOST_nRTS)<<7) | (digitalRead(HOST_nCTS)<<6) |  (digitalRead(TX_nRE)<<5) | (digitalRead(TX_DE)<<4) | (digitalRead(DTR_nRE)<<3) | (digitalRead(DTR_DE)<<2) | (digitalRead(RX_nRE)<<1) | (digitalRead(RX_DE));
-                
+                // turn off alternate power
+                digitalWrite(ALT_EN, LOW);
                 // turn off transceiver controls except the DTR recevior
                 digitalWrite(TX_nRE, HIGH);
                 digitalWrite(TX_DE, LOW);

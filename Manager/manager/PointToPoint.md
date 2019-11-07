@@ -7,8 +7,8 @@
 18.
 19.
 20.
-21.
-22.
+21. Battery charge start (low) limit
+22. Battery charge done (high) limit
 23. Day-Night state machine based on ALT_V
 
 ## Cmd 16 from a controller /w i2c-debug set p2p mode

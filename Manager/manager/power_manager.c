@@ -24,18 +24,17 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/adc.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
+#include "battery_limits.h"
 #include "power_manager.h"
 
 uint8_t enable_alternate_power;
 uint8_t enable_sbc_power;
 
 uint16_t alt_count; // count the number of times the battery is at the charge limit
-int battery_high_limit;
-int battery_low_limit;
+
 
 // enable_alternate_power must be set to start charging
-// to do: pwm with a 2 second period, 
-//            pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
+// to do: pwm with a 2 second period, pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
 void check_if_alt_should_be_on(void)
 {
     if (enable_alternate_power)

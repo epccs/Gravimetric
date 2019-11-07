@@ -1,6 +1,18 @@
 #ifndef References_H
 #define References_H
 
+//References EEPROM memory usage. 
+#define EE_ANALOG_BASE_ADDR 30
+// each setting is at this byte offset
+#define EE_ANALOG_ID 0
+#define EE_ANALOG_REF_EXTERN_AVCC 2
+#define EE_ANALOG_REF_INTERN_1V1 6
+
+#define REF_EXTERN_AVCC_MAX 5500000UL
+#define REF_EXTERN_AVCC_MIN 4500000UL
+#define REF_INTERN_1V1_MAX 1300000UL
+#define REF_INTERN_1V1_MIN 900000UL
+
 extern uint8_t IsValidValForAvccRef(uint32_t *);
 extern uint8_t IsValidValFor1V1Ref(uint32_t *);
 extern uint8_t LoadAnalogRefFromEEPROM();

@@ -14,9 +14,11 @@ The lockout mode occurs when a byte on the DTR pair does not match the RPU_ADDRE
 
 When nRTS (or nDTR on RPUadpt) are pulled active the bus manager will connect the HOST_TX and HOST_RX lines to the RX and TX pairs, and pull the nCTS (and nDSR) lines active to let the host know it is Ok to send. If the bus is in use, the host will remain disconnected from the bus. Note the Remote firmware sets a status bit at startup that prevents the host from connecting until it is cleared with an I2C command.
 
-Arduino Mode is a permanent bootload mode so that the Arduino IDE can connect to a specific address (e.g., point to point). It needs to be enabled by I2C or SMBus. The command will cause a byte to be sent on the DTR pair that sets the arduino_mode thus overriding the lockout timeout and the bootload timeout (e.g., lockout and bootload mode are everlasting).
+Arduino Mode is a permanent bootload mode so that the Arduino IDE can connect to a specific address (e.g., point to point). It needs to be enabled by I2C or SMBus. The command will cause a byte to be sent on the DTR pair that sets the arduino_mode thus overriding the lockout timeout and the bootload timeout (e.g., lockout and bootload mode are everlasting). 
 
 Test Mode. I2C command to swithch to test_mode (save trancever control values). I2C command to recover trancever control bits after test_mode.
+
+Power Management commands allow reading ADC channels, saving reference values, battery limits, day-night state machine threshold and status. 
 
 
 ## Firmware Upload
@@ -158,4 +160,28 @@ Continue? [Y/n] Y
 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 70: -- -- -- -- -- -- -- --
 ```
+
+
+# EEPROM Memory map 
+
+A map of valuses in EEPROM. 
+
+```
+function            type        ee_addr:
+id                  UINT16      30
+ref_extern_avcc     UINT32      32
+ref_intern_1v1      UINT32      36
+"RPUid\0"           ARRAY       40
+md_serial_addr      UINT8       50
+bat_h_limit         UINT16      60
+bat_l_limit         UINT16      62
+```
+
+The AVCC pin is used to power the analog to digital converter and is also used as a reference. The AVCC pin is powered by a switchmode supply that can be measured and used as a reference.
+
+The internal 1V1 bandgap is not trimmed by the manufacturer, so it is nearly useless until it is measured. However, once it is known it is a good reference.
+
+The SelfTest loads calibration values for references into EEPROM.
+
+The multi drop serial rpu_address default is ASCII '0', e.g., from python ord('0'). If the Array "RPUid\0" is programmed in eeprom then the serial rpu_address is loaded from the md_serial_addr eeprom location after power up.
 

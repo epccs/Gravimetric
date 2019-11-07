@@ -31,18 +31,6 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/pins_board.h"
 #include "references.h"
 
-//The EEPROM memory usage is as follows. 
-#define EE_ANALOG_BASE_ADDR 30
-// each setting is at this byte offset
-#define EE_ANALOG_ID 0
-#define EE_ANALOG_REF_EXTERN_AVCC 2
-#define EE_ANALOG_REF_INTERN_1V1 6
-
-#define REF_EXTERN_AVCC_MAX 5500000UL
-#define REF_EXTERN_AVCC_MIN 4500000UL
-#define REF_INTERN_1V1_MAX 1300000UL
-#define REF_INTERN_1V1_MIN 900000UL
-
 uint8_t ref_loaded;
 uint32_t ref_extern_avcc_uV;
 uint32_t ref_intern_1v1_uV;

@@ -4,11 +4,7 @@
 extern uint8_t enable_alternate_power;
 extern uint8_t enable_sbc_power;
 extern uint16_t alt_count;
-extern int battery_high_limit;
-extern int battery_low_limit;
 
-// tbd
-//extern void connect_normal_mode(void);
-
+extern void check_if_alt_should_be_on(void);
 
 #endif // Power_manager_H 

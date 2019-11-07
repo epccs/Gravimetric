@@ -34,6 +34,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "adc_burst.h"
 #include "references.h"
 #include "power_manager.h"
+#include "battery_limits.h"
 
 void setup(void) 
 {
@@ -125,9 +126,8 @@ void setup(void)
     // is foreign host in control? (ask over the DTR pair)
     uart_has_TTL = 0;
 
-    // default values for 12V LA are measured from PWR_V channel 
-    battery_high_limit = 397; // 14.2/(((5.0)/1024.0)*(115.8/15.8))
-    battery_low_limit = 374; // 13.4/(((5.0)/1024.0)*(115.8/15.8))
+    // load Battery Limits from EEPROM (or set defaults)
+    LoadBatLimitsFromEEPROM();
 
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 
@@ -158,11 +158,13 @@ int main(void)
             check_DTR();
             check_lockout();
             check_shutdown();
+            check_if_alt_should_be_on();
         }
         if(write_rpu_address_to_eeprom) save_rpu_addr_state();
         check_uart();
         adc_burst();
         if (ref_loaded > REF_DEFAULT) ref2ee();
+        if (bat_limit_loaded > BAT_LIM_DEFAULT) BatLimitsFromI2CtoEE(); 
         if (smbus_has_numBytes_to_handle) handle_smbus_receive();
     }    
 }
