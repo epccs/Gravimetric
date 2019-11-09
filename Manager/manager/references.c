@@ -130,8 +130,8 @@ uint8_t LoadAnalogRefFromEEPROM()
     }
 }
 
-// save calibration referances, they are uploaded from I2C which sets ref_loaded
-void ref2ee(void)
+// save calibration referances from I2C to EEPROM (if valid)
+void CalReferancesFromI2CtoEE(void)
 {
     if ( IsValidValForAvccRef(&ref_extern_avcc_uV) && IsValidValFor1V1Ref(&ref_intern_1v1_uV) )
     {

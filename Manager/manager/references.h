@@ -19,7 +19,7 @@ extern uint8_t LoadAnalogRefFromEEPROM();
 extern uint8_t WriteEeReferenceId();
 extern uint8_t WriteEeReferenceAvcc();
 extern uint8_t WriteEeReference1V1();
-extern void ref2ee();
+extern void CalReferancesFromI2CtoEE();
 
 #define REF_LOADED 0
 #define REF_DEFAULT 1

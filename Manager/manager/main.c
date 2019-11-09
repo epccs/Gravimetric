@@ -163,7 +163,7 @@ int main(void)
         if(write_rpu_address_to_eeprom) save_rpu_addr_state();
         check_uart();
         adc_burst();
-        if (ref_loaded > REF_DEFAULT) ref2ee();
+        if (ref_loaded > REF_DEFAULT) CalReferancesFromI2CtoEE();
         if (bat_limit_loaded > BAT_LIM_DEFAULT) BatLimitsFromI2CtoEE(); 
         if (smbus_has_numBytes_to_handle) handle_smbus_receive();
     }    

@@ -30,6 +30,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "adc_burst.h"
 #include "references.h"
 #include "power_manager.h"
+#include "battery_limits.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
@@ -41,7 +42,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
-        {fnWtArduinMode, fnRdArduinMode, fnNull, fnNull, fnNull, fnNull, fnNull, fnNull},
+        {fnWtArduinMode, fnRdArduinMode, fnRdBatStartChrg, fnRdBatDoneChrg, fnNull, fnNull, fnNull, fnNull},
         {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
     };
@@ -236,6 +237,40 @@ void fnRdArduinMode(uint8_t* i2cBuffer)
     i2cBuffer[1] = arduino_mode;
 }
 
+// I2C command for Battery charge start limit (uint16_t)
+void fnRdBatStartChrg(uint8_t* i2cBuffer)
+{
+    // battery_low_limit is a uint16_t e.g., two bytes
+    uint8_t temp = (battery_low_limit>>8) & 0xFF;
+    battery_low_limit = 0x00FF & battery_low_limit; // mask out the old value
+    battery_low_limit = ((uint32_t) (i2cBuffer[1])<<8) & battery_low_limit; // place new value in high byte
+    i2cBuffer[1] = temp; // swap the return value with the old high byte
+
+    temp = battery_low_limit & 0xFF;
+    battery_low_limit = 0xFFFFFF00 & battery_low_limit;
+    battery_low_limit = ((uint32_t) (i2cBuffer[2])) & battery_low_limit;  
+    i2cBuffer[2] = temp;
+    
+    bat_limit_loaded = BAT_LOW_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+}
+
+// I2C command for Battery charge done limit (uint16_t)
+void fnRdBatDoneChrg(uint8_t* i2cBuffer)
+{
+    // battery_high_limit is a uint16_t e.g., two bytes
+    uint8_t temp = (battery_high_limit>>8) & 0xFF;
+    battery_high_limit = 0x00FF & battery_high_limit; // mask out the old value
+    battery_high_limit = ((uint32_t) (i2cBuffer[1])<<8) & battery_high_limit; // place new value in high byte
+    i2cBuffer[1] = temp; // swap the return value with the old high byte
+
+    temp = battery_high_limit & 0xFF;
+    battery_high_limit = 0xFFFFFF00 & battery_high_limit;
+    battery_high_limit = ((uint32_t) (i2cBuffer[2])) & battery_high_limit;  
+    i2cBuffer[2] = temp;
+    
+    bat_limit_loaded = BAT_LOW_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+}
+
 /********* POWER MANAGER ***********
   *  for ALT_I, ALT_V, PWR_I, PWR_V reading     */
 
@@ -300,9 +335,9 @@ void fnAnalogRefExternAVCC(uint8_t* i2cBuffer)
 {
     // ref_extern_avcc_uV is a uint32_t and has four bytes
     uint8_t temp = (ref_extern_avcc_uV>>24) & 0xFF;
-    ref_extern_avcc_uV = 0x00FFFFFF & ref_extern_avcc_uV; // mask out the old value
-    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_extern_avcc_uV; // stuff in the new value to save
-    i2cBuffer[1] =  temp; // return the old value
+    ref_extern_avcc_uV = 0x00FFFFFF & ref_extern_avcc_uV; // mask out the old high byte
+    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_extern_avcc_uV; // place new value in high byte
+    i2cBuffer[1] =  temp; // swap the return value with the old high byte
     
     temp = (ref_extern_avcc_uV>>16) & 0xFF;
     ref_extern_avcc_uV = 0xFF00FFFF & ref_extern_avcc_uV;
@@ -319,7 +354,7 @@ void fnAnalogRefExternAVCC(uint8_t* i2cBuffer)
     ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[4])) & ref_extern_avcc_uV;  
     i2cBuffer[4] =  temp;
     
-    ref_loaded = REF_AVCC_TOSAVE; // main loop will reload eeprom or default value if new value is out of range
+    ref_loaded = REF_AVCC_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
 // I2C command for Analog referance INTERNAL_1V1
@@ -327,9 +362,9 @@ void fnAnalogRefIntern1V1(uint8_t* i2cBuffer)
 {
     // ref_intern_1v1_uV is a uint32_t and has four bytes
     uint8_t temp = (ref_intern_1v1_uV>>24) & 0xFF;
-    ref_intern_1v1_uV = 0x00FFFFFF & ref_intern_1v1_uV; // mask out the old value
-    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_intern_1v1_uV; // stuff in the new value to save
-    i2cBuffer[1] =  temp; // return the old value
+    ref_intern_1v1_uV = 0x00FFFFFF & ref_intern_1v1_uV; // mask out the old high value
+    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_intern_1v1_uV; // place new value in high byte
+    i2cBuffer[1] =  temp; // swap the return value with the old high byte
     
     temp = (ref_intern_1v1_uV>>16) & 0xFF;
     ref_intern_1v1_uV = 0xFF00FFFF & ref_intern_1v1_uV;
@@ -346,7 +381,7 @@ void fnAnalogRefIntern1V1(uint8_t* i2cBuffer)
     ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[4])) & ref_intern_1v1_uV;  
     i2cBuffer[4] =  temp;
     
-    ref_loaded = REF_1V1_TOSAVE; // main loop will reload eeprom or default value if new value is out of range
+    ref_loaded = REF_1V1_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
 /********* TEST MODE ***********

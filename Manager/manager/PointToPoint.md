@@ -2,14 +2,14 @@
 
 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
-16. set arduino_mode 
-17. read arduino_mode
-18.
-19.
-20.
-21. Battery charge start (low) limit
-22. Battery charge done (high) limit
-23. Day-Night state machine based on ALT_V
+16. set arduino_mode (uint8_t)
+17. read arduino_mode (uint8_t)
+18. Battery charge start (low) limit (uint16_t)
+19. Battery charge done (high) limit (uint16_t)
+20. Day of Day-Night starts when ALT_V is above limit (uint16_t)
+21. Night of Day-Night starts when ALT_V is bellow limit (uint16_t)
+22. 
+23. Day-Night state 
 
 ## Cmd 16 from a controller /w i2c-debug set p2p mode
 
