@@ -6,9 +6,9 @@
 17. read arduino_mode (uint8_t)
 18. Battery charge start (low) limit (uint16_t)
 19. Battery charge done (high) limit (uint16_t)
-20. Day of Day-Night starts when ALT_V is above limit (uint16_t)
-21. Night of Day-Night starts when ALT_V is bellow limit (uint16_t)
-22. 
+20. Battery absorption (did pwm) for this time (uint32_t)
+21. Day of Day-Night starts when ALT_V is above limit (uint16_t)
+22. Night of Day-Night starts when ALT_V is bellow limit (uint16_t)
 23. Day-Night state 
 
 ## Cmd 16 from a controller /w i2c-debug set p2p mode

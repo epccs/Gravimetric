@@ -19,6 +19,8 @@
 
 #include <util/atomic.h>
 #include "adc.h"
+#include "pin_num.h"
+#include "pins_board.h"
 
 volatile int adc[ADC_CHANNELS+1];
 volatile uint8_t adc_channel;
@@ -36,16 +38,28 @@ ISR(ADC_vect){
     
     ++adc_channel;
     
-    // skip since only ch 0,1,6,7: ALT_I,ALT_V,PWR_I,PWR_V are used for analog input
+    // ch 0 is ALT_I, always read
+    // ch 1 is ALT_V, only read when ALT_EN is low (e.g., at rest/not charging)
+    if ( (adc_channel == 1) && digitalRead(ALT_EN) )
+    {
+        adc_channel = 6; // skip channel 1
+    }
+    // skip channels 3..5
     if (adc_channel == 2)
     {
         adc_channel = 6;
     }
-    
+    // ch 6 is PWR_I, always read
+    // ch 7 is PWR_V, only read when ALT_EN is low (e.g., at rest/not charging)
+    if ( (adc_channel == 7) && digitalRead(ALT_EN) )
+    {
+        adc_channel = 8; // skip channel 7
+    }
+
     if (adc_channel >= ADC_CHANNELS) 
     {
         adc_channel = 0;
-        adc[ADC_CHANNELS] = 0x7FFF; // mark to notify that burst is done
+        adc[ADC_CHANNELS] = 0x7FFF; // mark to notify that ADC burst is done
         if (!free_running)
         {
             return;

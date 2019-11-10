@@ -42,7 +42,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
-        {fnWtArduinMode, fnRdArduinMode, fnRdBatStartChrg, fnRdBatDoneChrg, fnNull, fnNull, fnNull, fnNull},
+        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnNull, fnNull, fnNull},
         {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
     };
@@ -197,7 +197,11 @@ void fnRdStatus(uint8_t* i2cBuffer)
 // I2C_COMMAND_TO_SET_STATUS
 void fnWtStatus(uint8_t* i2cBuffer)
 {
-    enable_alternate_power = (i2cBuffer[1] & 0x10)>>4;
+    if ( (i2cBuffer[1] & 0x10) ) 
+    {
+        enable_alternate_power = 1;
+        alt_pwm_accum_charge_time = 0; // clear charge time
+    }
     if ( (i2cBuffer[1] & 0x20) && !shutdown_started && !shutdown_detected ) enable_sbc_power = 1;
     status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
 }
@@ -238,7 +242,7 @@ void fnRdArduinMode(uint8_t* i2cBuffer)
 }
 
 // I2C command for Battery charge start limit (uint16_t)
-void fnRdBatStartChrg(uint8_t* i2cBuffer)
+void fnBatStartChrg(uint8_t* i2cBuffer)
 {
     // battery_low_limit is a uint16_t e.g., two bytes
     uint8_t temp = (battery_low_limit>>8) & 0xFF;
@@ -255,7 +259,7 @@ void fnRdBatStartChrg(uint8_t* i2cBuffer)
 }
 
 // I2C command for Battery charge done limit (uint16_t)
-void fnRdBatDoneChrg(uint8_t* i2cBuffer)
+void fnBatDoneChrg(uint8_t* i2cBuffer)
 {
     // battery_high_limit is a uint16_t e.g., two bytes
     uint8_t temp = (battery_high_limit>>8) & 0xFF;
@@ -270,6 +274,17 @@ void fnRdBatDoneChrg(uint8_t* i2cBuffer)
     
     bat_limit_loaded = BAT_LOW_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
+
+// I2C command to read battery charging time while doing pwm e.g., absorption time
+void fnRdBatChrgTime(uint8_t* i2cBuffer)
+{
+    // there are four bytes in an unsigned long
+    i2cBuffer[1] =  (alt_pwm_accum_charge_time>>24) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
+    i2cBuffer[2] =  (alt_pwm_accum_charge_time>>16) & 0xFF;
+    i2cBuffer[3] =  (alt_pwm_accum_charge_time>>8) & 0xFF;
+    i2cBuffer[4] =  alt_pwm_accum_charge_time & 0xFF; // low byte. Again Mask should optimize out
+}
+
 
 /********* POWER MANAGER ***********
   *  for ALT_I, ALT_V, PWR_I, PWR_V reading     */

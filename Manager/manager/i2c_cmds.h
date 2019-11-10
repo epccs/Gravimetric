@@ -26,8 +26,9 @@ extern void fnWtStatus(uint8_t*);
 // Prototypes for point 2 point commands
 extern void fnWtArduinMode(uint8_t*);
 extern void fnRdArduinMode(uint8_t*);
-extern void fnRdBatStartChrg(uint8_t*);
-extern void fnRdBatDoneChrg(uint8_t*);
+extern void fnBatStartChrg(uint8_t*);
+extern void fnBatDoneChrg(uint8_t*);
+extern void fnRdBatChrgTime(uint8_t*);
 
 // Prototypes for Power Management commands
 extern void fnRdAdcAltI(uint8_t*);

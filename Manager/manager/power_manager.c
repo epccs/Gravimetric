@@ -30,7 +30,8 @@ Copyright (C) 2019 Ronald Sutherland
 uint8_t enable_alternate_power;
 uint8_t enable_sbc_power;
 
-uint16_t alt_count; // count the number of times the battery is at the charge limit
+unsigned long alt_pwm_started_at; // pwm on time
+unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pwm was done (e.g., approx LA absorption time)
 
 
 // enable_alternate_power must be set to start charging
@@ -45,13 +46,63 @@ void check_if_alt_should_be_on(void)
             if (digitalRead(ALT_EN))
             {
                 digitalWrite(ALT_EN,LOW);
-                alt_count += 1; // count the number of times the battery is at the charge limit
+                enable_alternate_power = 0; // charge is done
             }
+            return; // if alt_en is not on do nothing
         }
-        else if (battery < battery_low_limit)
+        int pwm_range = ( (battery_high_limit - battery_low_limit)>>1 ); // half the diff between high and low limit
+        unsigned long kRuntime = millis() - alt_pwm_started_at;
+        if (battery < (battery_low_limit + pwm_range ) )
+        { // half way between high and low limit pwm will occure at 2 sec intervals
+            unsigned long offtime = ALT_PWM_PERIOD * ( (battery_high_limit - battery) / pwm_range );
+            if (digitalRead(ALT_EN))
+            {
+                if ( (kRuntime + offtime) > ALT_PWM_PERIOD )
+                {
+                    digitalWrite(ALT_EN,LOW);
+                    alt_pwm_accum_charge_time += kRuntime;
+                }
+            }
+            else 
+            {
+                if ( kRuntime > ALT_PWM_PERIOD )
+                {
+                    digitalWrite(ALT_EN,HIGH);
+                    if (kRuntime > (ALT_PWM_PERIOD<<1) )
+                    {
+                        alt_pwm_started_at = millis();
+                    }
+                    else
+                    {
+                        alt_pwm_started_at += ALT_PWM_PERIOD;
+                    }
+                }
+            }
+            return;
+        }
+        else if (digitalRead(ALT_EN))
+        { // if pwm is not occuring we still need to rest every so often to measure the battery
+            if ( (kRuntime + ALT_REST) > ALT_REST_PERIOD )
+            {
+                digitalWrite(ALT_EN,LOW);
+            }
+            return;
+        }
+        else 
         {
-            digitalWrite(ALT_EN,HIGH);
-            // alt_pwm_started_at = millis();
+            if ( kRuntime > ALT_REST_PERIOD)
+            { // end of resting time, start charging
+                digitalWrite(ALT_EN,HIGH);
+                if (kRuntime > (ALT_REST_PERIOD<<1) )
+                {
+                    alt_pwm_started_at = millis();
+                }
+                else
+                {
+                    alt_pwm_started_at += ALT_REST_PERIOD;
+                }
+                return;
+            }
         }
     }
     else 
