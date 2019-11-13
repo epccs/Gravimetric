@@ -35,6 +35,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "references.h"
 #include "power_manager.h"
 #include "battery_limits.h"
+#include "daynight_limits.h"
 
 void setup(void) 
 {
@@ -129,6 +130,9 @@ void setup(void)
     // load Battery Limits from EEPROM (or set defaults)
     LoadBatLimitsFromEEPROM();
 
+    // load Day-Night state machien values from EEPROM (or set defaults)
+    LoadDayNightValuesFromEEPROM();
+
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 
     // problem is if a foreign host has the bus this would be bad
@@ -165,6 +169,7 @@ int main(void)
         adc_burst();
         if (ref_loaded > REF_DEFAULT) CalReferancesFromI2CtoEE();
         if (bat_limit_loaded > BAT_LIM_DEFAULT) BatLimitsFromI2CtoEE(); 
+        if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT) DayNightValuesFromI2CtoEE(); 
         if (smbus_has_numBytes_to_handle) handle_smbus_receive();
     }    
 }

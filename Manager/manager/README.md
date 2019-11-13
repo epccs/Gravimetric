@@ -175,6 +175,10 @@ ref_intern_1v1      UINT32      36
 md_serial_addr      UINT8       50
 bat_h_limit         UINT16      60
 bat_l_limit         UINT16      62
+morning_threshold   UINT16      70
+evening_threshold   UINT16      72
+morning_debounce    UINT32      74
+evening_debounce    UINT32      78
 ```
 
 The AVCC pin is used to power the analog to digital converter and is also used as a reference. The AVCC pin is powered by a switchmode supply that can be measured and used as a reference.

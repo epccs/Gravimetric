@@ -6,10 +6,12 @@
 17. read arduino_mode (uint8_t)
 18. Battery charge start (low) limit (uint16_t)
 19. Battery charge done (high) limit (uint16_t)
-20. Battery absorption (did pwm) for this time (uint32_t)
-21. Day of Day-Night starts when ALT_V is above limit (uint16_t)
-22. Night of Day-Night starts when ALT_V is bellow limit (uint16_t)
+20. Battery absorption (e.g., pwm) time (uint32_t)
+21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
+22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
 23. Day-Night state 
+
+Note: morning_debouce and evening_debouce are part of the Day-Night state machine but there I2C commands are found in the test section (for now).
 
 ## Cmd 16 from a controller /w i2c-debug set p2p mode
 

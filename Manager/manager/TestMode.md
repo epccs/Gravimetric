@@ -6,7 +6,11 @@
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
+52. evening_debouce time (uint32_t)
+53. morning_debouce time (uint32_t)
+54. millis time (uint32_t)
 
+Note: evening_debouce and morning_debouce are used for the day-night state machine, the command number may change at some point. 
 
 ## Cmd 48 from a controller /w i2c-debug set transceiver test mode
 

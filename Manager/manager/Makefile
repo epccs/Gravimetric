@@ -12,6 +12,7 @@ OBJECTS = main.o \
 	references.o \
 	power_manager.o \
 	battery_limits.o \
+	daynight_limits.o \
 	$(LIBDIR)/uart.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/timers.o \

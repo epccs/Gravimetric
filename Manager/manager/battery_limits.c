@@ -140,9 +140,9 @@ uint8_t LoadBatLimitsFromEEPROM()
 // save Battery Limits from I2C to EEPROM (if valid)
 void BatLimitsFromI2CtoEE(void)
 {
-    if ( IsValidBatHighLimFor12V(&battery_high_limit) || IsValidBatHighLimFor24V(&battery_high_limit) )
+    if (bat_limit_loaded == BAT_HIGH_LIM_TOSAVE)
     {
-        if (bat_limit_loaded == BAT_HIGH_LIM_TOSAVE)
+        if ( IsValidBatHighLimFor12V(&battery_high_limit) || IsValidBatHighLimFor24V(&battery_high_limit) )
         {
             if (WriteEEBatHighLim())
             {
@@ -151,9 +151,9 @@ void BatLimitsFromI2CtoEE(void)
             }
         }
     }
-    else if ( IsValidBatLowLimFor12V(&battery_low_limit) || IsValidBatLowLimFor24V(&battery_low_limit) )
-    {
-        if (bat_limit_loaded == BAT_LOW_LIM_TOSAVE)
+    if (bat_limit_loaded == BAT_LOW_LIM_TOSAVE)
+    {    
+        if ( IsValidBatLowLimFor12V(&battery_low_limit) || IsValidBatLowLimFor24V(&battery_low_limit) )
         {
             if (WriteEEBatLowLim())
             {
@@ -162,8 +162,5 @@ void BatLimitsFromI2CtoEE(void)
             }
         }
     }
-    else
-    {
-        LoadBatLimitsFromEEPROM(); // ignore values that are not valid
-    }
+    LoadBatLimitsFromEEPROM(); // I guess the values are not valid so reload from EEPROM
 }
