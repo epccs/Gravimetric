@@ -29,6 +29,10 @@ extern void fnRdArduinMode(uint8_t*);
 extern void fnBatStartChrg(uint8_t*);
 extern void fnBatDoneChrg(uint8_t*);
 extern void fnRdBatChrgTime(uint8_t*);
+extern void fnMorningThreshold(uint8_t*);
+extern void fnEveningThreshold(uint8_t*);
+extern void fnDayNightState(uint8_t*);
+
 
 // Prototypes for Power Management commands
 extern void fnRdAdcAltI(uint8_t*);
@@ -46,6 +50,9 @@ extern void fnStartTestMode(uint8_t*);
 extern void fnEndTestMode(uint8_t*);
 extern void fnRdXcvrCntlInTestMode(uint8_t*);
 extern void fnWtXcvrCntlInTestMode(uint8_t*);
+extern void fnMorningDebounce(uint8_t*);
+extern void fnEveningDebounce(uint8_t*);
+extern void fnMillis(uint8_t*);
 
 /* Dummy function */
 extern  void fnNull(uint8_t*);

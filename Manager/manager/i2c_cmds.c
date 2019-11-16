@@ -31,6 +31,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "references.h"
 #include "power_manager.h"
 #include "battery_limits.h"
+#include "daynight_limits.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
@@ -42,9 +43,9 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
-        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnNull, fnNull, fnNull},
+        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
-        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
+        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnMillis, fnNull}
     };
 
     // i2c will echo's back what was sent (plus modifications) with transmit event
@@ -285,6 +286,46 @@ void fnRdBatChrgTime(uint8_t* i2cBuffer)
     i2cBuffer[4] =  alt_pwm_accum_charge_time & 0xFF; // low byte. Again Mask should optimize out
 }
 
+// I2C command for day-night Morning Threshold (uint16_t)
+void fnMorningThreshold(uint8_t* i2cBuffer)
+{
+    // daynight_morning_threshold is a uint16_t e.g., two bytes
+    uint8_t temp = (daynight_morning_threshold>>8) & 0xFF;
+    daynight_morning_threshold = 0x00FF & daynight_morning_threshold; // mask out the old value
+    daynight_morning_threshold = ((uint32_t) (i2cBuffer[1])<<8) & daynight_morning_threshold; // place new value in high byte
+    i2cBuffer[1] = temp; // swap the return value with the old high byte
+
+    temp = daynight_morning_threshold & 0xFF;
+    daynight_morning_threshold = 0xFFFFFF00 & daynight_morning_threshold;
+    daynight_morning_threshold = ((uint32_t) (i2cBuffer[2])) & daynight_morning_threshold;  
+    i2cBuffer[2] = temp;
+    
+    daynight_values_loaded = DAYNIGHT_MORNING_THRESHOLD_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+}
+
+// I2C command for day-night Evening Threshold (uint16_t)
+void fnEveningThreshold(uint8_t* i2cBuffer)
+{
+    // daynight_evening_threshold is a uint16_t e.g., two bytes
+    uint8_t temp = (daynight_evening_threshold>>8) & 0xFF;
+    daynight_evening_threshold = 0x00FF & daynight_evening_threshold; // mask out the old value
+    daynight_evening_threshold = ((uint32_t) (i2cBuffer[1])<<8) & daynight_evening_threshold; // place new value in high byte
+    i2cBuffer[1] = temp; // swap the return value with the old high byte
+
+    temp = daynight_evening_threshold & 0xFF;
+    daynight_evening_threshold = 0xFFFFFF00 & daynight_evening_threshold;
+    daynight_evening_threshold = ((uint32_t) (i2cBuffer[2])) & daynight_evening_threshold;  
+    i2cBuffer[2] = temp;
+    
+    daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+}
+
+// I2C command to read Day-Night state
+void fnDayNightState(uint8_t* i2cBuffer)
+{
+    // there is one byte in an uint8_t
+    i2cBuffer[1] = 0; // dayState;
+}
 
 /********* POWER MANAGER ***********
   *  for ALT_I, ALT_V, PWR_I, PWR_V reading     */
@@ -496,6 +537,71 @@ void fnWtXcvrCntlInTestMode(uint8_t* i2cBuffer)
     {
         i2cBuffer[1] = 0; 
     }
+}
+
+// I2C command for day-night morning debounce time (unsigned long)
+void fnMorningDebounce(uint8_t* i2cBuffer)
+{
+    // daynight_morning_debounce is a unsigned long and has four bytes
+    uint8_t temp = (daynight_morning_debounce>>24) & 0xFF;
+    daynight_morning_debounce = 0x00FFFFFF & daynight_morning_debounce; // mask out the old high value
+    daynight_morning_debounce = ((unsigned long) (i2cBuffer[1])<<24) & daynight_morning_debounce; // place new value in high byte
+    i2cBuffer[1] =  temp; // swap the return value with the old high byte
+    
+    temp = (daynight_morning_debounce>>16) & 0xFF;
+    daynight_morning_debounce = 0xFF00FFFF & daynight_morning_debounce;
+    daynight_morning_debounce = ((unsigned long) (i2cBuffer[2])<<16) & daynight_morning_debounce; 
+    i2cBuffer[2] =  temp;
+
+    temp = (daynight_morning_debounce>>8) & 0xFF;
+    daynight_morning_debounce = 0xFFFF00FF & daynight_morning_debounce;
+    daynight_morning_debounce = ((unsigned long) (i2cBuffer[3])<<8) & daynight_morning_debounce; 
+    i2cBuffer[3] =  temp;
+
+    temp = daynight_morning_debounce & 0xFF;
+    daynight_morning_debounce = 0xFFFFFF00 & daynight_morning_debounce;
+    daynight_morning_debounce = ((unsigned long) (i2cBuffer[4])) & daynight_morning_debounce;  
+    i2cBuffer[4] =  temp;
+    
+    daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+}
+
+// I2C command for day-night evening debounce time (unsigned long)
+void fnEveningDebounce(uint8_t* i2cBuffer)
+{
+    // daynight_evening_debounce is a unsigned long and has four bytes
+    uint8_t temp = (daynight_evening_debounce>>24) & 0xFF;
+    daynight_evening_debounce = 0x00FFFFFF & daynight_evening_debounce; // mask out the old high value
+    daynight_evening_debounce = ((unsigned long) (i2cBuffer[1])<<24) & daynight_evening_debounce; // place new value in high byte
+    i2cBuffer[1] =  temp; // swap the return value with the old high byte
+    
+    temp = (daynight_evening_debounce>>16) & 0xFF;
+    daynight_evening_debounce = 0xFF00FFFF & daynight_evening_debounce;
+    daynight_evening_debounce = ((unsigned long) (i2cBuffer[2])<<16) & daynight_evening_debounce; 
+    i2cBuffer[2] =  temp;
+
+    temp = (daynight_evening_debounce>>8) & 0xFF;
+    daynight_evening_debounce = 0xFFFF00FF & daynight_evening_debounce;
+    daynight_evening_debounce = ((unsigned long) (i2cBuffer[3])<<8) & daynight_evening_debounce; 
+    i2cBuffer[3] =  temp;
+
+    temp = daynight_evening_debounce & 0xFF;
+    daynight_evening_debounce = 0xFFFFFF00 & daynight_evening_debounce;
+    daynight_evening_debounce = ((unsigned long) (i2cBuffer[4])) & daynight_evening_debounce;  
+    i2cBuffer[4] =  temp;
+    
+    daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+}
+
+// I2C command to read millis time
+void fnMillis(uint8_t* i2cBuffer)
+{
+    unsigned long now = millis();
+    // there are four bytes in an unsigned long
+    i2cBuffer[1] =  (now>>24) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
+    i2cBuffer[2] =  (now>>16) & 0xFF;
+    i2cBuffer[3] =  (now>>8) & 0xFF;
+    i2cBuffer[4] =  now & 0xFF; // low byte. Again Mask should optimize out
 }
 
 /* Dummy function */

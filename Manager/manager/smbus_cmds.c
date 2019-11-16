@@ -55,9 +55,9 @@ void handle_smbus_receive(void)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnRdMgrAddrQuietly, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
-        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnNull, fnNull, fnNull},
+        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
-        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
+        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnMillis, fnNull}
     };
 
     int numBytes = smbus_has_numBytes_to_handle; // place value on stack so it will go away when done.

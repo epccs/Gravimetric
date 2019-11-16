@@ -9,7 +9,7 @@
 20. Battery absorption (e.g., pwm) time (uint32_t)
 21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
-23. Day-Night state 
+23. Day-Night state (uint8_t).
 
 Note: morning_debouce and evening_debouce are part of the Day-Night state machine but there I2C commands are found in the test section (for now).
 

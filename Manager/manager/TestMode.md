@@ -8,7 +8,8 @@
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 52. evening_debouce time (uint32_t)
 53. morning_debouce time (uint32_t)
-54. millis time (uint32_t)
+54. read millis time (uint32_t)
+55. 
 
 Note: evening_debouce and morning_debouce are used for the day-night state machine, the command number may change at some point. 
 
