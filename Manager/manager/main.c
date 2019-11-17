@@ -36,6 +36,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "power_manager.h"
 #include "battery_limits.h"
 #include "daynight_limits.h"
+#include "daynight_state.h"
 
 void setup(void) 
 {
@@ -153,7 +154,7 @@ int main(void)
 
     blink_started_at = millis();
 
-    while (1) 
+    while (1) // scan time for each loop varies depending on how much of each thing needs to be done 
     {
         if (!test_mode) 
         {
@@ -162,14 +163,15 @@ int main(void)
             check_DTR();
             check_lockout();
             check_shutdown();
-            check_if_alt_should_be_on();
         }
         if(write_rpu_address_to_eeprom) save_rpu_addr_state();
         check_uart();
         adc_burst();
         if (ref_loaded > REF_DEFAULT) CalReferancesFromI2CtoEE();
-        if (bat_limit_loaded > BAT_LIM_DEFAULT) BatLimitsFromI2CtoEE(); 
-        if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT) DayNightValuesFromI2CtoEE(); 
+        if (bat_limit_loaded > BAT_LIM_DEFAULT) BatLimitsFromI2CtoEE();
+        check_if_alt_should_be_on();
+        if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT) DayNightValuesFromI2CtoEE();
+        check_daynight();
         if (smbus_has_numBytes_to_handle) handle_smbus_receive();
     }    
 }
