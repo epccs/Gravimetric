@@ -24,7 +24,7 @@
 #define RPU_BUS_MSTR_CMD_SZ 2
 #define I2C_ADDR_OF_BUS_MGR 0x29
 
-uint8_t set_Rpu_shutdown(void)
+uint8_t i2c_set_Rpu_shutdown(void)
 { 
     uint8_t twi_returnCode;
 
@@ -76,7 +76,7 @@ uint8_t set_Rpu_shutdown(void)
     }
 }
 
-uint8_t detect_Rpu_shutdown(void)
+uint8_t i2c_detect_Rpu_shutdown(void)
 { 
     uint8_t twi_returnCode;
 
@@ -123,7 +123,7 @@ uint8_t detect_Rpu_shutdown(void)
 
 /* i2c command 0 gives RPUbus address
 */
-char get_Rpu_address(void)
+char i2c_get_Rpu_address(void)
 { 
     uint8_t twi_returnCode;
 
@@ -167,9 +167,9 @@ char get_Rpu_address(void)
     }
 }
 
-/* i2c power management commands 32, 33, 34 and 35 to read ALT_I,ALT_V,PWR_I and PWR_V
+/* i2c management commands 32, 33, 34 and 35 are used to read ALT_I,ALT_V,PWR_I and PWR_V
 */
-int get_adc_from_328pb(uint8_t command)
+int i2c_get_analogRead_from_manager(uint8_t command)
 {
     if ((command<32) | (command>35)) return 0;
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
