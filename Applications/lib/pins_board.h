@@ -19,25 +19,16 @@
 #ifndef Pins_Board_h
 #define Pins_Board_h
 
-// UART0 is for rpubus communication
-#define RX0 0 
-#define TX0 1
-
-// UART1 is for user
-#define RX1 2
-#define TX1 3
-
-// 22mA Current Source Enable
-#define CS1_EN 4
-
-// 17mA Current Source Enable
-#define CS_ICP1 5
-
-// ICP1 pin reads inverted from the 100 Ohm termination
-#define ICP1 6
-
-// ALTernate power ENable for solar panel power
-#define ALT_EN 7
+//Analog channels and DIO have same number on this board (4..7 are test points)
+#define ADC0 0
+#define ADC1 1
+#define ADC2 2
+#define ADC3 3
+#define ADC4 4
+#define ADC5 5
+#define ADC6 6
+#define ADC7 7
+// on ^0 channels 4..7 were connected to ALT_V,ALT_I,PWR_I,PWR_V. They are test points now.
 
 // 22mA Current Source Enable
 #define CS0_EN 8
@@ -88,18 +79,24 @@
 #define SDA1 26
 #define SCL1 27
 
-// MIX IO has an ADC channel or DIO on each pin with this offset
-#define NUM_ANALOG_INPUTS (8)
-#define analogChannelToDigitalPin(p) ((p < NUM_ANALOG_INPUTS) ? (p) + 28 : -1)
+// UART0 is for rpubus communication
+#define RX0 28 
+#define TX0 29
 
-// There are values from 0 to 1023 for 1024 slots where each reperesents 1/1024 of the reference. Last slot has issues
+// UART1 is for user
+#define RX1 30
+#define TX1 31
 
-//the ADC channel can be used with analogRead(ADC0)*(<referance>/1024.0)
-//the DIO can be used with digitalToggle(analogChannelToDigitalPin(ADC0))
-#define ADC0 0
-#define ADC1 1
-#define ADC2 2
-#define ADC3 3
+// 22mA Current Source Enable
+#define CS1_EN 32
 
+// 17mA Current Source Enable
+#define CS_ICP1 33
+
+// ICP1 pin reads inverted from the 100 Ohm termination
+#define ICP1 34
+
+// ALTernate power ENable for solar panel power
+#define ALT_EN 35
 
 #endif // Pins_Board_h

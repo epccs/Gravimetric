@@ -2,6 +2,15 @@
 #define Adc_h
 
 #define ADC_CHANNELS 8
+
+// Analog values range from 0 to 1023, they have 1024 slots where each 
+// reperesents 1/1024 of the reference. The last slot has issues see datasheet.
+// the ADC channel can be used with analogRead(ADC0)*(<referance>/1024.0)
+#define ADC0 0
+#define ADC1 1
+#define ADC2 2
+#define ADC3 3
+
 extern volatile int adc[];
 extern volatile uint8_t adc_channel;
 extern volatile uint8_t ADC_auto_conversion;

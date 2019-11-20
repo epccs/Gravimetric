@@ -28,6 +28,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include <ctype.h>
 #include "../lib/parse.h"
 #include "../lib/adc.h"
+#include "../lib/rpu_mgr.h"
 #include "../lib/timers.h"
 #include "../lib/pins_board.h"
 #include "analog.h"
@@ -75,22 +76,22 @@ void Analog(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"ADC%s\":"),arg[adc_arg_index]);
         }
 
-        if (arg_indx_channel == ALT_V) //ADC4
+        if (arg_indx_channel == 4) //was ADC4 on ^0, now on manager ADC channel 1
         {
             printf_P(PSTR("\"ALT_V\":"));
         }
         
-        if (arg_indx_channel == ALT_I) //ADC5
+        if (arg_indx_channel == 5) //was ADC5 on ^0, now on manager ADC channel 0
         {
             printf_P(PSTR("\"ALT_I\":"));
         }
 
-        if (arg_indx_channel == PWR_I) //ADC6
+        if (arg_indx_channel == 6) //was ADC6 on ^0, now on manager ADC channel 6
         {
             printf_P(PSTR("\"PWR_I\":"));
         }
         
-        if (arg_indx_channel == PWR_V) //ADC7
+        if (arg_indx_channel == 7) //was ADC7 on ^0, now on manager ADC channel 7
         {
             printf_P(PSTR("\"PWR_V\":"));
         }
@@ -100,34 +101,34 @@ void Analog(unsigned long serial_print_delay_milsec)
     {
         uint8_t arg_indx_channel =atoi(arg[adc_arg_index]);
 
-       // There are values from 0 to 1023 for 1024 slots where each reperesents 1/1024 of the reference. Last slot has issues
+        // There are values from 0 to 1023 for 1024 slots where each reperesents 1/1024 of the reference. Last slot has issues
         // https://forum.arduino.cc/index.php?topic=303189.0 
-        // The BSS138 level shift will block voltages over 3.5V
+        // The BSS138 level shift will block voltages over 4.5V
         if ( (arg_indx_channel == ADC0) || (arg_indx_channel == ADC1) || (arg_indx_channel == ADC2) || (arg_indx_channel == ADC3))
         {
             printf_P(PSTR("\"%1.2f\""),(analogRead(arg_indx_channel)*(ref_extern_avcc_uV/1.0E6)/1024.0));
         }
 
-        if (arg_indx_channel == ALT_V)
+        if (arg_indx_channel == 4) //ADC4 was ALT_V on ^0, but is from manager over i2c now
         {
-            printf_P(PSTR("\"%1.2f\""),(analogRead(arg_indx_channel)*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
+            printf_P(PSTR("\"%1.2f\""),(i2c_get_analogRead_from_manager(ALT_V)*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
         }
 
-        // ADC5 is connected to a 50V/V high side current sense.
-        if (arg_indx_channel == ALT_I)
+        // ADC5 was connected to a 50V/V high side current sense.
+        if (arg_indx_channel == 5) //ADC5 was ALT_I on ^0, but is from manager over i2c now
         {
-            printf_P(PSTR("\"%1.3f\""),(analogRead(arg_indx_channel)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
+            printf_P(PSTR("\"%1.3f\""),(i2c_get_analogRead_from_manager(ALT_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
         }
 
-        // ADC6 is connected to a 50V/V high side current sense.
-        if (arg_indx_channel == PWR_I)
+        // ADC6 was connected to a 50V/V high side current sense.
+        if (arg_indx_channel == 6) //ADC6 was PWR_I on ^0, but is from manager over i2c now
         {
-            printf_P(PSTR("\"%1.3f\""),(analogRead(arg_indx_channel)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0)));
+            printf_P(PSTR("\"%1.3f\""),(i2c_get_analogRead_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0)));
         }
 
-        if (arg_indx_channel == PWR_V) 
+        if (arg_indx_channel == 7) //ADC7 was PWR_V on ^0, but is from manager over i2c now
         {
-            printf_P(PSTR("\"%1.2f\""),(analogRead(arg_indx_channel)*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8)));
+            printf_P(PSTR("\"%1.2f\""),(i2c_get_analogRead_from_manager(PWR_V)*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8)));
         }
 
         if ( (adc_arg_index+1) >= arg_count) 

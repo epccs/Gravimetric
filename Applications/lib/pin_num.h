@@ -53,14 +53,14 @@ Where x is the port A, B, C, etc.
 
 Wiring uses pin numbers to control their functions. */
 static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
-    [0] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD0 }, // RX0
-    [1] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD1 }, // TX0
-    [2] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD2 }, // RX1
-    [3] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD3 }, // TX1
-    [4] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD4 }, // CS1_EN
-    [5] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD5 }, // CS_ICP1
-    [6] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD6 }, // ICP1
-    [7] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD7 }, // ALT_EN
+    [0] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA0 }, // ADC0
+    [1] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA1 }, // ADC1
+    [2] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA2 }, // ADC2
+    [3] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA3 }, // ADC3
+    [4] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA4 }, // ADC4
+    [5] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA5 }, //  ADC5
+    [6] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 }, //  ADC6
+    [7] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA7 }, //  ADC7
     [8] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB0 }, // CS0_EN
     [9] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB1 }, // CS4_EN
     [10] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB2 }, // SHLD_VIN_EN
@@ -81,14 +81,14 @@ static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
     [25] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE3 }, // TX2
     [26] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE4 }, // SDA1
     [27] = { .ddr=&DDRE, .pin=&PINE, .port=&PORTE, .bit= PE5 }, // SCL1
-    [28] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA0 }, // ADC0
-    [29] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA1 }, // ADC1
-    [30] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA2 }, // ADC2
-    [31] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA3 }, // ADC3
-    [32] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA4 }, // ADC4
-    [33] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA5 }, //  ADC5
-    [34] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 }, //  ADC6
-    [35] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA7 } //  ADC7
+    [28] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD0 }, // RX0
+    [29] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD1 }, // TX0
+    [30] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD2 }, // RX1
+    [31] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD3 }, // TX1
+    [32] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD4 }, // CS1_EN
+    [33] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD5 }, // CS_ICP1
+    [34] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD6 }, // ICP1
+    [35] = { .ddr=&DDRD, .pin=&PIND, .port=&PORTD, .bit= PD7 } // ALT_EN
 };
 #endif
 
