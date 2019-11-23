@@ -24,7 +24,8 @@ Modified in 2016 by Ronald Sutherland (ronald.sutherlad@gmail) to use as a C lib
 #include <stdbool.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
-
+#include "pin_num.h"
+#include "pins_board.h"
 #include "twi0.h"
 
 static volatile uint8_t twi0_state;
@@ -76,18 +77,15 @@ void twi0_init(uint8_t pull_up)
     twi0_sendStop = 1;		// default value
     twi0_inRepStart = 0;
 
+    pinMode(SCL0,INPUT); // DDRC &= ~(1 << DDC0)
+    pinMode(SDA0,INPUT); // DDRC &= ~(1 << DDC1)
+
     // Do not use pull-up for twi pins if the MCU is running at a higher voltage.
     // e.g. if MCU has 5V and others have 3.3V do not use the pull-up. 
     if (pull_up) 
     {
-#if defined(__AVR_ATmega324PB__) 
-        DDRC &= ~(1 << DDC0);  // clear the ddr bit to set the SCL0 pin as an input
-        PORTC |= (1 << PORTC0);  // write a one to the port bit to enable the weak pull-up
-        DDRC &= ~(1 << DDC1);  //SDA0
-        PORTC |= (1 << PORTC1);  // weak pullup
-#else
-#error "no I2C definition for MCU available"
-#endif
+        digitalWrite(SCL0,HIGH); // PORTC |= (1 << PORTC0) weak pullup
+        digitalWrite(SDA0,HIGH); // PORTC |= (1 << PORTC1) weak pullup
     }
 
     // initialize twi prescaler and bit rate
@@ -111,12 +109,8 @@ void twi0_disable(void)
     TWCR0 &= ~((1<<TWEN) | (1<<TWIE) | (1<<TWEA));
 
     // deactivate internal pullups for twi.
-#if defined(__AVR_ATmega324PB__) 
-    PORTC &= ~(1 << PORTC0);  // clear the port bit to disable the pull-up
-    PORTC &= ~(1 << PORTC1); 
-#else
-#error "no I2C definition for MCU available"
-#endif
+    digitalWrite(SCL0,LOW); // PORTC &= ~(1 << PORTC0) disable the pull-up
+    digitalWrite(SDA0,LOW); // PORTC &= ~(1 << PORTC1)
 }
 
 /* init slave address and enable interrupt */

@@ -27,7 +27,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/pins_board.h"
 #include "../Uart/id.h"
 #include "../Adc/analog.h"
-#include "../DayNight/day_night.h"
+//#include "../DayNight/day_night.h"
 #include "alternat.h"
 
 #define ADC_DELAY_MILSEC 50UL
@@ -56,7 +56,7 @@ void ProcessCmd()
     }
     if ( (strcmp_P( command, PSTR("/day?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        Day(60000UL); // ../DayNight/day_night.c: show every 60 sec until terminated
+        //Day(60000UL); // ../DayNight/day_night.c: show every 60 sec until terminated
     }
     if ( (strcmp_P( command, PSTR("/alt")) == 0) && ( (arg_count == 0 ) ) )
     {
@@ -64,21 +64,8 @@ void ProcessCmd()
     }
     if ( (strcmp_P( command, PSTR("/altcnt?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        AltCount(); // alternat.c
+        //AltCount(); // alternat.c
     }
-}
-
-//At start of night turn off Alternat power input
-void callback_for_night_attach(void)
-{
-    alt_enable = 0;
-}
-
-//At start of day turn on Alternat power input
-void callback_for_day_attach(void)
-{
-    alt_enable = 1;
-    alt_count = 0; // this value helps to tell if the battery got a full charge
 }
 
 void setup(void) 
@@ -89,9 +76,6 @@ void setup(void)
     pinMode(DAYNIGHT_STATUS_LED,OUTPUT);
     digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
 
-    pinMode(ALT_EN,OUTPUT);
-    digitalWrite(ALT_EN,LOW);
-    
     // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
     initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     init_ADC_single_conversion(EXTERNAL_AVCC); // warning AREF must not be connected to anything
@@ -116,7 +100,7 @@ void setup(void)
     blink_started_at = millis();
     day_status_blink_started_at = millis();
     
-    rpu_addr = get_Rpu_address();
+    rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
     
     // blink fast if a default address from RPU manager not found
@@ -126,21 +110,16 @@ void setup(void)
         blink_delay = BLINK_DELAY/4;
     }
 
-    // register callbacks for DayNight state machine events
-    Night_AttachWork(callback_for_night_attach);
-    Day_AttachWork(callback_for_day_attach);
     
     // default debounce is 15 min (e.g. 900,000 millis)
-    evening_debouce = 18000UL; // 18 sec
-    morning_debouce = 18000UL;
+    // evening_debouce = 18000UL; // 18 sec
+    // morning_debouce = 18000UL;
     // ALT_V reading of 40*5.0/1024.0*(11/1) is about 2.1V
     // ALT_V reading of 80*5.0/1024.0*(11/1) is about 4.3V
     // ALT_V reading of 160*5.0/1024.0*(11/1) is about 8.6V
     // ALT_V reading of 320*5.0/1024.0*(11/1) is about 17.18V
-    evening_threshold = 40; 
-    morning_threshold = 80;
-    
-    alt_count = 0;
+    // evening_threshold = 40; 
+    // morning_threshold = 80;
 }
 
 void blink(void)
@@ -224,20 +203,8 @@ int main(void)
         // delay between ADC burst
         if ( adc_burst() )
         {
-            // ALT_EN is turned off when Checking Day Light for the day-night state machine.
-            if ( !CheckingDayLight() ) // ../DayNight/day_night.c
-            {
-                if ( DayState() == DAYNIGHT_DAY_STATE)
-                {
-                    // turn off alt if battery voltage is high
-                    check_if_alt_should_be_on(PWR_V, 115.8/15.8, 13.6);
-                }
-                else 
-                {
-                    digitalWrite(ALT_EN,LOW);
-                }
-                    
-            }
+            // Check Day day-night state machine.
+
         }
 
         // check if character is available to assemble a command, e.g. non-blocking

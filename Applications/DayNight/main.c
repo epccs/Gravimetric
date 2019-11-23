@@ -1,5 +1,5 @@
 /*
-DayNight is a command line controled demonstration of how the photovoltaic voltage can be usd to track the day and night.
+DayNight is a command line controled demonstration of how photovoltaic voltage on ALT_V can be usd to track the day and night.
 Copyright (C) 2016 Ronald Sutherland
 
 This program is free software; you can redistribute it and/or
@@ -57,16 +57,18 @@ void ProcessCmd()
 //At start of each day do this
 void callback_for_day_attach(void)
 {
-    // This shows where to place a task to run when the dayState changes to DAYNIGHT_WORK_STATE
-    printf_P(PSTR("WaterTheGarden\r\n")); // used for debuging
+    // This shows where to place a task to run when the daynight_state changes to DAYNIGHT_WORK_STATE
+    printf_P(PSTR("Day: Charge the battry\r\n")); // manager does this
+    printf_P(PSTR("        WaterTheGarden\r\n")); // used for debuging
     return;
 }
 
 //At start of each night do this
 void callback_for_night_attach(void)
 {
-    // This shows where to place a task to run when the dayState changes to DAYNIGHT_WORK_STATE
-    printf_P(PSTR("TurnOnLED's\r\n")); // used for debuging
+    // This shows where to place a task to run when the daynight_state changes to DAYNIGHT_WORK_STATE
+    printf_P(PSTR("Night: Block night current loss into PV\r\n")); // manager does this
+    printf_P(PSTR("          TurnOnLED's\r\n")); // used for debuging
     return;
 }
 
@@ -102,7 +104,7 @@ void setup(void)
     blink_started_at = millis();
     day_status_blink_started_at = millis();
     
-    rpu_addr = get_Rpu_address();
+    rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
     
     // blink fast if a default address from RPU manager not found
@@ -116,15 +118,15 @@ void setup(void)
     Day_AttachWork(callback_for_day_attach);
     Night_AttachWork(callback_for_night_attach);
 
-    // default debounce is 15 min (e.g. 900,000 millis)
-    evening_debouce = 18000UL; // 18 sec
-    morning_debouce = 18000UL;
-    // ALT_V reading of 40*5.0/1024.0*(11/1) is about 2.1V
-    // ALT_V reading of 80*5.0/1024.0*(11/1) is about 4.3V
-    // ALT_V reading of 160*5.0/1024.0*(11/1) is about 8.6V
-    // ALT_V reading of 320*5.0/1024.0*(11/1) is about 17.18V
-    evening_threshold = 40; 
-    morning_threshold = 80;
+    // managers default debounce is 15 min (e.g. 900,000 millis) but to test this I want less
+    i2c_daynight_debounce(EVENING_DEBOUNCE,18000UL); // 18 sec
+    i2c_daynight_debounce(MORNING_DEBOUNCE,18000UL);
+
+    // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
+    // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
+    // manager uses int bellow and analogRead(ALT_V) to check threshold. 
+    i2c_daynight_threshold(EVENING_THRESHOLD,40);
+    i2c_daynight_threshold(MORNING_THRESHOLD,80);
 }
 
 void blink(void)
@@ -142,7 +144,7 @@ void blink(void)
 void day_status(void)
 {
     unsigned long kRuntime = millis() - day_status_blink_started_at;
-    uint8_t state = DayState();
+    uint8_t state = daynight_state;
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
            (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
            (kRuntime > (DAYNIGHT_BLINK/2) ) )

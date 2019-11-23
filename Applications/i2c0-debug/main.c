@@ -94,7 +94,7 @@ void setup(void)
     
     blink_started_at = millis();
     
-    rpu_addr = get_Rpu_address();
+    rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
     
     // blink fast if a default address from RPU manager not found

@@ -29,43 +29,13 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/pins_board.h"
 #include "day_night.h"
 
-// analog reading of 5*5.0/1024.0 is about 0.024V
-// analog reading of 10*5.0/1024.0 is about 0.049V
-#define MORNING_THRESHOLD 10
-#define STARTUP_DELAY 1000UL
-#define EVENING_THRESHOLD 5
-// 900,000 millis is 15 min
-#define EVENING_DEBOUCE 900000UL
-#define MORNING_DEBOUCE 900000UL
-#define DAYNIGHT_TO_LONG 72000000UL
-// 72 Meg millis() is 20hr, which is past the longest day or night so somthing has went wrong.
-/* note the UL is a way to tell the compiler that a numerical literal is of type unsigned long */
-
-#if MORNING_THRESHOLD > 0x3FF
-#   error ADC maxim size is 0x3FF 
-#endif
-
-#if EVENING_THRESHOLD > 0x3FF
-#   error ADC maxim size is 0x3FF 
-#endif
-
-#if MORNING_THRESHOLD - EVENING_THRESHOLD < 0x04
-#   error ADC hysteresis of 4 should be allowed
-#endif
-
-// public
-int morning_threshold = MORNING_THRESHOLD;
-int evening_threshold = EVENING_THRESHOLD;
-unsigned long evening_debouce = (unsigned long)EVENING_DEBOUCE;
-unsigned long morning_debouce = (unsigned long)MORNING_DEBOUCE;
-
-// local
-static uint8_t alt_power_is_checking_light =0;
-static uint8_t alt_power_value = 0;
-static uint8_t dayState = 0; 
-static unsigned long dayTmrStarted;
-#define CHK_SOLAR_DELAY 2000UL
-static unsigned long chk_light_started_at;
+uint8_t daynight_state = 0; 
+#define CHK_DAYNIGHT_DELAY 2000UL
+static unsigned long chk_daynight_last_started_at;
+int daynight_morning_threshold;
+int daynight_evening_threshold;
+unsigned long daynight_morning_debounce;
+unsigned long daynight_evening_debounce;
 
 // used to initalize the PointerToWork functions in case they are not used.
 void callback_default(void)
@@ -101,52 +71,75 @@ void Day(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 11) )
     { 
-        uint8_t state = DayState();
-
-        if (state == DAYNIGHT_START_STATE) 
+        if (daynight_state == DAYNIGHT_START_STATE) 
         {
             printf_P(PSTR("\"STRT\""));
         }
 
-        if (state == DAYNIGHT_DAY_STATE) 
+        if (daynight_state == DAYNIGHT_DAY_STATE) 
         {
             printf_P(PSTR("\"DAY\""));
         }
 
-        if (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
+        if (daynight_state == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
         {
             printf_P(PSTR("\"EVE\""));
         }
 
-       if (state == DAYNIGHT_NIGHTWORK_STATE) 
+       if (daynight_state == DAYNIGHT_NIGHTWORK_STATE) 
         {
             printf_P(PSTR("\"NEVT\""));
         }
 
-        if (state == DAYNIGHT_NIGHT_STATE) 
+        if (daynight_state == DAYNIGHT_NIGHT_STATE) 
         {
             printf_P(PSTR("\"NGHT\""));
         }
 
-        if (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
+        if (daynight_state == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
         {
             printf_P(PSTR("\"MORN\""));
         }
 
-        if (state == DAYNIGHT_DAYWORK_STATE) 
+        if (daynight_state == DAYNIGHT_DAYWORK_STATE) 
         {
             printf_P(PSTR("\"DEVT\""));
         }
 
-        if (state == DAYNIGHT_FAIL_STATE) 
+        if (daynight_state == DAYNIGHT_FAIL_STATE) 
         {
             printf_P(PSTR("\"FAIL\""));
         }
-        printf_P(PSTR("}\r\n"));
+        printf_P(PSTR(","));
         command_done = 12;
     }
     else if ( (command_done == 12) ) 
-    { // delay between JSON printing
+    {
+        printf_P(PSTR("\"morning_threshold\":\"%u\","),daynight_morning_threshold);
+        command_done = 13;
+    }
+    else if ( (command_done == 13) ) 
+    {
+        printf_P(PSTR("\"evening_threshold\":\"%u\","),daynight_evening_threshold);
+        command_done = 14;
+    }
+    else if ( (command_done == 14) ) 
+    {
+        printf_P(PSTR("\"morning_debounce\":\"%lu\","),daynight_morning_debounce);
+        command_done = 15;
+    }
+    else if ( (command_done == 15) ) 
+    {
+        printf_P(PSTR("\"evening_debounce\":\"%lu\""),daynight_evening_debounce);
+        command_done = 24;
+    }
+    else if ( (command_done == 24) ) 
+    {
+        printf_P(PSTR("}\r\n"));
+        command_done = 25;
+    }
+    else if ( (command_done == 25) ) 
+    {
         unsigned long kRuntime= millis() - serial_print_started_at;
         if ((kRuntime) > (serial_print_delay_milsec))
         {
@@ -156,7 +149,7 @@ void Day(unsigned long serial_print_delay_milsec)
 }
 
 /* check for daytime state durring program looping  
-    dayState: range 0..7
+    daynight_state: range 0..7
     0 = default at startup, if above Evening Threshold set day, else set night.
     1 = day: wait for evening threshold, set for evening debounce.
     2 = evening_debounce: wait for debounce time, do night_work, however if debouce fails set back to day.
@@ -166,7 +159,7 @@ void Day(unsigned long serial_print_delay_milsec)
     6 = day_work: do day callback and set for day.
     7 = fail: fail state.
 
-    ALT_V (ADC4) is used as the light sensor, it has a divider that converts with
+    ALT_V to the manager is used as the light sensor, it has a divider that converts with
     integer_from_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(11.0/1.0))
     thus an ALT_V reading of 40 is about 2.1V
     ALT_V reading of 80 is about 4.3V
@@ -175,140 +168,36 @@ void Day(unsigned long serial_print_delay_milsec)
 */
 uint8_t CheckingDayLight() 
 { 
-    unsigned long kRuntime = millis() - chk_light_started_at;
-    if ( kRuntime > CHK_SOLAR_DELAY)
+    unsigned long kRuntime = millis() - chk_daynight_last_started_at;
+    if ( kRuntime > CHK_DAYNIGHT_DELAY)
     {
-        // check light from solar pannel with ALT power disabled
-        if (!alt_power_is_checking_light)
-        {
-            alt_power_is_checking_light = 1;
-            alt_power_value = digitalRead(ALT_EN);
-            digitalWrite(ALT_EN,LOW);
-        }
-        
-        // delay for 500mSec to let ADC input filter cap charge
-        if ( kRuntime <= CHK_SOLAR_DELAY+500UL) return 1;
-        
-        // next check
-        chk_light_started_at += CHK_SOLAR_DELAY; 
+        // check Day-Night state on manager
+        uint8_t state = i2c_daynight_state(0); // do not clear work indication bits
+        daynight_state = state & 0x0F; // the state is in low nibble
 
-        // take sensor value and return power to its previous state
-        int sensor_val = get_adc_from_328pb(ALT_V);
-        digitalWrite(ALT_EN,alt_power_value);
-        alt_power_is_checking_light = 0;
-        
-        if(dayState == DAYNIGHT_START_STATE) 
-        { 
-            unsigned long kRuntime= millis() - dayTmrStarted;
-            if ((kRuntime) > ((unsigned long)STARTUP_DELAY)) 
-            {
-                if(sensor_val > evening_threshold ) 
-                {
-                    dayState = DAYNIGHT_DAY_STATE; 
-                    dayTmrStarted = millis();
-                } 
-                else 
-                {
-                    dayState = DAYNIGHT_NIGHT_STATE;
-                    dayTmrStarted = millis();
-                }
-            }
-            return 0;
-        } 
-      
-        if(dayState == DAYNIGHT_DAY_STATE) 
-        { //day
-            if (sensor_val < evening_threshold ) 
-            {
-                dayState = DAYNIGHT_EVENING_DEBOUNCE_STATE;
-                dayTmrStarted = millis();
-            }
-            unsigned long kRuntime= millis() - dayTmrStarted;
-            if ((kRuntime) > ((unsigned long)DAYNIGHT_TO_LONG)) 
-            {
-                dayState = DAYNIGHT_FAIL_STATE;
-                dayTmrStarted = millis();
-            }
-            return 0;
-        }
-      
-        if(dayState == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
-        { //evening_debounce
-            if (sensor_val < evening_threshold ) 
-            {
-                unsigned long kRuntime= millis() - dayTmrStarted;
-                if ((kRuntime) > (evening_debouce)) 
-                {
-                    dayState = DAYNIGHT_NIGHTWORK_STATE;
-                    dayTmrStarted = millis();
-                } 
-            } 
-            else 
-            {
-                dayState = DAYNIGHT_DAY_STATE;
-                dayTmrStarted = millis();
-            }
-            return 0;
-        }
+        chk_daynight_last_started_at += CHK_DAYNIGHT_DELAY;
 
-        if(dayState == DAYNIGHT_NIGHTWORK_STATE) 
+        // high nibble of daynight_state is used by i2C in place of callback functions, the usage is TBD
+        // bit 7 is set when night_work needs done
+        // bit 6 is set when day_work needs done
+        // bit 5 is used with I2C, which if a 1 is passed then bits 7 and 6 are returned with the state
+        // bit 4 is used with I2C, which if set with bits 6 and 7 clear on the byte from master then bits 7 and 6 will clear
+
+        // should I run the NightWork callback
+        if( (state & (1<<7)) ) 
         { //do the night work callback, e.g. load night light settings at the start of a night
             if (dayState_atNightWork != NULL) dayState_atNightWork();
-            dayState = DAYNIGHT_NIGHT_STATE;
+            i2c_daynight_state(1); // OK to clear work bit
             return 0;
         }
 
-        if(dayState == DAYNIGHT_NIGHT_STATE) 
-        { //night
-            if (sensor_val > morning_threshold ) 
-            {
-                dayState = DAYNIGHT_MORNING_DEBOUNCE_STATE;
-                dayTmrStarted = millis();
-            }
-            unsigned long kRuntime= millis() - dayTmrStarted;
-            if ((kRuntime) > ((unsigned long)DAYNIGHT_TO_LONG)) 
-            {
-                dayState = DAYNIGHT_FAIL_STATE;
-                dayTmrStarted = millis();
-            }
-            return 0;
-        }
-
-        if(dayState == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
-        { //morning_debounce
-            if (sensor_val > morning_threshold ) 
-            {
-                unsigned long kRuntime= millis() - dayTmrStarted;
-                if ((kRuntime) > (morning_debouce)) 
-                {
-                    dayState = DAYNIGHT_DAYWORK_STATE;
-                }
-            }
-            else 
-            {
-                dayState = DAYNIGHT_NIGHT_STATE;
-            }
-            return 0;
-        }
-
-        if(dayState == DAYNIGHT_DAYWORK_STATE) 
+        // should I run the DayWork callback
+        if( (state & (1<<6)) )
         { //do the day work callback, e.g. load irrigation settings at the start of a day
             if (dayState_atDayWork != NULL) dayState_atDayWork();
-            dayState = DAYNIGHT_DAY_STATE;
-            return 0;
-        }
-
-        //index out of bounds? 
-        if(dayState > DAYNIGHT_FAIL_STATE) 
-        { 
-            dayState = DAYNIGHT_FAIL_STATE;
+            i2c_daynight_state(1); // OK to clear work bit
             return 0;
         }
     }
     return 0;
-}
-
-uint8_t DayState(void) 
-{
-    return dayState;
 }

@@ -1,3 +1,8 @@
+# To Do
+
+Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
+Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
+
 # Manager
 
 This firmware is for the manager on an RPUBUS board, it will watch for a byte matching the local RPU_ADDRESS on the DTR pair and when seen reset the local controller placing it in bootloader mode. A non-matching byte will disconnect the RX and TX lines from the local controller and be in lockout mode until a LOCKOUT_DELAY completes or an RPU_NORMAL_MODE byte is seen on the DTR pair.

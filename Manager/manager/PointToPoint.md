@@ -97,3 +97,20 @@ bus.write_i2c_block_data(42, 17, [255])
 print(bus.read_i2c_block_data(42, 17, 2))
 [65, 0]
 ```
+
+
+## Cmd 21 from a controller /w i2c-debug to access morning_threshold
+
+Send an out of range integer in two bytes to see what the morning_threshold value is.
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 21,0,0
+{"txBuffer[3]":[{"data":"0x15"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x15"},{"data":"0x0"},{"data":"0x0"}]}
+#welp that is wrong
+```

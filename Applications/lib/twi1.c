@@ -24,7 +24,8 @@ Modified in 2016 by Ronald Sutherland (ronald.sutherlad@gmail) to use as a C lib
 #include <stdbool.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
-
+#include "pin_num.h"
+#include "pins_board.h"
 #include "twi1.h"
 
 static volatile uint8_t twi1_state;
@@ -76,18 +77,15 @@ void twi1_init(uint8_t pull_up)
     twi1_sendStop = 1;		// default value
     twi1_inRepStart = 0;
 
+    pinMode(SCL1,INPUT);
+    pinMode(SDA1,INPUT);
+
     // Do not use pull-up for twi pins if the MCU is running at a higher voltage.
     // e.g. if MCU has 5V and others have 3.3V do not use the pull-up. 
     if (pull_up) 
     {
-#if defined(__AVR_ATmega324PB__) 
-        DDRE &= ~(1 << DDE5);  // clear the ddr bit to set SDA1 pin as an input
-        PORTE |= (1 << PORTE5);  // write a one to the port bit to enable the pull-up
-        DDRE &= ~(1 << DDE6);  // SCL1 pin set as input
-        PORTE |= (1 << PORTE6);  // enable weak pull-up
-#else
-#error "no I2C definition for MCU available"
-#endif
+        digitalWrite(SCL1,HIGH); // weak pullup
+        digitalWrite(SDA1,HIGH); // weak pullup
     }
 
     // initialize twi prescaler and bit rate
@@ -111,12 +109,8 @@ void twi1_disable(void)
     TWCR1 &= ~((1<<TWEN) | (1<<TWIE) | (1<<TWEA));
 
     // deactivate internal pullups for twi.
-#if defined(__AVR_ATmega324PB__) 
-    PORTE &= ~(1 << PORTE5);  // clear the port bit to disable the pull-up
-    PORTE &= ~(1 << PORTE6); 
-#else
-#error "no I2C definition for MCU available"
-#endif
+    digitalWrite(SCL1,LOW); // disable the pull-up
+    digitalWrite(SDA1,LOW); //
 }
 
 /* init slave address and enable interrupt */

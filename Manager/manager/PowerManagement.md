@@ -11,21 +11,30 @@
 38. Analog referance for EXTERNAL_AVCC (uint32_t)
 39. Analog referance for INTERNAL_1V1 (uint32_t)
 
-## Cmd 32 from the application controller /w i2c-debug running
+## Cmd 32..35 from the application controller /w i2c-debug running read analog channels
 
-Read two bytes from I2C. They are the high byte and low byte of a buffered ADC reading from channel 0 (ALT_I).
+Read two bytes from I2C. They are the high byte and low byte of a buffered ADC reading from channel 7 (PWR_V).
 
 ``` 
 picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
 {"address":"0x29"}
-/1/ibuff 32,255,255
-{"txBuffer[3]":[{"data":"0x20"},{"data":"0xFF"},{"data":"0xFF"}]}
+/1/ibuff 35,255,255
+{"txBuffer[3]":[{"data":"0x23"},{"data":"0xFF"},{"data":"0xFF"}]}
 /1/iread? 3
-{"rxBuffer":[{"data":"0x20"},{"data":"0x00"},{"data":"0x3F"}]}
+{"rxBuffer":[{"data":"0x23"},{"data":"0x1"},{"data":"0x66"}]}
+/1/ibuff 34,255,255
+{"txBuffer[3]":[{"data":"0x22"},{"data":"0xFF"},{"data":"0xFF"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x22"},{"data":"0x0"},{"data":"0x14"}]}
 ``` 
 
-## Cmd 32 from a Raspberry Pi read analog from ALT_I
+PWR_V is from a divider with 100k and 15.8k, its two bytes are from analogRead and sum to 358 (e.g., 256 + 102).  The corrected value is about 12.8V (e.g., (analogRead/1024)*referance*((100+15.8)/15.8) ) where the referance is 5V.
+
+PWR_I is from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected, its two bytes are from analogRead and sum to 20. The corrected value is about 0.029A (e.g., (analogRead/1024)*referance/(0.068*50.0) ) where the referance is 5V.
+
+
+## Cmd 32..35 from a Raspberry Pi read analog channels
 
 An R-Pi host can use its Linux SMBus driver to read read analog from ALT_I.
 
@@ -36,21 +45,43 @@ bus = smbus.SMBus(1)
 #write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
 #read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
 # what is the analog from ALT_I high and low byte.
-bus.write_i2c_block_data(42, 32, [255,255])
-bus.read_i2c_block_data(42, 32, 3)
-[32, 0, 63]
+bus.write_i2c_block_data(42, 35, [255,255])
+bus.read_i2c_block_data(42, 35, 3)
+[32, 1, 102]
 ``` 
 
-## Cmd 37 from the application controller /w i2c-debug running
+## Cmd 36 and 37 from the application controller /w i2c-debug running read analog timed accumulation.
 
-Every ten mSec the ADC value is added to the timed accumulation value. To get the corrected value it should be scaled (same as PWR_I) with the high side current sense gain (50) and the sense value is from 0.068 ohm. After an hour 360,000 samples are accumulated. If each was for 735mA then the adc reads 512 and the accumulation will be 184320000.  
+Read four bytes from I2C. They are bytes to a UINT32 from a buffered ADC's timed accumulation reading.
 
-``` python
-# referance used to scale ADC
-ref_extern_avcc = 5.0
-# accumulate an hour of readings at 0.735A
-accumulate_pwr_ti = 512 * 100 * 3600
-# correct timed accumulation to mAHr
-accumulate_pwr_ti_mAHr = accumulate_pwr_ti*((ref_extern_avcc)/1024.0)/(0.068*50.0)/360
-```
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 37,255,255,255,255
+{"txBuffer[5]":[{"data":"0x25"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x25"},{"data":"0x9"},{"data":"0x5"},{"data":"0x39"},{"data":"0x76"}]}
+``` 
+
+The PWR_IT four bytes sum to 15,1337,334 (e.g., 9*(2**24) + 5*(2**16) + 57*(2**8) + 118). PWR_I is from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected and a referance of 5V. PWR_IT is accumulated every 10mSec, so use PWR_I correction and divide by 1000*3600/100 to get 6.037mAHr (e.g., (accumulated/1024)*referance/(0.068*50.0)/36000)). Clearly it is running to fast, but it seems to work.
+
+## Cmd 38 and 39 from the application controller /w i2c-debug running read analog referance.
+
+Read four bytes from I2C. They are bytes to a UINT32 from a buffered value in the manager EEPROM. The value is ignored if out of range.
+
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 38,255,255,255,255
+{"txBuffer[5]":[{"data":"0x26"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x26"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+``` 
+
+Broken
+
+The EXTERNAL_AVCC four bytes sum to 0 (e.g., 0*(2**24) + 0*(2**16) + 0*(2**8) + 0). 
+
 
