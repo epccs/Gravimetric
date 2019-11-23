@@ -164,15 +164,15 @@ int main(void)
             check_lockout();
             check_shutdown();
         }
-        if(write_rpu_address_to_eeprom) save_rpu_addr_state();
+        save_rpu_addr_state();
         check_uart();
         adc_burst();
-        if (ref_loaded > REF_DEFAULT) CalReferancesFromI2CtoEE();
-        if (bat_limit_loaded > BAT_LIM_DEFAULT) BatLimitsFromI2CtoEE();
+        CalReferancesFromI2CtoEE();
+        BatLimitsFromI2CtoEE();
         check_if_alt_should_be_on();
-        if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT) DayNightValuesFromI2CtoEE();
+        DayNightValuesFromI2CtoEE();
         check_daynight();
-        if (smbus_has_numBytes_to_handle) handle_smbus_receive();
+        handle_smbus_receive();
     }    
 }
 

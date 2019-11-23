@@ -237,49 +237,52 @@ uint8_t LoadDayNightValuesFromEEPROM()
 // Save day-night state machine values from I2C to EEPROM (if valid), one will change per loop, and I2C will take several loop cycles to get another.
 void DayNightValuesFromI2CtoEE(void)
 {
-    if (daynight_values_loaded == DAYNIGHT_MORNING_THRESHOLD_TOSAVE)
+    if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT)
     {
-        if ( IsValidMorningThresholdFor12V(&daynight_morning_threshold) || IsValidMorningThresholdFor24V(&daynight_morning_threshold) )
+        if (daynight_values_loaded == DAYNIGHT_MORNING_THRESHOLD_TOSAVE)
         {
-            if (WriteEEMorningThreshold())
+            if ( IsValidMorningThresholdFor12V(&daynight_morning_threshold) || IsValidMorningThresholdFor24V(&daynight_morning_threshold) )
             {
-                daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
-                return; // all done
+                if (WriteEEMorningThreshold())
+                {
+                    daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
+                    return; // all done
+                }
             }
         }
-    }
-    if (daynight_values_loaded == DAYNIGHT_EVENING_THRESHOLD_TOSAVE)
-    {    
-        if ( IsValidEveningThresholdFor12V(&daynight_evening_threshold) || IsValidEveningThresholdFor24V(&daynight_evening_threshold) )
-        {
-            if (WriteEEEveningThreshold())
+        if (daynight_values_loaded == DAYNIGHT_EVENING_THRESHOLD_TOSAVE)
+        {    
+            if ( IsValidEveningThresholdFor12V(&daynight_evening_threshold) || IsValidEveningThresholdFor24V(&daynight_evening_threshold) )
             {
-                daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
-                return; // all done
+                if (WriteEEEveningThreshold())
+                {
+                    daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
+                    return; // all done
+                }
             }
         }
-    }
-    if (daynight_values_loaded == DAYNIGHT_MORNING_DEBOUNCE_TOSAVE)
-    {
-        if ( IsValidMorningDebounce(&daynight_morning_debounce) )
+        if (daynight_values_loaded == DAYNIGHT_MORNING_DEBOUNCE_TOSAVE)
         {
-            if (WriteEEMorningDebounce())
+            if ( IsValidMorningDebounce(&daynight_morning_debounce) )
             {
-                daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
-                return; // all done
+                if (WriteEEMorningDebounce())
+                {
+                    daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
+                    return; // all done
+                }
             }
         }
-    }
-    if (daynight_values_loaded == DAYNIGHT_EVENING_DEBOUNCE_TOSAVE)
-    {
-        if ( IsValidEveningDebounce(&daynight_evening_debounce) )
+        if (daynight_values_loaded == DAYNIGHT_EVENING_DEBOUNCE_TOSAVE)
         {
-            if (WriteEEEveningDebounce())
+            if ( IsValidEveningDebounce(&daynight_evening_debounce) )
             {
-                daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
-                return; // all done
+                if (WriteEEEveningDebounce())
+                {
+                    daynight_values_loaded = DAYNIGHT_VALUES_LOADED;
+                    return; // all done
+                }
             }
         }
+        LoadDayNightValuesFromEEPROM(); // I guess the values are not valid so reload from EEPROM
     }
-    LoadDayNightValuesFromEEPROM(); // I guess the values are not valid so reload from EEPROM
 }

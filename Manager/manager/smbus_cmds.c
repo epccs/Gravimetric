@@ -51,75 +51,78 @@ void receive_smbus_event(uint8_t* inBytes, int numBytes)
 // the event to put a copy of the pointer where I can use it outside the ISR.
 void handle_smbus_receive(void)
 {
-    // table of pointers to functions that are selected by the i2c cmmand byte
-    static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
+    if (smbus_has_numBytes_to_handle)
     {
-        {fnRdMgrAddrQuietly, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
-        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
-        {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
-        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnMillis, fnNull}
-    };
-
-    int numBytes = smbus_has_numBytes_to_handle; // place value on stack so it will go away when done.
-    smbus_has_numBytes_to_handle = 0; 
-    
-    uint8_t i;
-
-    // read_i2c_block_data has a single command byte in its data set
-    // it will write i2c address, the command* byte, and then cause a repeated start
-    // followed by the i2c address (again) and then reading** the data
-    // * clock stretching occures during the receive (so handle was done to move this code outside the ISR)
-    // ** and the transmit events
-    if( (numBytes == 1)  )
-    {
-        // transmit event is set up to work from an old buffer, the data it needs is in the current buffer. 
-        if ( (inBytes_to_handle[0] == smbusBuffer[0]) && (!transmit_data_ready) )
+        // table of pointers to functions that are selected by the i2c cmmand byte
+        static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
         {
-            for(i = 0; i < smbusBufferLength; ++i)
+            {fnRdMgrAddrQuietly, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
+            {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+            {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
+            {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnMillis, fnNull}
+        };
+
+        int numBytes = smbus_has_numBytes_to_handle; // place value on stack so it will go away when done.
+        smbus_has_numBytes_to_handle = 0; 
+        
+        uint8_t i;
+
+        // read_i2c_block_data has a single command byte in its data set
+        // it will write i2c address, the command* byte, and then cause a repeated start
+        // followed by the i2c address (again) and then reading** the data
+        // * clock stretching occures during the receive (so handle was done to move this code outside the ISR)
+        // ** and the transmit events
+        if( (numBytes == 1)  )
+        {
+            // transmit event is set up to work from an old buffer, the data it needs is in the current buffer. 
+            if ( (inBytes_to_handle[0] == smbusBuffer[0]) && (!transmit_data_ready) )
             {
-                smbus_oldBuffer[i] = smbusBuffer[i];
+                for(i = 0; i < smbusBufferLength; ++i)
+                {
+                    smbus_oldBuffer[i] = smbusBuffer[i];
+                }
+                if(i < SMBUS_BUFFER_LENGTH) smbus_oldBuffer[i+1] = 0; // room for null
+                smbus_oldBufferLength = smbusBufferLength;
+                transmit_data_ready = 1;
             }
-            if(i < SMBUS_BUFFER_LENGTH) smbus_oldBuffer[i+1] = 0; // room for null
-            smbus_oldBufferLength = smbusBufferLength;
-            transmit_data_ready = 1;
+            return; // done. Even if command does not match.
         }
-        return; // done. Even if command does not match.
-    }
-    for(i = 0; i < numBytes; ++i)
-    {
-        smbusBuffer[i] = inBytes_to_handle[i];    
-    }
-    if(i < SMBUS_BUFFER_LENGTH) smbusBuffer[i+1] = 0; // room for null
-    smbusBufferLength = numBytes;
+        for(i = 0; i < numBytes; ++i)
+        {
+            smbusBuffer[i] = inBytes_to_handle[i];    
+        }
+        if(i < SMBUS_BUFFER_LENGTH) smbusBuffer[i+1] = 0; // room for null
+        smbusBufferLength = numBytes;
 
-    // an read_i2c_block_data has a command byte 
-    if( !(smbusBufferLength > 0) ) 
-    {
-        smbusBuffer[0] = 0xFF; // error code for small size.
-        return; // not valid, do nothing just echo an error code.
-    }
+        // an read_i2c_block_data has a command byte 
+        if( !(smbusBufferLength > 0) ) 
+        {
+            smbusBuffer[0] = 0xFF; // error code for small size.
+            return; // not valid, do nothing just echo an error code.
+        }
 
-    // mask the group bits (4..7) so they are alone then roll those bits to the left so they can be used as an index.
-    uint8_t group;
-    group = (smbusBuffer[0] & 0xF0) >> 4;
-    if(group >= GROUP) 
-    {
-        smbusBuffer[0] = 0xFE; // error code for bad group.
-        return; 
-    }
+        // mask the group bits (4..7) so they are alone then roll those bits to the left so they can be used as an index.
+        uint8_t group;
+        group = (smbusBuffer[0] & 0xF0) >> 4;
+        if(group >= GROUP) 
+        {
+            smbusBuffer[0] = 0xFE; // error code for bad group.
+            return; 
+        }
 
-    // mask the command bits (0..3) so they can be used as an index.
-    uint8_t command;
-    command = smbusBuffer[0] & 0x0F;
-    if(command >= MGR_CMDS) 
-    {
-        smbusBuffer[0] = 0xFD; // error code for bad command.
-        return; // not valid, do nothing but echo error code.
-    }
+        // mask the command bits (0..3) so they can be used as an index.
+        uint8_t command;
+        command = smbusBuffer[0] & 0x0F;
+        if(command >= MGR_CMDS) 
+        {
+            smbusBuffer[0] = 0xFD; // error code for bad command.
+            return; // not valid, do nothing but echo error code.
+        }
 
-    // Call the i2c command function and return
-    (* pf[group][command])(smbusBuffer);
-    return;	
+        // Call the i2c command function and return
+        (* pf[group][command])(smbusBuffer);
+    }
+    return;
 }
 
 // called when SMBus slave has been requested to send data

@@ -38,9 +38,9 @@ const uint8_t EE_IdTable[] PROGMEM =
 
 void save_rpu_addr_state(void)
 {
-    if (eeprom_is_ready())
+    if (write_rpu_address_to_eeprom && eeprom_is_ready())
     {
-        // up to first EE_RPU_IDMAX states may be used for writing an ID to the EEPROM
+        // up to first EE_RPU_IDMAX locations may be used for writing an ID to the EEPROM
         if ( (write_rpu_address_to_eeprom >= 1) && (write_rpu_address_to_eeprom <= EE_RPU_IDMAX) )
         { // write "RPUid\0" at address EE_RPU_ID
             uint8_t value = pgm_read_byte(&EE_IdTable[write_rpu_address_to_eeprom-1]);

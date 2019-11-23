@@ -2,8 +2,8 @@
 
 0..15 (Ox00..0xF | 0b00000000..0b00001111)
 
-0. read the multi-drop bus address.
-1. set the multi-drop bus address and write it to EEPROM.
+0. access the manager address (used for multi-drop bus).
+1. access the manager address (used for multi-drop bus).
 2. read the multi-drop bootload address sent when DTR/RTS toggles.
 3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
@@ -21,13 +21,14 @@ status bits:
 5. SBC power enable (PIPWR_EN)
 
 
-## Cmd 0 from the application controller /w i2c-debug read the serial multi-drop address
+## Cmd 0 from the application controller /w i2c-debug access the serial multi-drop address
 
 The application controller can read the local serial multi-drop address from the manager.
 
-This will activate (broadcast) normal multi-drop mode (e.g., after bootload or point to point mode).
+This will activate (broadcast) normal multi-drop mode (e.g., after bootload mode or point to point mode).
 
 ``` 
+# picocom -b 38400 /dev/ttyUSB0
 picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
@@ -37,12 +38,36 @@ picocom -b 38400 /dev/ttyAMA0
 {"rxBuffer":[{"data":"0x0"},{"data":"0x31"}]}
 ``` 
 
+The out of range data byte above is ignored. If the sent data byte is in the range 48..122 (ASCII '0'..'z'), then it will be saved in EEPROM, and normal mode will not be broadcast.
+
+__Warning:__ this changes EEPROM on the manager, flashing the manager ICSP may clear its eeprom.
+
+``` 
+/1/ibuff 0,50
+{"txBuffer[2]":[{"data":"0x0"},{"data":"0x32"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x0"},{"data":"0x31"}]}
+/1/ibuff 0,255
+{"txBuffer[2]":[{"data":"0x0"},{"data":"0xFF"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x0"},{"data":"0x32"}]}
+``` 
+
+The old value was returned, but the second read shows the new value (and caused a normal mode broadcast)
+
+Although the manager immediately knows its new address, the application controller program needs to read the new address; I do this once during the applications setup section. I can reset the application controller to load the update. The reset can be done by setting the bootload address (bellow) and then opening the port with picocom.
+
+```
+/2/id?
+{"id":{"name":"I2C0debug^1","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+``` 
+
 
 ## Cmd 0 from a Raspberry Pi read the serial multi-drop address
 
 The local host can read the local serial multi-drop address from the manager.
 
-This will not active normal mode.
+This does not active normal mode.
 
 ``` 
 python3
@@ -56,28 +81,9 @@ print(bus.read_i2c_block_data(42, 0, 2))
 ``` 
 
 
-## Cmd 1 from the application controller /w i2c-debug set the serial multi-drop address
+## Cmd 1 is same as 0
 
-__Warning:__ this changes eeprom on the manager, flashing the manager ICSP may clear its eeprom.
-
-The application controller can set the local serial multi-drop address on the manager. The default address can be changed from '1' to any other value. 
-
-``` 
-picocom -b 38400 /dev/ttyAMA0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 1,50
-{"txBuffer[2]":[{"data":"0x1"},{"data":"0x32"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x1"},{"data":"0x32"}]}
-``` 
-
-Although the manager immediately knows its new address, the application controller program needs to read the new address; I commonly have it do this once during the applications setup section. I can reset the application controller to load the update. The reset can be done by setting the bootload address (bellow) and then opening the port with picocom.
-
-```
-/2/id?
-{"id":{"name":"I2Cdebug^1","desc":"RPUno (14140^9) Board /w atmega328p","avr-gcc":"5.4.0"}}
-``` 
+Same as command 0, it will be repurposed at some point.
 
 
 ## Cmd 2 from the application controller /w i2c-debug read the address sent when serial handshake RTS toggless

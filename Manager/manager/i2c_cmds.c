@@ -103,12 +103,19 @@ void transmit_i2c_event(void)
   *    the manager broadcast the bootload address when the host serial is active (e.g., nRTS) 
   *    all managers lockout serial except the address to bootload and the host */
 
-// I2C_COMMAND_TO_READ_RPU_ADDRESS and set RPU_NORMAL_MODE
+// I2C command to access manager address and set RPU_NORMAL_MODE
+// if given a valid address (ASCII 48..122) it will save that rather than setting normal mode.
 void fnRdMgrAddr(uint8_t* i2cBuffer)
 {
-    i2cBuffer[1] = rpu_address; // '1' is 0x31
+    uint8_t tmp_addr = i2cBuffer[1];
+    i2cBuffer[1] = rpu_address; // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
+    if ( (tmp_addr>='0') && (tmp_addr<='z') ) 
+    {
+        rpu_address = tmp_addr;
+        write_rpu_address_to_eeprom = 1;
+        return;
+    }
     local_mcu_is_rpu_aware =1; 
-    
     // end the local mcu lockout. 
     if (localhost_active) 
     {
@@ -132,19 +139,33 @@ void fnRdMgrAddr(uint8_t* i2cBuffer)
             lockout_started_at = millis() - LOCKOUT_DELAY;
             bootloader_started_at = millis() - BOOTLOADER_ACTIVE;
         }
+        
 }
 
-// I2C_COMMAND_TO_READ_RPU_ADDRESS
+//I2C command to access manager address (used with SMBus in place of above)
 void fnRdMgrAddrQuietly(uint8_t* i2cBuffer)
 {
-    i2cBuffer[1] = rpu_address; // '1' is 0x31
+    uint8_t tmp_addr = i2cBuffer[1];
+    i2cBuffer[1] = rpu_address; // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
+    if ( (tmp_addr>='0') && (tmp_addr<='z') ) 
+    {
+        rpu_address = tmp_addr;
+        write_rpu_address_to_eeprom = 1;
+        return;
+    }
 }
 
-// I2C_COMMAND_TO_SET_RPU_ADDRESS
+// (Obsolete) I2C command to access manager address
 void fnWtMgrAddr(uint8_t* i2cBuffer)
 {
-    rpu_address = i2cBuffer[1];
-    write_rpu_address_to_eeprom = 1;
+    uint8_t tmp_addr = i2cBuffer[1];
+    i2cBuffer[1] = rpu_address; // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
+    if ( (tmp_addr>='0') && (tmp_addr<='z') ) 
+    {
+        rpu_address = tmp_addr;
+        write_rpu_address_to_eeprom = 1;
+        return;
+    }
 }
 
 // I2C_COMMAND_TO_READ_ADDRESS_SENT_ON_ACTIVE_DTR

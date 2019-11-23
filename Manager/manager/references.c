@@ -133,37 +133,39 @@ uint8_t LoadAnalogRefFromEEPROM()
 // save calibration referances from I2C to EEPROM (if valid)
 void CalReferancesFromI2CtoEE(void)
 {
-    if ( IsValidValForAvccRef(&ref_extern_avcc_uV) && IsValidValFor1V1Ref(&ref_intern_1v1_uV) )
+    if (ref_loaded > REF_DEFAULT)
     {
-        uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
-        if ( (id != 0x4144) & (ref_loaded > REF_DEFAULT) ) // 'A' is 0x41 and 'D' is 0x44
+        if ( IsValidValForAvccRef(&ref_extern_avcc_uV) && IsValidValFor1V1Ref(&ref_intern_1v1_uV) )
         {
-            WriteEeReferenceId();
-            return; // that is enough for this loop
-         }
-        else 
+            uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
+            if (id != 0x4144) // 'A' is 0x41 and 'D' is 0x44
+            {
+                WriteEeReferenceId();
+                return; // that is enough for this loop
+            }
+            else 
+            {
+                if (ref_loaded == REF_1V1_TOSAVE)
+                {
+                    if (WriteEeReference1V1())
+                    {
+                        ref_loaded = REF_LOADED;
+                        return; // all done
+                    }
+                }
+                if (ref_loaded == REF_AVCC_TOSAVE)
+                {
+                    if (WriteEeReferenceAvcc())
+                    {
+                        ref_loaded = REF_LOADED; 
+                        return; // all done
+                    }
+                }
+            }       
+        }
+        else
         {
-            if (ref_loaded == REF_1V1_TOSAVE)
-            {
-                if (WriteEeReference1V1())
-                {
-                    ref_loaded = REF_LOADED;
-                    return; // all done
-                }
-            }
-            if (ref_loaded == REF_AVCC_TOSAVE)
-            {
-                if (WriteEeReferenceAvcc())
-                {
-                    ref_loaded = REF_LOADED; 
-                    return; // all done
-                }
-            }
-        }       
-
-    }
-    else
-    {
-        LoadAnalogRefFromEEPROM(); // ignore values that are not valid
+            LoadAnalogRefFromEEPROM(); // ignore values that are not valid
+        }
     }
 }
