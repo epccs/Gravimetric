@@ -1,13 +1,21 @@
 # To Do
 
+Fix multi byte i2c access to work like analog referance which seems to work now.
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
 
+
 # Manager
 
-This firmware is for the manager on an RPUBUS board, it will watch for a byte matching the local RPU_ADDRESS on the DTR pair and when seen reset the local controller placing it in bootloader mode. A non-matching byte will disconnect the RX and TX lines from the local controller and be in lockout mode until a LOCKOUT_DELAY completes or an RPU_NORMAL_MODE byte is seen on the DTR pair.
+This firmware is for the board manager. 
+
 
 ## Overview
+
+The manager operates the multi-drop serial so that the host can bootload a single application controller or communicate with all of the connected devices. It can read voltage and current on both the input and an auxiliary input. Additional functions (battery charging, day-night state machine, SBC shutdown, and others) are a work in progress.
+
+
+## Multi-Drop Serial
 
 In normal mode, the RX and TX lines (twisted pairs) are connected through transceivers to the controller board RX and TX pins while the DTR pair is connected to the bus manager UART and is used to set the system-wide bus state.
 
@@ -24,6 +32,17 @@ Arduino Mode is a permanent bootload mode so that the Arduino IDE can connect to
 Test Mode. I2C command to swithch to test_mode (save trancever control values). I2C command to recover trancever control bits after test_mode.
 
 Power Management commands allow reading ADC channels, saving reference values, battery limits, day-night state machine threshold and status. 
+
+
+## Analog 
+
+Analog channels are connected to alternat input, and the power input into the board. The power input (PWR_V and PWR_I) allows guaging the power usage by the board. The alternat input (ALT_V and ALT_I) is for guaging power from a charging source, for example if power is from a battery and alternate from a charger (it needs to act like a current source not a voltage source).
+
+Timed Accumulation overflows to soon.
+
+Referances are multi-byte floats. The idea is to allow the SBC to access the values and use them for corrections.
+
+Each channel could use a correction value as well but is flash available after the must-haves.
 
 
 ## Firmware Upload
@@ -84,21 +103,29 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [Point To Multi-Point]: ./PointToMultiPoint.md
 
-0. read the RPU_BUS address and activate normal mode (broadcast if localhost_active).
-1. set the RPU_BUS address and write it to EEPROM.
-2. read the address sent when DTR/RTS toggles.
-3. write the address that will be sent when DTR/RTS toggles
+0. access the manager address (used for multi-drop bus).
+1. access the manager address (used for multi-drop bus).
+2. read the multi-drop bootload address sent when DTR/RTS toggles.
+3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
 5. set shutdown switch (pull down ICP1 for SHUTDOWN_TIME to cause the host to halt).
-6. reads status bits [0:DTR readback timeout, 1:twi transmit fail, 2:DTR readback not match, 3:host lockout].
-7. writes (or clears) status.
+6. read status bits.
+7. write (or clear) status.
 
 [Point To Point] and Management commands (application controller must not read the manager address or it will switch back to multi-point) 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
 [Point To Point]: ./PointToPoint.md
 
-16. set arduino_mode 
-17. read arduino_mode
+16. set arduino_mode (uint8_t)
+17. read arduino_mode (uint8_t)
+18. Battery charge start (low) limit (uint16_t)
+19. Battery charge done (high) limit (uint16_t)
+20. Battery absorption (e.g., pwm) time (uint32_t)
+21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
+22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
+23. Day-Night state (uint8_t).
+
+Note: arduino_mode is point to point.
 
 
 [Power Management] commands 32..47 (Ox20..0x2F | 0b00100000..0b00101111)
@@ -123,6 +150,12 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
+52. evening_debouce time (uint32_t)
+53. morning_debouce time (uint32_t)
+54. read millis time (uint32_t)
+55. 
+
+Note: debounce is for day-night state machine (it is not a test thing and may move).
 
 
 Connect to i2c-debug on an RPUno with an RPU shield using picocom (or ilk). 

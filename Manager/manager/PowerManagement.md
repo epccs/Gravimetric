@@ -66,9 +66,10 @@ picocom -b 38400 /dev/ttyUSB0
 
 The PWR_IT four bytes sum to 15,1337,334 (e.g., 9*(2**24) + 5*(2**16) + 57*(2**8) + 118). PWR_I is from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected and a referance of 5V. PWR_IT is accumulated every 10mSec, so use PWR_I correction and divide by 1000*3600/100 to get 6.037mAHr (e.g., (accumulated/1024)*referance/(0.068*50.0)/36000)). Clearly it is running to fast, but it seems to work.
 
+
 ## Cmd 38 and 39 from the application controller /w i2c-debug running read analog referance.
 
-Read four bytes from I2C. They are bytes to a UINT32 from a buffered value in the manager EEPROM. The value is ignored if out of range.
+Read four bytes from I2C. They are from a buffered value mirrored in the manager's EEPROM. The value is ignored if out of range. Use 38 for EXTERNAL_AVCC, and 39 for INTERNAL_1V1 (not loaded by SelfTest).
 
 ``` 
 picocom -b 38400 /dev/ttyUSB0
@@ -77,11 +78,16 @@ picocom -b 38400 /dev/ttyUSB0
 /1/ibuff 38,255,255,255,255
 {"txBuffer[5]":[{"data":"0x26"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"}]}
 /1/iread? 5
-{"rxBuffer":[{"data":"0x26"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+{"rxBuffer":[{"data":"0x26"},{"data":"0x40"},{"data":"0xA0"},{"data":"0x0"},{"data":"0x0"}]}
 ``` 
 
-Broken
+The EXTERNAL_AVCC four bytes are a float so lets use python to see if they are right. 
 
-The EXTERNAL_AVCC four bytes sum to 0 (e.g., 0*(2**24) + 0*(2**16) + 0*(2**8) + 0). 
+``` python
+from struct import *
+# packing order is high byte last
+unpack('f', pack('BBBB', 0x0, 0x0, 0xA0, 0x40))
+```
 
+Output is: (5.0,)
 

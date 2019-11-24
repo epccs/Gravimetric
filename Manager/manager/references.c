@@ -26,6 +26,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 #include "../lib/adc.h"
 #include "../lib/timers.h"
 #include "../lib/pins_board.h"
@@ -35,9 +36,12 @@ uint8_t ref_loaded;
 uint32_t ref_extern_avcc_uV;
 uint32_t ref_intern_1v1_uV;
 
-uint8_t IsValidValForAvccRef(uint32_t *value) 
+// 
+uint8_t IsValidValForAvccRef() 
 {
-    if ( ((*value > REF_EXTERN_AVCC_MIN) && (*value < REF_EXTERN_AVCC_MAX)) )
+    float tmp_avcc;
+    memcpy(&tmp_avcc, &ref_extern_avcc_uV, sizeof tmp_avcc);
+    if ( ((tmp_avcc > REF_EXTERN_AVCC_MIN) && (tmp_avcc < REF_EXTERN_AVCC_MAX)) )
     {
         return 1;
     }
@@ -47,9 +51,11 @@ uint8_t IsValidValForAvccRef(uint32_t *value)
     }
 }
 
-uint8_t IsValidValFor1V1Ref(uint32_t *value) 
+uint8_t IsValidValFor1V1Ref() 
 {
-    if ( ((*value > REF_INTERN_1V1_MIN) && (*value < REF_INTERN_1V1_MAX)) )
+    float tmp_1v1;
+    memcpy(&tmp_1v1, &ref_intern_1v1_uV, sizeof tmp_1v1);
+    if ( ((tmp_1v1 > REF_INTERN_1V1_MIN) && (tmp_1v1 < REF_INTERN_1V1_MAX)) )
     {
         return 1;
     }
@@ -116,18 +122,35 @@ uint8_t LoadAnalogRefFromEEPROM()
     uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
     if (id == 0x4144) // 'A' is 0x41 and 'D' is 0x44
     {
-        ref_extern_avcc_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC)); 
-        ref_intern_1v1_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1));
-        ref_loaded = REF_LOADED;
-        return 1;
+        ref_extern_avcc_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC));
+        if ( IsValidValForAvccRef() ) 
+        {
+            ref_intern_1v1_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1));
+            if ( IsValidValFor1V1Ref() )
+            {
+                ref_loaded = REF_LOADED;
+                return 1;
+            }
+            else
+            { // 1v1 is not used (should it be removed?)
+                float tmp_1v1 = 1.08;
+                memcpy(&ref_intern_1v1_uV, &tmp_1v1, sizeof ref_intern_1v1_uV);
+                ref_loaded = REF_LOADED;
+                return 1;
+            }
+            
+
+        }
     }
-    else
-    {
-        ref_extern_avcc_uV = 5000000UL; // set a default value
-        ref_intern_1v1_uV = 1080000UL; // default
-        ref_loaded = REF_DEFAULT;
-        return 0;
-    }
+
+    // use defaults
+    // on AVR sizeof(float) == sizeof(uint32_t)
+    float tmp_avcc = 5.0;
+    memcpy(&ref_extern_avcc_uV, &tmp_avcc, sizeof ref_extern_avcc_uV);
+    float tmp_1v1 = 1.08;
+    memcpy(&ref_intern_1v1_uV, &tmp_1v1, sizeof ref_intern_1v1_uV);
+    ref_loaded = REF_DEFAULT;
+    return 0;
 }
 
 // save calibration referances from I2C to EEPROM (if valid)
@@ -135,7 +158,7 @@ void CalReferancesFromI2CtoEE(void)
 {
     if (ref_loaded > REF_DEFAULT)
     {
-        if ( IsValidValForAvccRef(&ref_extern_avcc_uV) && IsValidValFor1V1Ref(&ref_intern_1v1_uV) )
+        if ( IsValidValForAvccRef() && IsValidValFor1V1Ref() )
         {
             uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
             if (id != 0x4144) // 'A' is 0x41 and 'D' is 0x44

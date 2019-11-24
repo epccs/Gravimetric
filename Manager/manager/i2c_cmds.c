@@ -404,59 +404,52 @@ void fnRdTimedAccumPwrI(uint8_t* i2cBuffer)
 }
 
 // I2C command for Analog referance EXTERNAL_AVCC
-/* swap the I2C buffer with the ref_extern_avcc_uV in use
-    set ref_loaded so main loop will try to save it to eeprom
-    the main loop will reload eeprom or default value if new is out of range
-*/ 
+// swap the I2C buffer with the ref_extern_avcc_uV in use
+// set ref_loaded so main loop will try to save it to EEPROM
+// the main loop will reload EEPROM or default value if new is out of range
 void fnAnalogRefExternAVCC(uint8_t* i2cBuffer)
 {
-    // ref_extern_avcc_uV is a uint32_t and has four bytes
-    uint8_t temp = (ref_extern_avcc_uV>>24) & 0xFF;
-    ref_extern_avcc_uV = 0x00FFFFFF & ref_extern_avcc_uV; // mask out the old high byte
-    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_extern_avcc_uV; // place new value in high byte
-    i2cBuffer[1] =  temp; // swap the return value with the old high byte
-    
-    temp = (ref_extern_avcc_uV>>16) & 0xFF;
-    ref_extern_avcc_uV = 0xFF00FFFF & ref_extern_avcc_uV;
-    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[2])<<16) & ref_extern_avcc_uV; 
-    i2cBuffer[2] =  temp;
+    // I work with ref_extern_avcc_uV as a uint32_t, but it is a float (both are four bytes)
+    uint32_t old = ref_extern_avcc_uV;
+    uint32_t new = 0;
+    new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
+    i2cBuffer[1] = ( (0xFF000000 & old) >>24 ); // swap the return value with the old byte
 
-    temp = (ref_extern_avcc_uV>>8) & 0xFF;
-    ref_extern_avcc_uV = 0xFFFF00FF & ref_extern_avcc_uV;
-    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[3])<<8) & ref_extern_avcc_uV; 
-    i2cBuffer[3] =  temp;
+    new += ((uint32_t)i2cBuffer[2])<<16;
+    i2cBuffer[2] =  ( (0x00FF0000 & old) >>16 ); 
 
-    temp = ref_extern_avcc_uV & 0xFF;
-    ref_extern_avcc_uV = 0xFFFFFF00 & ref_extern_avcc_uV;
-    ref_extern_avcc_uV = ((uint32_t) (i2cBuffer[4])) & ref_extern_avcc_uV;  
-    i2cBuffer[4] =  temp;
-    
+    new += ((uint32_t)i2cBuffer[3])<<8;
+    i2cBuffer[3] =  ( (0x0000FF00 & old) >>8 ); 
+
+    new += ((uint32_t)i2cBuffer[4]);
+    i2cBuffer[4] =  ( (0x000000FF & old) ); 
+
+    // new is ready
+    ref_extern_avcc_uV = new;
+
     ref_loaded = REF_AVCC_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
 // I2C command for Analog referance INTERNAL_1V1
 void fnAnalogRefIntern1V1(uint8_t* i2cBuffer)
 {
-    // ref_intern_1v1_uV is a uint32_t and has four bytes
-    uint8_t temp = (ref_intern_1v1_uV>>24) & 0xFF;
-    ref_intern_1v1_uV = 0x00FFFFFF & ref_intern_1v1_uV; // mask out the old high value
-    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[1])<<24) & ref_intern_1v1_uV; // place new value in high byte
-    i2cBuffer[1] =  temp; // swap the return value with the old high byte
-    
-    temp = (ref_intern_1v1_uV>>16) & 0xFF;
-    ref_intern_1v1_uV = 0xFF00FFFF & ref_intern_1v1_uV;
-    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[2])<<16) & ref_intern_1v1_uV; 
-    i2cBuffer[2] =  temp;
+    // I work with ref_extern_avcc_uV as a uint32_t, but it is a float (both are four bytes)
+    uint32_t old = ref_intern_1v1_uV;
+    uint32_t new = 0;
+    new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
+    i2cBuffer[1] = ( (0xFF000000 & old) >>24 ); // swap the return value with the old byte
 
-    temp = (ref_intern_1v1_uV>>8) & 0xFF;
-    ref_intern_1v1_uV = 0xFFFF00FF & ref_intern_1v1_uV;
-    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[3])<<8) & ref_intern_1v1_uV; 
-    i2cBuffer[3] =  temp;
+    new += ((uint32_t)i2cBuffer[2])<<16;
+    i2cBuffer[2] =  ( (0x00FF0000 & old) >>16 ); 
 
-    temp = ref_intern_1v1_uV & 0xFF;
-    ref_intern_1v1_uV = 0xFFFFFF00 & ref_intern_1v1_uV;
-    ref_intern_1v1_uV = ((uint32_t) (i2cBuffer[4])) & ref_intern_1v1_uV;  
-    i2cBuffer[4] =  temp;
+    new += ((uint32_t)i2cBuffer[3])<<8;
+    i2cBuffer[3] =  ( (0x0000FF00 & old) >>8 ); 
+
+    new += ((uint32_t)i2cBuffer[4]);
+    i2cBuffer[4] =  ( (0x000000FF & old) ); 
+
+    // new is ready
+    ref_intern_1v1_uV = new;
     
     ref_loaded = REF_1V1_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
