@@ -101,7 +101,7 @@ print(bus.read_i2c_block_data(42, 17, 2))
 
 ## Cmd 21 from a controller /w i2c-debug to access morning_threshold
 
-Send an out of range integer in two bytes to see what the morning_threshold value is.
+Send an ignored integer (0) in two bytes to see what the morning_threshold value is.
 
 ``` 
 # I am using the bootload interface 
@@ -111,6 +111,102 @@ picocom -b 38400 /dev/ttyUSB0
 /1/ibuff 21,0,0
 {"txBuffer[3]":[{"data":"0x15"},{"data":"0x0"},{"data":"0x0"}]}
 /1/iread? 3
-{"rxBuffer":[{"data":"0x15"},{"data":"0x0"},{"data":"0x0"}]}
-#welp that is wrong
+{"rxBuffer":[{"data":"0x15"},{"data":"0x0"},{"data":"0x50"}]}
 ```
+
+There are two ranges (12V and 24V) for solar panels; data that is outside the valid area is ignored. The settings are in daynight_limits.h. 
+
+``` 
+/1/ibuff 21,0,81
+{"txBuffer[3]":[{"data":"0x15"},{"data":"0x0"},{"data":"0x51"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x15"},{"data":"0x0"},{"data":"0x50"}]}
+/1/ibuff 21,0,0
+{"txBuffer[3]":[{"data":"0x15"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x15"},{"data":"0x0"},{"data":"0x51"}]}
+```
+
+The data sent was swapped with the default (80); the second exchange has ignored data that is swapped with the updated value (81).
+
+
+## Cmd 22 from a controller /w i2c-debug to access evening_threshold
+
+Send an ignored integer (0) in two bytes to see what the evening_threshold value is.
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 22,0,0
+{"txBuffer[3]":[{"data":"0x16"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x16"},{"data":"0x0"},{"data":"0x28"}]}
+```
+
+There are two ranges (12V and 24V) for solar panels; data that is outside the valid area is ignored. The settings are in daynight_limits.h. 
+
+``` 
+/1/ibuff 22,0,37
+{"txBuffer[3]":[{"data":"0x16"},{"data":"0x0"},{"data":"0x25"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x16"},{"data":"0x0"},{"data":"0x28"}]}
+/1/ibuff 22,0,0
+{"txBuffer[3]":[{"data":"0x16"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x16"},{"data":"0x0"},{"data":"0x25"}]}
+```
+
+The data sent was swapped with the default (40); the second exchange has ignored data that is swapped with the updated value (37).
+
+
+## Cmd 23 from a controller /w i2c-debug to access Day-Night state
+
+Send a byte to see what the day-night state is.
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 23,0
+{"txBuffer[2]":[{"data":"0x17"},{"data":"0x0"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x17"},{"data":"0x4"}]}
+```
+
+States are in the daynight_state.h file.
+
+``` C
+#define DAYNIGHT_START_STATE 0
+#define DAYNIGHT_DAY_STATE 1
+#define DAYNIGHT_EVENING_DEBOUNCE_STATE 2
+#define DAYNIGHT_NIGHTWORK_STATE 3
+#define DAYNIGHT_NIGHT_STATE 4
+#define DAYNIGHT_MORNING_DEBOUNCE_STATE 5
+#define DAYNIGHT_DAYWORK_STATE 6
+#define DAYNIGHT_FAIL_STATE 7
+```
+
+It is night since ALT_V was 0V after startup, it will switch to 7 after 20 hours, but if not needed don't worry about it. 
+
+Set bit 4 from master to clear bits 6 and 7
+
+``` 
+/1/ibuff 23,16
+{"txBuffer[3]":[{"data":"0x17"},{"data":"0x10"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x17"},{"data":"0x4"}]}
+```
+
+Set bit 5 from master to include bits 6 and 7 in readback
+
+```
+/1/ibuff 23,32
+{"txBuffer[3]":[{"data":"0x17"},{"data":"0x20"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x17"},{"data":"0x4"}]}
+```
+
+Bit 6 shows day_work. Bit 7 shows night_work. If set they need to be cleared after doing the work.

@@ -251,3 +251,148 @@ print(bus.read_i2c_block_data(42, 51, 2))
 ``` 
 
 
+## Cmd 52 from a controller /w i2c-debug to access evening_debouce
+
+Send an ignored long integer (0) in four bytes to see what the evening_debouce value is.
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 52,0,0,0,0
+{"txBuffer[5]":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
+```
+
+The four bytes sum to 1,200,000 (e.g., 0*(2**24) + 0x12*(2**16) + 0x4F*(2**8) + 0x80) mSec or 20 min.
+
+Data that is outside the valid area is ignored (8000 to 3,600,000 or 8sec to 60 min). The limits are in daynight_limits.h. 
+
+``` 
+/1/ibuff 52,0,0,31,65
+{"txBuffer[5]":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
+/1/ibuff 52,0,0,0,0
+{"txBuffer[5]":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
+```
+
+The value 8001 (e.g., 31*(2**8) + 65) sent was swapped with the default (20 min); the second exchange has ignored data that was swapped with the updated value (8 sec).
+
+
+## Cmd 53 from a controller /w i2c-debug to access morning_debouce
+
+Same as command 52 (above) but for morning.
+
+``` 
+/1/ibuff 53,0,0,31,65
+{"txBuffer[5]":[{"data":"0x35"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x35"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
+/1/ibuff 53,0,0,0,0
+{"txBuffer[5]":[{"data":"0x35"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
+```
+
+
+## Cmd 54 from a controller /w i2c-debug to read manager millis time
+
+Read the manager timer (e.g., millis).
+
+The microcontroller uses Timer0 to count crystal oscillations, it should be accurate to 30ppm, but it uses the timer interrupt to update the unsigned long used to hold millis value. The update rate average is 976.5625 (16000000/(256*64)) updates per second. Therefore the counts will increment twice about 1 in 49 updates. After 2**32 mSec or 49.7 days (e.g., (2**32)/1000/60/60/24 ), a counter role over will occur.
+
+``` 
+/1/ibuff 54,0,0,0,0
+{"txBuffer[5]":[{"data":"0x36"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x36"},{"data":"0x0"},{"data":"0xF8"},{"data":"0xF9"},{"data":"0x13"}]}
+/1/ibuff 54,0,0,0,0
+{"txBuffer[5]":[{"data":"0x36"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x36"},{"data":"0x0"},{"data":"0xF9"},{"data":"0x83"},{"data":"0xA6"}]}
+```
+
+To understand how millis is used have a look at this link.
+
+https://learn.adafruit.com/multi-tasking-the-arduino-part-1/using-millis-for-timing
+
+On a host machine use its time keeping (e.g., man gettimeofday) not millis.
+
+```
+GETTIMEOFDAY(2)                        Linux Programmer's Manual                       GETTIMEOFDAY(2)
+
+NAME
+       gettimeofday, settimeofday - get / set time
+
+SYNOPSIS
+       #include <sys/time.h>
+
+       int gettimeofday(struct timeval *tv, struct timezone *tz);
+
+       int settimeofday(const struct timeval *tv, const struct timezone *tz);
+
+   Feature Test Macro Requirements for glibc (see feature_test_macros(7)):
+
+       settimeofday():
+           Since glibc 2.19:
+               _DEFAULT_SOURCE
+           Glibc 2.19 and earlier:
+               _BSD_SOURCE
+
+DESCRIPTION
+       The functions gettimeofday() and settimeofday() can get and set the time as well as a timezone.
+       The tv argument is a struct timeval (as specified in <sys/time.h>):
+
+           struct timeval {
+               time_t      tv_sec;     /* seconds */
+               suseconds_t tv_usec;    /* microseconds */
+           };
+
+       and gives the number of seconds and microseconds since the Epoch (see time(2)).  The  tz  argu-
+       ment is a struct timezone:
+           struct timezone {
+               int tz_minuteswest;     /* minutes west of Greenwich */
+               int tz_dsttime;         /* type of DST correction */
+           };
+
+       If either tv or tz is NULL, the corresponding structure is not set or returned.  (However, com-
+       pilation warnings will result if tv is NULL.)
+
+       The use of the timezone structure is obsolete; the tz argument should normally be specified  as
+       NULL.  (See NOTES below.)
+
+       Under  Linux, there are some peculiar "warp clock" semantics associated with the settimeofday()
+       system call if on the very first call (after booting) that has a non-NULL tz argument,  the  tv
+       argument is NULL and the tz_minuteswest field is nonzero.  (The tz_dsttime field should be zero
+       for this case.)  In such a case it is assumed that the CMOS clock is on local time, and that it
+       has  to be incremented by this amount to get UTC system time.  No doubt it is a bad idea to use
+       this feature.
+```
+
+And some parts copied from mpbench for referance.
+
+``` C
+#define TIMER_CLEAR     (tv1.tv_sec = tv1.tv_usec = tv2.tv_sec = tv2.tv_usec = 0)
+#define TIMER_START     gettimeofday(&tv1, (struct timezone*)0)
+#define TIMER_ELAPSED   ((tv2.tv_usec-tv1.tv_usec)+((tv2.tv_sec-tv1.tv_sec)*1000000))
+#define TIMER_STOP      gettimeofday(&tv2, (struct timezone*)0)
+struct timeval tv1,tv2;
+
+....
+main()
+...
+    TIMER_CLEAR;
+    TIMER_START;
+
+    /* stuff to time goes here */
+
+    TIMER_STOP;
+    printf("# threads, calls, seconds, calls/s\n");
+    printf("%d,%d,%f,%f\n", omp_get_num_threads(), counter, TIMER_ELAPSED/1000000.0, counter / (TIMER_ELAPSED/1000000.0));
+...
+```

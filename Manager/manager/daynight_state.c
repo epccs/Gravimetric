@@ -61,9 +61,8 @@ unsigned long dayTmrStarted;
     bit 5 is used with I2C, which if a 1 is passed then bits 7 and 6 are returned with the state
     bit 4 is used with I2C, which if set with the bytes from master/host will clear bits 7 and 6 if they are also clear on the data byte from master/host.
 */
-void check_daynight() 
-{ 
-
+void check_daynight()
+{
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
     int sensor_val = analogRead(ALT_V);
     uint8_t low_nibble_daynight_state = daynight_state & 0x0F; 
@@ -124,9 +123,12 @@ void check_daynight()
 
     if(low_nibble_daynight_state == DAYNIGHT_NIGHTWORK_STATE) 
     { 
-        //do the night work callback, e.g. load night light settings at the start of a night
-        daynight_state = (daynight_state & 0x7F) + 0x80; //clear bit 7 so I can set it and keep the other bits
-        daynight_state = (daynight_state & 0xF0) + DAYNIGHT_NIGHT_STATE;
+        //set the night work bit if not set
+        if (!(daynight_state & 0x80) )
+        {
+            daynight_state |= (1<<7); 
+            // should I clear the day work bit?
+        }
         return;
     }
 
@@ -165,9 +167,12 @@ void check_daynight()
 
     if(low_nibble_daynight_state == DAYNIGHT_DAYWORK_STATE) 
     { 
-        //do the day work callback, e.g. load irrigation settings at the start of a day
-        daynight_state = (daynight_state & 0xBF) + 0x40; //clear bit 6 so I can set it and keep the other bits
-        daynight_state = (daynight_state & 0xF0) + DAYNIGHT_DAY_STATE;
+        //set the day work bit if not set
+        if (!(daynight_state & 0x40) )
+        {
+            daynight_state |= (1<<6); 
+            // should I clear the night work bit?
+        }
         return;
     }
 

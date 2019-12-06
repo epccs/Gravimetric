@@ -6,7 +6,6 @@
 extern unsigned long uart_started_at;
 
 volatile extern uint8_t uart_output;
-extern uint8_t uart_previous_byte;
 
 // rpubus mode setup
 extern void check_DTR(void);

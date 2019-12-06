@@ -35,7 +35,7 @@ unsigned long daynight_evening_debounce;
 
 uint8_t IsValidMorningThresholdFor12V(int *value) 
 {
-    if ( ((*value > PV12_MORNING_THRESHOLD_MIN) && (*value < PV12_MORNING_THRESHOLD_MAX)) )
+    if ( ((*value >= PV12_MORNING_THRESHOLD_MIN) && (*value <= PV12_MORNING_THRESHOLD_MAX)) )
     {
         return 1;
     }
@@ -47,7 +47,7 @@ uint8_t IsValidMorningThresholdFor12V(int *value)
 
 uint8_t IsValidEveningThresholdFor12V(int *value) 
 {
-    if ( ((*value > PV12_EVENING_THRESHOLD_MIN) && (*value < PV12_EVENING_THRESHOLD_MAX)) )
+    if ( ((*value >= PV12_EVENING_THRESHOLD_MIN) && (*value <= PV12_EVENING_THRESHOLD_MAX)) )
     {
         return 1;
     }
@@ -59,7 +59,7 @@ uint8_t IsValidEveningThresholdFor12V(int *value)
 
 uint8_t IsValidMorningThresholdFor24V(int *value) 
 {
-    if ( ((*value > PV24_MORNING_THRESHOLD_MIN) && (*value < PV24_MORNING_THRESHOLD_MAX)) )
+    if ( ((*value >= PV24_MORNING_THRESHOLD_MIN) && (*value <= PV24_MORNING_THRESHOLD_MAX)) )
     {
         return 1;
     }
@@ -71,7 +71,7 @@ uint8_t IsValidMorningThresholdFor24V(int *value)
 
 uint8_t IsValidEveningThresholdFor24V(int *value) 
 {
-    if ( ((*value > PV24_EVENING_THRESHOLD_MIN) && (*value < PV24_EVENING_THRESHOLD_MAX)) )
+    if ( ((*value >= PV24_EVENING_THRESHOLD_MIN) && (*value <= PV24_EVENING_THRESHOLD_MAX)) )
     {
         return 1;
     }
@@ -83,7 +83,7 @@ uint8_t IsValidEveningThresholdFor24V(int *value)
 
 uint8_t IsValidMorningDebounce(unsigned long *value) 
 {
-    if ( ((*value > MORNING_DEBOUNCE_MIN) && (*value < MORNING_DEBOUNCE_MAX)) )
+    if ( ((*value >= MORNING_DEBOUNCE_MIN) && (*value <= MORNING_DEBOUNCE_MAX)) )
     {
         return 1;
     }
@@ -95,7 +95,7 @@ uint8_t IsValidMorningDebounce(unsigned long *value)
 
 uint8_t IsValidEveningDebounce(unsigned long *value) 
 {
-    if ( ((*value > EVENING_DEBOUNCE_MIN) && (*value < EVENING_DEBOUNCE_MAX)) )
+    if ( ((*value >= EVENING_DEBOUNCE_MIN) && (*value <= EVENING_DEBOUNCE_MAX)) )
     {
         return 1;
     }

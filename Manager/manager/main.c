@@ -81,7 +81,6 @@ void setup(void)
     smbus_has_numBytes_to_handle = 0;
     
     // from dtr_transmition.h
-    uart_previous_byte = 0;
     uart_output = 0;
 
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
@@ -109,7 +108,7 @@ void setup(void)
 
     sei(); // Enable global interrupts to start TIMER0 and UART
 
-    _delay_ms(50); // wait for UART glitch to clear
+    _delay_ms(50); // wait for UART glitch to clear, blocking at this point is OK.
     digitalWrite(DTR_DE, HIGH);  // then allow DTR pair driver to enable
 
     // load reference calibration

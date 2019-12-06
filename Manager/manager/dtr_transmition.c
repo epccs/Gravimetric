@@ -25,12 +25,19 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/pins_board.h"
 #include "rpubus_manager_state.h"
 #include "dtr_transmition.h"
+#include "daynight_state.h"
 
+// public
 unsigned long uart_started_at;
 
 volatile uint8_t uart_output;
 
+
+// private
+unsigned long target_reset_started_at;
+
 uint8_t uart_previous_byte;
+uint8_t my_mcu_is_target_and_i_have_it_reset;
 
 void check_DTR(void)
 {
@@ -194,14 +201,27 @@ void check_uart(void)
             }
             if (input == rpu_address) // that is my local address
             {
-                connect_bootload_mode();
+                if(!my_mcu_is_target_and_i_have_it_reset)
+                {
+                    connect_bootload_mode();
 
-                // start the bootloader
-                bootloader_started = 1;
-                digitalWrite(MGR_nSS, LOW);   // nSS goes through a open collector buffer to nRESET
-                _delay_ms(20);  // hold reset low for a short time 
+                    // start the bootloader
+                    digitalWrite(MGR_nSS, LOW);   // nSS goes through a open collector buffer to nRESET
+                    target_reset_started_at = millis();
+                    my_mcu_is_target_and_i_have_it_reset = 1;
+                    return; 
+                }
+                unsigned long kRuntime= millis() - target_reset_started_at;
+                if (kRuntime < 20UL) // hold reset low for a short time but don't delay (the mcu runs 200k instruction in 20 mSec)
+                {
+                    return;
+                } 
+                //_delay_ms(20);  // hold reset low for a short time, but this locks the mcu which which blocks i2c, SMBus, and ADC burst. 
                 digitalWrite(MGR_nSS, HIGH); // this will release the buffer with open colllector on MCU nRESET.
+                my_mcu_is_target_and_i_have_it_reset = 0;
+                bootloader_started = 1;
                 local_mcu_is_rpu_aware = 0; // after a reset it may be loaded with new software
+                daynight_state &= ~( (1<<6) | (1<<7) );  //clear the day and night work bits since appliction has restart
                 blink_started_at = millis();
                 bootloader_started_at = millis();
                 return;
