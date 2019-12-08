@@ -268,16 +268,18 @@ void fnRdArduinMode(uint8_t* i2cBuffer)
 void fnBatStartChrg(uint8_t* i2cBuffer)
 {
     // battery_low_limit is a uint16_t e.g., two bytes
-    uint8_t temp = (battery_low_limit>>8) & 0xFF;
-    battery_low_limit = 0x00FF & battery_low_limit; // mask out the old value
-    battery_low_limit = ((uint32_t) (i2cBuffer[1])<<8) & battery_low_limit; // place new value in high byte
-    i2cBuffer[1] = temp; // swap the return value with the old high byte
+    uint16_t old = battery_low_limit;
+    uint16_t new = 0;
 
-    temp = battery_low_limit & 0xFF;
-    battery_low_limit = 0xFFFFFF00 & battery_low_limit;
-    battery_low_limit = ((uint32_t) (i2cBuffer[2])) & battery_low_limit;  
-    i2cBuffer[2] = temp;
-    
+    new += ((uint16_t)i2cBuffer[1])<<8;
+    i2cBuffer[1] =  ( (0xFF00 & old) >>8 ); 
+
+    new += ((uint16_t)i2cBuffer[2]);
+    i2cBuffer[2] =  ( (0x00FF & old) ); 
+
+    // new is ready
+    battery_low_limit = new;
+
     bat_limit_loaded = BAT_LOW_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
@@ -285,27 +287,31 @@ void fnBatStartChrg(uint8_t* i2cBuffer)
 void fnBatDoneChrg(uint8_t* i2cBuffer)
 {
     // battery_high_limit is a uint16_t e.g., two bytes
-    uint8_t temp = (battery_high_limit>>8) & 0xFF;
-    battery_high_limit = 0x00FF & battery_high_limit; // mask out the old value
-    battery_high_limit = ((uint32_t) (i2cBuffer[1])<<8) & battery_high_limit; // place new value in high byte
-    i2cBuffer[1] = temp; // swap the return value with the old high byte
+    uint16_t old = battery_high_limit;
+    uint16_t new = 0;
 
-    temp = battery_high_limit & 0xFF;
-    battery_high_limit = 0xFFFFFF00 & battery_high_limit;
-    battery_high_limit = ((uint32_t) (i2cBuffer[2])) & battery_high_limit;  
-    i2cBuffer[2] = temp;
-    
-    bat_limit_loaded = BAT_LOW_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    new += ((uint16_t)i2cBuffer[1])<<8;
+    i2cBuffer[1] =  ( (0xFF00 & old) >>8 ); 
+
+    new += ((uint16_t)i2cBuffer[2]);
+    i2cBuffer[2] =  ( (0x00FF & old) ); 
+
+    // new is ready
+    battery_high_limit = new;
+
+    bat_limit_loaded = BAT_HIGH_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
 // I2C command to read battery charging time while doing pwm e.g., absorption time
 void fnRdBatChrgTime(uint8_t* i2cBuffer)
 {
     // there are four bytes in an unsigned long
-    i2cBuffer[1] =  (alt_pwm_accum_charge_time>>24) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
-    i2cBuffer[2] =  (alt_pwm_accum_charge_time>>16) & 0xFF;
-    i2cBuffer[3] =  (alt_pwm_accum_charge_time>>8) & 0xFF;
-    i2cBuffer[4] =  alt_pwm_accum_charge_time & 0xFF; // low byte. Again Mask should optimize out
+    unsigned long my_copy = alt_pwm_accum_charge_time; //updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+
+    i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
+    i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
+    i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
+    i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
 
 // I2C command for day-night Morning Threshold (uint16_t)
@@ -369,56 +375,64 @@ void fnDayNightState(uint8_t* i2cBuffer)
 /********* POWER MANAGER ***********
   *  for ALT_I, ALT_V, PWR_I, PWR_V reading     */
 
-// I2C command to read analog channel 0
+// I2C command to read analog channel 0 (ten bits: 0..1023)
+// high byte is after command byte, then low byte next.
 void fnRdAdcAltI(uint8_t* i2cBuffer)
 {
     uint16_t adc_buffer = analogRead(ALT_I);
-    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
-    i2cBuffer[2] =  adc_buffer & 0xFF; // low byte. Again Mask should optimize out
+    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
+    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
 }
 
-// I2C command to read analog channel 1
+// I2C command to read analog channel 1 (ten bits: 0..1023)
+// high byte is after command byte, then low byte next.
 void fnRdAdcAltV(uint8_t* i2cBuffer)
 {
     uint16_t adc_buffer = analogRead(ALT_V);
-    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF;
-    i2cBuffer[2] =  adc_buffer & 0xFF;
+    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
+    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
 }
 
-// I2C command to read analog channel 6
+// I2C command to read analog channel 6 (ten bits: 0..1023)
+// high byte is after command byte, then low byte next.
 void fnRdAdcPwrI(uint8_t* i2cBuffer)
 {
     uint16_t adc_buffer = analogRead(PWR_I);
-    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF;
-    i2cBuffer[2] =  adc_buffer & 0xFF;
+    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
+    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
 }
 
-// I2C command to read analog channel 7
+// I2C command to read analog channel 7 (ten bits: 0..1023)
+// high byte is after command byte, then low byte next.
 void fnRdAdcPwrV(uint8_t* i2cBuffer)
 {
     uint16_t adc_buffer = analogRead(PWR_V);
-    i2cBuffer[1] =  (adc_buffer>>8) & 0xFF;
-    i2cBuffer[2] =  adc_buffer & 0xFF; 
+    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
+    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
 }
 
 // I2C command to read timed accumulation of analog channel ALT_I
 void fnRdTimedAccumAltI(uint8_t* i2cBuffer)
 {
     // there are four bytes in the unsigned long accumulate_alt_ti
-    i2cBuffer[1] =  (accumulate_alt_ti>>24) & 0xFF; // high byte. Mask is for clarity, the compiler should optimize it out
-    i2cBuffer[2] =  (accumulate_alt_ti>>16) & 0xFF;
-    i2cBuffer[3] =  (accumulate_alt_ti>>8) & 0xFF;
-    i2cBuffer[4] =  accumulate_alt_ti & 0xFF; // low byte. Again Mask should optimize out
+    unsigned long my_copy = accumulate_alt_ti; //updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+
+    i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
+    i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
+    i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
+    i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
 
 // I2C command to read timed accumulation of analog channel PWR_I
 void fnRdTimedAccumPwrI(uint8_t* i2cBuffer)
 {
-    // there are four bytes in the unsigned long accumulate_alt_ti
-    i2cBuffer[1] =  (accumulate_pwr_ti>>24) & 0xFF;
-    i2cBuffer[2] =  (accumulate_pwr_ti>>16) & 0xFF;
-    i2cBuffer[3] =  (accumulate_pwr_ti>>8) & 0xFF;
-    i2cBuffer[4] =  accumulate_pwr_ti & 0xFF;
+    // there are four bytes in the unsigned long accumulate_pwr_ti
+    unsigned long my_copy = accumulate_pwr_ti; //updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+
+    i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
+    i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
+    i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
+    i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
 
 // I2C command for Analog referance EXTERNAL_AVCC

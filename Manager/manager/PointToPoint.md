@@ -4,9 +4,9 @@
 
 16. set arduino_mode (uint8_t)
 17. read arduino_mode (uint8_t)
-18. Battery charge start (low) limit (uint16_t)
-19. Battery charge done (high) limit (uint16_t)
-20. Battery absorption (e.g., pwm) time (uint32_t)
+18. Access battery_low_limit (uint16_t)
+19. Access battery_high_limit (uint16_t)
+20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
 21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
 23. Day-Night state (uint8_t).
@@ -97,6 +97,85 @@ bus.write_i2c_block_data(42, 17, [255])
 print(bus.read_i2c_block_data(42, 17, 2))
 [65, 0]
 ```
+
+
+## Cmd 18 from a controller /w i2c-debug to access battery_low_limit
+
+Send an ignored integer (0) in two bytes to see what the battery_low_limit value is.
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 18,0,0
+{"txBuffer[3]":[{"data":"0x12"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x12"},{"data":"0x1"},{"data":"0x76"}]}
+```
+
+The settings are in battery_limits.h. The power_manager.c routines use the value to start charging, and when analogRead(PWR_V) is halfway between battery_low_limit and battery_high_limit to start modulating (PWM) the charge. To convert the value to the corrected voltage see command 35 ( (( (2**8)*0x1 + 0x76)/1024)*5.0*((100+15.8)/15.8) = 13.38V).
+
+``` 
+/1/ibuff 18,1,119
+{"txBuffer[3]":[{"data":"0x12"},{"data":"0x1"},{"data":"0x77"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x12"},{"data":"0x1"},{"data":"0x76"}]}
+/1/ibuff 18,0,0
+{"txBuffer[3]":[{"data":"0x12"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x12"},{"data":"0x1"},{"data":"0x77"}]}
+```
+
+The data sent was swapped with the default; the second exchange has ignored data so we can see the updated value did change.
+
+
+## Cmd 19 from a controller /w i2c-debug to access battery_high_limit
+
+Send an ignored integer (0) in two bytes to see what the battery_high_limit value is.
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 19,0,0
+{"txBuffer[3]":[{"data":"0x13"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x13"},{"data":"0x1"},{"data":"0x8D"}]}
+```
+
+The settings are in battery_limits.h. The power_manager.c routines use the value to stop charging, and when analogRead(PWR_V) is halfway between battery_low_limit and battery_high_limit to start modulating (PWM) the charge. To convert the value to the corrected voltage see command 35 ( (( (2**8)*0x1 + 0x8D)/1024)*5.0*((100+15.8)/15.8) = 14.21V).
+
+``` 
+/1/ibuff 19,1,142
+{"txBuffer[3]":[{"data":"0x13"},{"data":"0x1"},{"data":"0x8E"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x13"},{"data":"0x1"},{"data":"0x8D"}]}
+/1/ibuff 19,0,0
+{"txBuffer[3]":[{"data":"0x13"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x13"},{"data":"0x1"},{"data":"0x8E"}]}
+```
+
+The data sent was swapped with the default; the second exchange has ignored data so we can see the updated value did change.
+
+
+## Cmd 20 from the application controller /w i2c-debug running read alt_pwm_accum_charge_time.
+
+Battery absorption occures durring alt_pwm_accum_charge_time, it accumulates the millis time while alternat power was used to charge the battery not the off time. Read four bytes from I2C. They are bytes to a UINT32 from a buffered accumulation of millis reading.
+
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 20,0,0,0,0
+{"txBuffer[5]":[{"data":"0x14"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x14"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+``` 
+
+This needs checked with a battery.
 
 
 ## Cmd 21 from a controller /w i2c-debug to access morning_threshold

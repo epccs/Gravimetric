@@ -29,9 +29,13 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x22"},{"data":"0x0"},{"data":"0x14"}]}
 ``` 
 
-PWR_V is from a divider with 100k and 15.8k, its two bytes are from analogRead and sum to 358 (e.g., 256 + 102).  The corrected value is about 12.8V (e.g., (analogRead/1024)*referance*((100+15.8)/15.8) ) where the referance is 5V.
+ALT_I is from a 0.018 Ohm sense resistor that has a pre-amp with gain of 50 connected.
 
-PWR_I is from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected, its two bytes are from analogRead and sum to 20. The corrected value is about 0.029A (e.g., (analogRead/1024)*referance/(0.068*50.0) ) where the referance is 5V.
+ALT_V is from a divider with 100k and 10k.
+
+PWR_V is from a divider with 100k and 15.8k, its two bytes are from analogRead and sum to 358 (e.g., (2**8)*0x1 + 0x66).  The corrected value is about 12.8V (e.g., (analogRead/1024)*referance*((100+15.8)/15.8) ) where the referance is 5V.
+
+PWR_I is from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected, its two bytes are from analogRead and sum to 20 (e.g., 0x14). The corrected value is about 0.029A (e.g., (analogRead/1024)*referance/(0.068*50.0) ) where the referance is 5V.
 
 
 ## Cmd 32..35 from a Raspberry Pi read analog channels

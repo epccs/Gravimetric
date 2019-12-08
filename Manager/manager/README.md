@@ -1,10 +1,10 @@
 # To Do
 
-Fix multi byte i2c access for battery (18 19 20).
+Verify daynight state machine is working with applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
 A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
-
+Cmd 20 is for absorption time, check it with battery.
 
 # Manager
 
