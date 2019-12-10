@@ -2,6 +2,8 @@
 #define Daynight_State_H
 
 extern uint8_t daynight_state; 
+extern uint8_t daynight_work;
+extern unsigned long dayTmrStarted;
 
 extern void check_daynight(void);
 

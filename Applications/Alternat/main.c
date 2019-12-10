@@ -37,7 +37,7 @@ static unsigned long adc_started_at;
 
 #define DAYNIGHT_STATUS_LED CS1_EN
 #define DAYNIGHT_BLINK 500UL
-static unsigned long day_status_blink_started_at;
+static unsigned long daynight_status_blink_started_at;
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -98,7 +98,7 @@ void setup(void)
     sei(); 
     
     blink_started_at = millis();
-    day_status_blink_started_at = millis();
+    daynight_status_blink_started_at = millis();
     
     rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
@@ -136,7 +136,7 @@ void blink(void)
 
 void blink_day_status(void)
 {
-    unsigned long kRuntime = millis() - day_status_blink_started_at;
+    unsigned long kRuntime = millis() - daynight_status_blink_started_at;
     uint8_t state = DayState();
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
            (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
@@ -145,7 +145,7 @@ void blink_day_status(void)
         digitalToggle(DAYNIGHT_STATUS_LED);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK/2; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
     }
     if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
            (kRuntime > (DAYNIGHT_BLINK) ) )
@@ -153,7 +153,7 @@ void blink_day_status(void)
         digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK; 
     }
     if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
            (kRuntime > (DAYNIGHT_BLINK) ) )
@@ -161,7 +161,7 @@ void blink_day_status(void)
         digitalWrite(DAYNIGHT_STATUS_LED,LOW);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK; 
     }
     if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
            (kRuntime > (DAYNIGHT_BLINK/8) ) )
@@ -169,7 +169,7 @@ void blink_day_status(void)
         digitalToggle(DAYNIGHT_STATUS_LED);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK/8; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 
     }
 }
 

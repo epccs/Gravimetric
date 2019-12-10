@@ -122,7 +122,7 @@ void check_uart(void)
             
 
             // was this byte sent with the local DTR pair driver, if so the status_byt may need update
-            // and the lockout from a local host needs to be treated differently
+            // and the lockout from a local host needs to be treated differently since I 
             // need to ignore the local host's nRTS if getting control from a remote host
             if ( uart_has_TTL )
             {
@@ -221,7 +221,6 @@ void check_uart(void)
                 my_mcu_is_target_and_i_have_it_reset = 0;
                 bootloader_started = 1;
                 local_mcu_is_rpu_aware = 0; // after a reset it may be loaded with new software
-                daynight_state &= ~( (1<<6) | (1<<7) );  //clear the day and night work bits since appliction has restart
                 blink_started_at = millis();
                 bootloader_started_at = millis();
                 return;

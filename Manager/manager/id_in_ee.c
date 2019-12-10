@@ -44,7 +44,7 @@ void save_rpu_addr_state(void)
         if ( (write_rpu_address_to_eeprom >= 1) && (write_rpu_address_to_eeprom <= EE_RPU_IDMAX) )
         { // write "RPUid\0" at address EE_RPU_ID
             uint8_t value = pgm_read_byte(&EE_IdTable[write_rpu_address_to_eeprom-1]);
-            eeprom_write_byte( (uint8_t *)((write_rpu_address_to_eeprom-1)+EE_RPU_ID), value);
+            eeprom_update_byte( (uint8_t *)((write_rpu_address_to_eeprom-1)+EE_RPU_ID), value);
             
             if (value == '\0') 
             {
@@ -59,7 +59,7 @@ void save_rpu_addr_state(void)
         if ( (write_rpu_address_to_eeprom == 11) )
         { // write the rpu address to eeprom address EE_RPU_ADDRESS 
             uint8_t value = rpu_address;
-            eeprom_write_byte( (uint8_t *)(EE_RPU_ADDRESS), value);
+            eeprom_update_byte( (uint8_t *)(EE_RPU_ADDRESS), value);
             write_rpu_address_to_eeprom = 0;
         }
     }

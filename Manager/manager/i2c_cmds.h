@@ -52,7 +52,7 @@ extern void fnRdXcvrCntlInTestMode(uint8_t*);
 extern void fnWtXcvrCntlInTestMode(uint8_t*);
 extern void fnMorningDebounce(uint8_t*);
 extern void fnEveningDebounce(uint8_t*);
-extern void fnMillis(uint8_t*);
+extern void fnDayNightTimer(uint8_t*);
 
 /* Dummy function */
 extern  void fnNull(uint8_t*);

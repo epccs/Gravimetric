@@ -113,7 +113,7 @@ uint8_t WriteEEMorningThreshold()
     {
         if (tmp_daynight_morning_threshold != ((uint16_t)daynight_morning_threshold) )
         {
-            eeprom_write_word( (uint16_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_MORNING_THRESHOLD_OFFSET), (uint16_t)daynight_morning_threshold);
+            eeprom_update_word( (uint16_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_MORNING_THRESHOLD_OFFSET), (uint16_t)daynight_morning_threshold);
         }
         return 1;
     }
@@ -131,7 +131,7 @@ uint8_t WriteEEEveningThreshold()
     {
         if (tmp_daynight_evening_threshold != ((uint16_t)daynight_evening_threshold) )
         {
-            eeprom_write_word( (uint16_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_EVENING_THRESHOLD_OFFSET), (uint16_t)daynight_evening_threshold);
+            eeprom_update_word( (uint16_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_EVENING_THRESHOLD_OFFSET), (uint16_t)daynight_evening_threshold);
         }
         return 1;
     }
@@ -149,7 +149,7 @@ uint8_t WriteEEMorningDebounce()
     {
         if (tmp_daynight_morning_debounce != ((uint32_t)daynight_morning_debounce) )
         {
-            eeprom_write_dword( (uint32_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_MORNING_DEBOUNCE_OFFSET), (uint32_t)daynight_morning_debounce);
+            eeprom_update_dword( (uint32_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_MORNING_DEBOUNCE_OFFSET), (uint32_t)daynight_morning_debounce);
         }
         return 1;
     }
@@ -167,7 +167,7 @@ uint8_t WriteEEEveningDebounce()
     {
         if (tmp_daynight_evening_debounce != ((uint32_t)daynight_evening_debounce) )
         {
-            eeprom_write_dword( (uint32_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_EVENING_DEBOUNCE_OFFSET), (uint32_t)daynight_evening_debounce);
+            eeprom_update_dword( (uint32_t *)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_EVENING_DEBOUNCE_OFFSET), (uint32_t)daynight_evening_debounce);
         }
         return 1;
     }

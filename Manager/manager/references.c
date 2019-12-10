@@ -73,7 +73,7 @@ uint8_t WriteEeReferenceId()
         uint16_t value = 0x4144; // 'A' is 0x41 and 'D' is 0x44;
         if (ee_id != value)
         {
-            eeprom_write_word( (uint16_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID), value);
+            eeprom_update_word( (uint16_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID), value);
         }
         return 1;
     }
@@ -90,7 +90,7 @@ uint8_t WriteEeReferenceAvcc()
     {
         if (ee_ref_extern_avcc_uV != ref_extern_avcc_uV)
         {
-            eeprom_write_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC), ref_extern_avcc_uV);
+            eeprom_update_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC), ref_extern_avcc_uV);
         }
         return 1;
     }
@@ -107,7 +107,7 @@ uint8_t WriteEeReference1V1()
     {
         if (ee_ref_intern_1v1_uV != ref_intern_1v1_uV)
         {
-            eeprom_write_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1), ref_intern_1v1_uV);
+            eeprom_update_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1), ref_intern_1v1_uV);
         }
         return 1;
     }

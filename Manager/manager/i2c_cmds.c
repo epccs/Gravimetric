@@ -46,7 +46,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
-        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnMillis, fnNull}
+        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
 
     // i2c will echo's back what was sent (plus modifications) with transmit event
@@ -215,6 +215,7 @@ void fnRdStatus(uint8_t* i2cBuffer)
     i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
     i2cBuffer[1] &= digitalRead(ALT_EN)<<4; // report if alternat power is enabled
     i2cBuffer[1] &= digitalRead(PIPWR_EN)<<5; // report if sbc has power
+    i2cBuffer[1] &= (daynight_state==DAYNIGHT_FAIL_STATE)<<6; // report if daynight state has failed
 }
 
 // I2C_COMMAND_TO_SET_STATUS
@@ -226,6 +227,7 @@ void fnWtStatus(uint8_t* i2cBuffer)
         alt_pwm_accum_charge_time = 0; // clear charge time
     }
     if ( (i2cBuffer[1] & 0x20) && !shutdown_started && !shutdown_detected ) enable_sbc_power = 1;
+    if ( (i2cBuffer[1] & 0x40) ) daynight_state = DAYNIGHT_START_STATE; // restart the state machine
     status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
 }
 
@@ -353,22 +355,22 @@ void fnEveningThreshold(uint8_t* i2cBuffer)
 }
 
 // I2C command to read Day-Night state. It is one byte,
-// the low nimmble has Day-Night state, the high nimmble helps tell if start of day (bit 6) or night (bit 7)
-// bit 4 set from master will clear bits 6 & 7 (readback depends on if bit 5 is set)
-// bit 5 set from master will include bits 6 & 7 in readback otherwise only only the Day-Night state is in readback
+// the low nimmble has daynight_state, the high nimmble has daynight_work
+// bit 4 set from master will clear daynight_work (readback depends on if bit 5 is set)
+// bit 5 set from master will include daynight_work otherwise only daynight_state is in readback.
 void fnDayNightState(uint8_t* i2cBuffer)
 { 
     if (i2cBuffer[1] & (1<<4) )
     {
-        daynight_state &= ~( (1<<6) | (1<<7) );  // clear the day and night work bits
+        daynight_work = 0;  // clear daynight_work
     }
     if (i2cBuffer[1] & (1<<5) ) 
     {
-        i2cBuffer[1] = daynight_state & ~( (1<<4) | (1<<5) );  // return bits mask is 0b11001111
+        i2cBuffer[1] = daynight_state + daynight_work;  // send back daynight_state + daynignt_work
     }
     else
     {
-        i2cBuffer[1] = daynight_state & ~( (1<<7) | (1<<6) | (1<<5) | (1<<4) );  // return bits mask is 0b00001111
+        i2cBuffer[1] = daynight_state;  // send back only daynight_state
     }
 }
 
@@ -630,18 +632,18 @@ void fnEveningDebounce(uint8_t* i2cBuffer)
     // new is ready
     daynight_evening_debounce = new;
 
-    daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
-// I2C command to read millis time
-void fnMillis(uint8_t* i2cBuffer)
+// I2C command to read day daynight timer offset
+void fnDayNightTimer(uint8_t* i2cBuffer)
 {
-    unsigned long now = millis();
+    unsigned long daynight_timer = millis() - dayTmrStarted;
     // there are four bytes in an unsigned long
-    i2cBuffer[1] = ( (0xFF000000UL & now) >>24 ); 
-    i2cBuffer[2] =  ( (0x00FF0000UL & now) >>16 ); 
-    i2cBuffer[3] =  ( (0x0000FF00UL & now) >>8 ); 
-    i2cBuffer[4] =  ( (0x000000FFUL & now) );
+    i2cBuffer[1] = ( (0xFF000000UL & daynight_timer) >>24 ); 
+    i2cBuffer[2] =  ( (0x00FF0000UL & daynight_timer) >>16 ); 
+    i2cBuffer[3] =  ( (0x0000FF00UL & daynight_timer) >>8 ); 
+    i2cBuffer[4] =  ( (0x000000FFUL & daynight_timer) );
 }
 
 /* Dummy function */

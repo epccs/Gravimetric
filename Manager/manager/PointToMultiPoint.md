@@ -19,6 +19,7 @@ status bits:
 3. host lockout
 4. alternate power enable (ALT_EN)
 5. SBC power enable (PIPWR_EN)
+6. Day-Night state fail (e.g. > 20hr of day or night), clear will restart it.
 
 
 ## Cmd 0 from the application controller /w i2c-debug access the serial multi-drop address

@@ -124,14 +124,12 @@ void setup(void)
         rpu_address = RPU_ADDRESS;
     }
 
-    // is foreign host in control? (ask over the DTR pair)
-    uart_has_TTL = 0;
-
     // load Battery Limits from EEPROM (or set defaults)
     LoadBatLimitsFromEEPROM();
 
-    // load Day-Night state machien values from EEPROM (or set defaults)
+    // load Day-Night state machine values from EEPROM (or set defaults)
     LoadDayNightValuesFromEEPROM();
+    dayTmrStarted = millis();
 
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 

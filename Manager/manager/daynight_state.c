@@ -34,6 +34,7 @@ Copyright (C) 2019 Ronald Sutherland
 #define DAYNIGHT_TO_LONG 72000000UL
 
 uint8_t daynight_state;
+uint8_t daynight_work;
 
 unsigned long dayTmrStarted;
 
@@ -65,121 +66,110 @@ void check_daynight()
 {
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
     int sensor_val = analogRead(ALT_V);
-    uint8_t low_nibble_daynight_state = daynight_state & 0x0F; 
+    unsigned long kRuntime= millis() - dayTmrStarted;
     
-    if(low_nibble_daynight_state == DAYNIGHT_START_STATE) 
+    if(daynight_state == DAYNIGHT_START_STATE) 
     { 
-        unsigned long kRuntime= millis() - dayTmrStarted;
-        if ((kRuntime) > ((unsigned long)STARTUP_DELAY)) 
+        if (kRuntime > STARTUP_DELAY) 
         {
             if(sensor_val > daynight_evening_threshold ) 
             {
-                daynight_state = (daynight_state & 0xF0) + DAYNIGHT_DAY_STATE; 
+                daynight_state = DAYNIGHT_DAY_STATE; 
                 dayTmrStarted = millis();
             } 
             else 
             {
-                daynight_state = (daynight_state & 0xF0) + DAYNIGHT_NIGHT_STATE;
+                daynight_state = DAYNIGHT_NIGHT_STATE;
                 dayTmrStarted = millis();
             }
         }
         return;
     } 
   
-    if(low_nibble_daynight_state == DAYNIGHT_DAY_STATE) 
+    if(daynight_state == DAYNIGHT_DAY_STATE) 
     { //day
         if (sensor_val < daynight_evening_threshold ) 
         {
-            daynight_state = (daynight_state & 0xF0) + DAYNIGHT_EVENING_DEBOUNCE_STATE;
+            daynight_state = DAYNIGHT_EVENING_DEBOUNCE_STATE;
             dayTmrStarted = millis();
         }
-        unsigned long kRuntime= millis() - dayTmrStarted;
-        if ((kRuntime) > ((unsigned long)DAYNIGHT_TO_LONG)) 
+        if (kRuntime > DAYNIGHT_TO_LONG) 
         {
-            daynight_state = (daynight_state & 0xF0) + DAYNIGHT_FAIL_STATE;
+            daynight_state = DAYNIGHT_FAIL_STATE;
             dayTmrStarted = millis();
         }
         return;
     }
   
-    if(low_nibble_daynight_state == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
+    if(daynight_state == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
     { //evening_debounce
         if (sensor_val < daynight_evening_threshold ) 
         {
-            unsigned long kRuntime= millis() - dayTmrStarted;
-            if ((kRuntime) > (daynight_evening_debounce)) 
+            if (kRuntime > daynight_evening_debounce) 
             {
-                daynight_state = (daynight_state & 0xF0) + DAYNIGHT_NIGHTWORK_STATE;
+                daynight_state = DAYNIGHT_NIGHTWORK_STATE;
                 dayTmrStarted = millis();
             } 
         } 
         else 
         {
-            daynight_state = (daynight_state & 0xF0) + DAYNIGHT_DAY_STATE;
+            daynight_state = DAYNIGHT_DAY_STATE;
             dayTmrStarted = millis();
         }
         return;
     }
 
-    if(low_nibble_daynight_state == DAYNIGHT_NIGHTWORK_STATE) 
-    { 
-        //set the night work bit if not set
-        if (!(daynight_state & 0x80) )
-        {
-            daynight_state |= (1<<7); 
-            // should I clear the day work bit?
-        }
+    if(daynight_state == DAYNIGHT_NIGHTWORK_STATE) 
+    { //work befor night
+        //set the night work bit 7
+        daynight_work = 0x80; // note the day work bit 6 is clear
+        daynight_state = DAYNIGHT_NIGHT_STATE;
         return;
     }
 
-    if(low_nibble_daynight_state == DAYNIGHT_NIGHT_STATE) 
+    if(daynight_state == DAYNIGHT_NIGHT_STATE) 
     { //night
         if (sensor_val > daynight_morning_threshold ) 
         {
-            daynight_state = (daynight_state & 0xF0) + DAYNIGHT_MORNING_DEBOUNCE_STATE;
+            daynight_state = DAYNIGHT_MORNING_DEBOUNCE_STATE;
             dayTmrStarted = millis();
         }
-        unsigned long kRuntime= millis() - dayTmrStarted;
-        if ((kRuntime) > ((unsigned long)DAYNIGHT_TO_LONG)) 
+        if (kRuntime > DAYNIGHT_TO_LONG) 
         {
-            daynight_state = (daynight_state & 0xF0) + DAYNIGHT_FAIL_STATE;
+            daynight_state = DAYNIGHT_FAIL_STATE;
             dayTmrStarted = millis();
         }
         return;
     }
 
-    if(low_nibble_daynight_state == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
+    if(daynight_state == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
     { //morning_debounce
         if (sensor_val > daynight_morning_threshold ) 
         {
-            unsigned long kRuntime= millis() - dayTmrStarted;
-            if ((kRuntime) > (daynight_morning_debounce)) 
+            if (kRuntime > daynight_morning_debounce) 
             {
-                daynight_state = (daynight_state & 0xF0) + DAYNIGHT_DAYWORK_STATE;
+                daynight_state = DAYNIGHT_DAYWORK_STATE;
             }
         }
         else 
         {
-            daynight_state = (daynight_state & 0xF0) + DAYNIGHT_NIGHT_STATE;
+            daynight_state = DAYNIGHT_NIGHT_STATE;
         }
         return;
     }
 
-    if(low_nibble_daynight_state == DAYNIGHT_DAYWORK_STATE) 
-    { 
-        //set the day work bit if not set
-        if (!(daynight_state & 0x40) )
-        {
-            daynight_state |= (1<<6); 
-            // should I clear the night work bit?
-        }
+    if(daynight_state == DAYNIGHT_DAYWORK_STATE) 
+    { //work befor day
+        //set the day work bit 6
+        daynight_work = 0x40; // and clear the night work bit 7
+        daynight_state = DAYNIGHT_DAY_STATE;
         return;
     }
 
-    //index out of bounds? 
-    if(low_nibble_daynight_state > DAYNIGHT_FAIL_STATE) 
+    //fail state can be restart by clearing status bit 6 with i2c command 7
+    if(daynight_state > DAYNIGHT_FAIL_STATE) 
     { 
-        daynight_state = (daynight_state & 0xF0) + DAYNIGHT_FAIL_STATE;
+        daynight_state = DAYNIGHT_FAIL_STATE;
         return;
     }
     return;

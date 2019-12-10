@@ -2,9 +2,7 @@
 
 ## Overview
 
-Use the photovoltaic voltage on the ALT power input to tell if it is day or night. 
-
-This is run on the 324pb application controler. I plan to add a state machine like this to the 328pb manager also.
+The manager has a day-night state machine that tracks voltage on the ALT_V power input (photovoltaic) to tell if it is day or night. The 324pb application controler can access the state machine over I2C.
 
 Note: use the Day_AttachDayWork() and Night_AttachWork() functions to register a callback that will be run at the start of each day. This framework is how I debugged the day-night stat machine.
 
@@ -13,7 +11,7 @@ Note: use the Day_AttachDayWork() and Night_AttachWork() functions to register a
 
 ![Wiring](./Setup/LightSensorWiring.png)
 
-The ALT input has a [voltage divider] that is used to sense input solar pannel voltage.
+The ALT input has a [voltage divider] that is used to sense input voltage (solar pannel or a current source).
 
 [voltage divider]: https://en.wikipedia.org/wiki/Voltage_divider
 
@@ -46,6 +44,8 @@ print(bus.read_i2c_block_data(42,7, 2))
 exit()
 ```
 
+Or use the bootload port.
+
 Now the serial port connection (see BOOTLOAD_PORT in Makefile) can reset the MCU and execute optiboot so that the 'make bootload' rule can upload a new binary image in the application area of flash memory.
 
 ``` 
@@ -64,6 +64,8 @@ Now connect with picocom (or ilk).
 ``` 
 #exit is C-a, C-x
 picocom -b 38400 /dev/ttyAMA0
+# with bootload port
+picocom -b 38400 /dev/ttyUSB0
 ``` 
 
 # Commands
@@ -85,7 +87,7 @@ Identify is from ../Uart/id.h Id().
 
 ``` 
 /1/id?
-{"id":{"name":"DayNight","desc":"Gravimetric (17341^0) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+{"id":{"name":"DayNight","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
 
@@ -95,22 +97,27 @@ Report status of the state machine.
 
 ``` 
 /1/day?
-{"day_state":"DAY"}
-... 11 hr
-{"day_state":"DAY"}
-{"day_state":"EVE"}
-... 15 min
-{"day_state":"NEVT"}
-TurnOnLED's
-{"day_state":"NGHT"}
-... 12 hr
-{"day_state":"NGHT"}
-{"day_state":"MORN"}
-... 15 min
-{"day_state":"DEVT"}
-WaterTheGarden
-{"day_state":"DAY"}
-... 20 hr (e.g. using an indoor lamp)
-{"day_state":"DAY"}
-{"day_state":"FAIL"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"34941"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"39922"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"44904"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"49884"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"54866"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"59848"}
+{"state":"5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"238","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"3629"}
+{"state":"5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"8611"}
+{"state":"5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"13593"}
+{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"18574"}
+{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"238","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"23556"}
+{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"28538"}
+{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"242","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"33518"}
+{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"710"}
+{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"5691"}
+{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"10673"}
+{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"14"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"4994"}
+{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"9976"}
+
+
 ```
+
+Callback did not run (TBD), but the state machine is working.

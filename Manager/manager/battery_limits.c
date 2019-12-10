@@ -87,7 +87,7 @@ uint8_t WriteEEBatHighLim()
     {
         if (tmp_battery_high_limit != battery_high_limit)
         {
-            eeprom_write_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HIGH), (uint16_t)battery_high_limit);
+            eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HIGH), (uint16_t)battery_high_limit);
         }
         return 1;
     }
@@ -105,7 +105,7 @@ uint8_t WriteEEBatLowLim()
     {
         if (tmp_battery_low_limit != battery_low_limit)
         {
-            eeprom_write_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW), (uint16_t)battery_low_limit);
+            eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW), (uint16_t)battery_low_limit);
         }
         return 1;
     }

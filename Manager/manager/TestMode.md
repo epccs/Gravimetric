@@ -300,7 +300,17 @@ Same as command 52 (above) but for morning.
 ```
 
 
-## Cmd 54 from a controller /w i2c-debug to read manager millis time
+## Cmd 54 from a controller /w i2c-debug to read manager daynight millis timer
+
+Read the Day-Night state machine timer, it is used to do the above debounce.
+
+TBD
+
+Started for debuging, but kept for progress reports.
+
+
+
+## Cmd TBD from a controller /w i2c-debug to read manager millis time
 
 Read the manager timer (e.g., millis).
 

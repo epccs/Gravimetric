@@ -31,7 +31,6 @@ Copyright (C) 2019 Ronald Sutherland
 
 uint8_t daynight_state = 0; 
 #define CHK_DAYNIGHT_DELAY 2000UL
-static unsigned long chk_daynight_last_started_at;
 int daynight_morning_threshold;
 int daynight_evening_threshold;
 unsigned long daynight_morning_debounce;
@@ -66,71 +65,41 @@ void Day(unsigned long serial_print_delay_milsec)
     if ( (command_done == 10) )
     {
         serial_print_started_at = millis();
-        printf_P(PSTR("{\"day_state\":"));
-        command_done = 11;
-    }
-    else if ( (command_done == 11) )
-    { 
-        if (daynight_state == DAYNIGHT_START_STATE) 
-        {
-            printf_P(PSTR("\"STRT\""));
-        }
-
-        if (daynight_state == DAYNIGHT_DAY_STATE) 
-        {
-            printf_P(PSTR("\"DAY\""));
-        }
-
-        if (daynight_state == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
-        {
-            printf_P(PSTR("\"EVE\""));
-        }
-
-       if (daynight_state == DAYNIGHT_NIGHTWORK_STATE) 
-        {
-            printf_P(PSTR("\"NEVT\""));
-        }
-
-        if (daynight_state == DAYNIGHT_NIGHT_STATE) 
-        {
-            printf_P(PSTR("\"NGHT\""));
-        }
-
-        if (daynight_state == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
-        {
-            printf_P(PSTR("\"MORN\""));
-        }
-
-        if (daynight_state == DAYNIGHT_DAYWORK_STATE) 
-        {
-            printf_P(PSTR("\"DEVT\""));
-        }
-
-        if (daynight_state == DAYNIGHT_FAIL_STATE) 
-        {
-            printf_P(PSTR("\"FAIL\""));
-        }
-        printf_P(PSTR(","));
+        printf_P(PSTR("{\"state\":\"%X\","),daynight_state);
         command_done = 12;
     }
     else if ( (command_done == 12) ) 
     {
-        printf_P(PSTR("\"morning_threshold\":\"%u\","),daynight_morning_threshold);
+        printf_P(PSTR("\"mor_threshold\":\"%u\","),daynight_morning_threshold);
         command_done = 13;
     }
     else if ( (command_done == 13) ) 
     {
-        printf_P(PSTR("\"evening_threshold\":\"%u\","),daynight_evening_threshold);
+        printf_P(PSTR("\"eve_threshold\":\"%u\","),daynight_evening_threshold);
         command_done = 14;
     }
     else if ( (command_done == 14) ) 
     {
-        printf_P(PSTR("\"morning_debounce\":\"%lu\","),daynight_morning_debounce);
+        int adc_reads = i2c_get_analogRead_from_manager(ALT_V);
+        printf_P(PSTR("\"adc_alt_v\":\"%u\","),adc_reads);
         command_done = 15;
     }
     else if ( (command_done == 15) ) 
     {
-        printf_P(PSTR("\"evening_debounce\":\"%lu\""),daynight_evening_debounce);
+        unsigned long local_copy = i2c_ul_access_cmd(MORNING_DEBOUNCE,0);
+        printf_P(PSTR("\"mor_debounce\":\"%lu\","),local_copy);
+        command_done = 16;
+    }
+    else if ( (command_done == 16) ) 
+    {
+        unsigned long local_copy = i2c_ul_access_cmd(EVENING_DEBOUNCE,0);
+        printf_P(PSTR("\"eve_debounce\":\"%lu\","),local_copy);
+        command_done = 17;
+    }
+    else if ( (command_done == 17) ) 
+    {
+        unsigned long local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0);
+        printf_P(PSTR("\"dn_timer\":\"%lu\""),local_copy);
         command_done = 24;
     }
     else if ( (command_done == 24) ) 
@@ -148,56 +117,23 @@ void Day(unsigned long serial_print_delay_milsec)
     }
 }
 
-/* check for daytime state durring program looping  
-    daynight_state: range 0..7
-    0 = default at startup, if above Evening Threshold set day, else set night.
-    1 = day: wait for evening threshold, set for evening debounce.
-    2 = evening_debounce: wait for debounce time, do night_work, however if debouce fails set back to day.
-    3 = night_work: do night callback and set night.
-    4 = night: wait for morning threshold, set morning_debounce.
-    5 = morning_debounce: wait for debounce time, do day_work, however if debouce fails set back to night.
-    6 = day_work: do day callback and set for day.
-    7 = fail: fail state.
-
-    ALT_V to the manager is used as the light sensor, it has a divider that converts with
-    integer_from_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(11.0/1.0))
-    thus an ALT_V reading of 40 is about 2.1V
-    ALT_V reading of 80 is about 4.3V
-    ALT_V reading of 160 is about 8.6V
-    ALT_V reading of 320 is about 17.18V
-*/
-uint8_t CheckingDayLight() 
-{ 
-    unsigned long kRuntime = millis() - chk_daynight_last_started_at;
-    if ( kRuntime > CHK_DAYNIGHT_DELAY)
+// The daynight state machine running on manager has work bits in high nibble and the state in the low nibble.
+void check_daynight_state(void)
+{
+    uint8_t state = i2c_uint8_access_cmd(DAYNIGHT_STATE,0x20); /*set bit 5 to see work nibble*/
+    // if bit 7 do night work
+    if (state & 0x80)
     {
-        // check Day-Night state on manager
-        uint8_t state = i2c_daynight_state(0); // do not clear work indication bits
-        daynight_state = state & 0x0F; // the state is in low nibble
-
-        chk_daynight_last_started_at += CHK_DAYNIGHT_DELAY;
-
-        // high nibble of daynight_state is used by i2C in place of callback functions, the usage is TBD
-        // bit 7 is set when night_work needs done
-        // bit 6 is set when day_work needs done
-        // bit 5 is used with I2C, which if a 1 is passed then bits 7 and 6 are returned with the state
-        // bit 4 is used with I2C, which if set with bits 6 and 7 clear on the byte from master then bits 7 and 6 will clear
-
-        // should I run the NightWork callback
-        if( (state & (1<<7)) ) 
-        { //do the night work callback, e.g. load night light settings at the start of a night
-            if (dayState_atNightWork != NULL) dayState_atNightWork();
-            i2c_daynight_state(1); // OK to clear work bit
-            return 0;
-        }
-
-        // should I run the DayWork callback
-        if( (state & (1<<6)) )
-        { //do the day work callback, e.g. load irrigation settings at the start of a day
-            if (dayState_atDayWork != NULL) dayState_atDayWork();
-            i2c_daynight_state(1); // OK to clear work bit
-            return 0;
-        }
+        dayState_atNightWork();
     }
-    return 0;
+    // if bit 6 do day work
+    if (state & 0x40)
+    {
+        dayState_atDayWork();
+    }
+    if(state & 0xF0) // mask to test for work bits
+    {
+        state = i2c_uint8_access_cmd(DAYNIGHT_STATE,0x10); /*set bit 4 to clear work nibble*/
+    }
+    daynight_state = state;
 }

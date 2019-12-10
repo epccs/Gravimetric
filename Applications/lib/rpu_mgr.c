@@ -43,10 +43,10 @@
 #define INT_CMD {0x15,0x00,0x00}
 #define INT_CMD_SIZE 3
 
-// command 23 accesses Day-Night state in low nibble. 
-// and work needs done in high nibble
-#define DAYNIGHT_STATE_CMD {0x17,0x20}
-#define DAYNIGHT_STATE_CMD_SIZE 2
+// commands have the manger set and report a byte.
+// e.g., 23 is used to accesses Day-Night state (low and high nibble). 
+#define UINT8_CMD {0x17,0x00}
+#define UINT8_CMD_SIZE 2
 
 // commands 32, 33, 34 and 35 have the manger do an 
 // analogRead and pass that to the application
@@ -237,22 +237,19 @@ uint8_t i2c_read_status(void)
     }
 }
 
-// The manager has a Day-Night state machine with state in low nibble and work notice in high nibble. 
-// state values range from: 0..7
-// bit 7:night_work lockout, 6:day_work, 5:set to see 6 and 7, 4:set to clear 6 and 7.
-uint8_t i2c_daynight_state(uint8_t clear_work)
+// management commands to access managers uint8 prameters
+// e.g., the manager has DAYNIGHT_STATE (cmd 23) with state in low nibble and work notice in high nibble. 
+// state values range from: 0..7 and bit 7=night_work, 6=day_work, 5 is set to see 6 and 7, 4 is set to clear 6 and 7.
+uint8_t i2c_uint8_access_cmd(uint8_t command, uint8_t update_with)
 { 
     uint8_t twi_returnCode;
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
 
-    uint8_t txBuffer[DAYNIGHT_STATE_CMD_SIZE] = DAYNIGHT_STATE_CMD; //detect host shutdown comand 0x04, data place holder 0xFF;
-    uint8_t length = DAYNIGHT_STATE_CMD_SIZE;
+    uint8_t txBuffer[UINT8_CMD_SIZE] = UINT8_CMD;
+    uint8_t length = UINT8_CMD_SIZE;
     uint8_t wait = 1;
     uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
-    if (clear_work) // default data byte has bit 5 set to show bits 6 and 7
-    {
-        txBuffer[1] = 0x10; // set bit 4 with 6 and 7 LOW to clear those bits 
-    }
+    txBuffer[1] = update_with;
     twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
     if (twi_returnCode != 0)
     {
@@ -260,7 +257,7 @@ uint8_t i2c_daynight_state(uint8_t clear_work)
     }
     
     // above writes data to slave, this reads data from slave
-    uint8_t rxBuffer[DAYNIGHT_STATE_CMD_SIZE];
+    uint8_t rxBuffer[UINT8_CMD_SIZE];
     sendStop = 1;
     uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
     if ( bytes_read != length )
@@ -273,8 +270,9 @@ uint8_t i2c_daynight_state(uint8_t clear_work)
     }
 }
 
-// management commands 52,53 and 54 are used to access managers daynight time prameters
-unsigned long i2c_daynight_debounce(uint8_t command, unsigned long update_with)
+// management commands to access managers unsigned long prameters
+// e.g., 52 (EVENING_DEBOUNCE) ,53 (MORNING_DEBOUNCE) and 54 (DAYNIGHT_TIMER).
+unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with)
 {
     if ((command<52) | (command>54)) return 0;
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
@@ -306,8 +304,9 @@ unsigned long i2c_daynight_debounce(uint8_t command, unsigned long update_with)
     return value;
 }
 
-// management commands 21 and 22 are used to access managers daynight threshold prameters
-int i2c_daynight_threshold(uint8_t command, int update_with)
+// management commands that take an int to update and return an int
+// e.g. 21 (MORNING_THRESHOLD) and 22 (EVENING_THRESHOLD) are used to access managers daynight threshold prameters
+int i2c_int_access_cmd(uint8_t command, int update_with)
 {
     if ((command<21) | (command>22)) return 0;
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29

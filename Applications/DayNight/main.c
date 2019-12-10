@@ -35,7 +35,8 @@ static unsigned long adc_started_at;
 #define STATUS_LED CS0_EN
 #define DAYNIGHT_STATUS_LED CS1_EN
 #define DAYNIGHT_BLINK 500UL
-static unsigned long day_status_blink_started_at;
+static unsigned long daynight_status_blink_started_at;
+static unsigned long daynight_status_checked_at;
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -55,7 +56,7 @@ void ProcessCmd()
 }
 
 //At start of each day do this
-void callback_for_day_attach(void)
+void day_work(void)
 {
     // This shows where to place a task to run when the daynight_state changes to DAYNIGHT_WORK_STATE
     printf_P(PSTR("Day: Charge the battry\r\n")); // manager does this
@@ -64,7 +65,7 @@ void callback_for_day_attach(void)
 }
 
 //At start of each night do this
-void callback_for_night_attach(void)
+void night_work(void)
 {
     // This shows where to place a task to run when the daynight_state changes to DAYNIGHT_WORK_STATE
     printf_P(PSTR("Night: Block night current loss into PV\r\n")); // manager does this
@@ -102,7 +103,7 @@ void setup(void)
     sei(); 
     
     blink_started_at = millis();
-    day_status_blink_started_at = millis();
+    daynight_status_blink_started_at = millis();
     
     rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
@@ -114,19 +115,19 @@ void setup(void)
         blink_delay = BLINK_DELAY/4;
     }
     
-    // register callback(s) to do the work.
-    Day_AttachWork(callback_for_day_attach);
-    Night_AttachWork(callback_for_night_attach);
-
-    // managers default debounce is 15 min (e.g. 900,000 millis) but to test this I want less
-    i2c_daynight_debounce(EVENING_DEBOUNCE,18000UL); // 18 sec
-    i2c_daynight_debounce(MORNING_DEBOUNCE,18000UL);
+    // managers default debounce is 20 min (e.g. 1,200,000 millis) but to test this I want less
+    i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL); // 18 sec is used if it is valid
+    daynight_evening_debounce = i2c_ul_access_cmd(EVENING_DEBOUNCE,0); // non valid data allows checking that it got set
+    i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL);
+    daynight_morning_debounce = i2c_ul_access_cmd(MORNING_DEBOUNCE,0);
 
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
     // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
     // manager uses int bellow and analogRead(ALT_V) to check threshold. 
-    i2c_daynight_threshold(EVENING_THRESHOLD,40);
-    i2c_daynight_threshold(MORNING_THRESHOLD,80);
+    i2c_int_access_cmd(EVENING_THRESHOLD,40);
+    daynight_evening_threshold = i2c_int_access_cmd(EVENING_THRESHOLD,0);
+    i2c_int_access_cmd(MORNING_THRESHOLD,80);
+    daynight_morning_threshold = i2c_int_access_cmd(MORNING_THRESHOLD,0);
 }
 
 void blink(void)
@@ -143,40 +144,47 @@ void blink(void)
 
 void day_status(void)
 {
-    unsigned long kRuntime = millis() - day_status_blink_started_at;
+    unsigned long kRuntime = millis() - daynight_status_checked_at;
+    if (kRuntime > (DAYNIGHT_BLINK << 1) )
+    {
+        // Check day-night state machine (once per blink is fine).
+        check_daynight_state(); // day_night.c
+        daynight_status_checked_at += (DAYNIGHT_BLINK << 1);
+    }
+    kRuntime = millis() - daynight_status_blink_started_at;
     uint8_t state = daynight_state;
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
-           (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK/2) ) )
+        (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
+        (kRuntime > (DAYNIGHT_BLINK/2) ) )
     {
         digitalToggle(DAYNIGHT_STATUS_LED);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK/2; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
     }
     if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK) ) )
+        (kRuntime > (DAYNIGHT_BLINK) ) )
     {
         digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK; 
     }
     if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK) ) )
+        (kRuntime > (DAYNIGHT_BLINK) ) )
     {
         digitalWrite(DAYNIGHT_STATUS_LED,LOW);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK; 
     }
     if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK/8) ) )
+        (kRuntime > (DAYNIGHT_BLINK/8) ) )
     {
         digitalToggle(DAYNIGHT_STATUS_LED);
         
         // set for next toggle 
-        day_status_blink_started_at += DAYNIGHT_BLINK/8; 
+        daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 
     }
 }
 
@@ -201,9 +209,6 @@ int main(void)
 
         // use LED to show day_state
         day_status();
-
-        // Check Day Light is a function that operates a day-night state machine.
-        CheckingDayLight(); // day_night.c
 
         // delay between ADC burst
         adc_burst();
