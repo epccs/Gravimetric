@@ -1,9 +1,6 @@
-# Makefile simple example for learning
-# see Elliot Williams write up
-# http://hackaday.com/2016/03/15/embed-with-elliot-microcontroller-makefiles
-#
-# to see the implicit rules which automagicly turn blinkLED.c into blinkLED.o run
-# make -p
+# build application from source
+# when files for application change the binary image needs updated
+# https://www.gnu.org/software/make/manual/make.html
 TARGET = blinkLED
 LIBDIR = ../lib
 OBJECTS = main.o \

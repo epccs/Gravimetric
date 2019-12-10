@@ -31,10 +31,6 @@ Copyright (C) 2019 Ronald Sutherland
 
 uint8_t daynight_state = 0; 
 #define CHK_DAYNIGHT_DELAY 2000UL
-int daynight_morning_threshold;
-int daynight_evening_threshold;
-unsigned long daynight_morning_debounce;
-unsigned long daynight_evening_debounce;
 
 // used to initalize the PointerToWork functions in case they are not used.
 void callback_default(void)
@@ -65,17 +61,19 @@ void Day(unsigned long serial_print_delay_milsec)
     if ( (command_done == 10) )
     {
         serial_print_started_at = millis();
-        printf_P(PSTR("{\"state\":\"%X\","),daynight_state);
+        printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
         command_done = 12;
     }
     else if ( (command_done == 12) ) 
     {
-        printf_P(PSTR("\"mor_threshold\":\"%u\","),daynight_morning_threshold);
+        int local_copy = i2c_int_access_cmd(MORNING_THRESHOLD,0);
+        printf_P(PSTR("\"mor_threshold\":\"%u\","),local_copy);
         command_done = 13;
     }
     else if ( (command_done == 13) ) 
     {
-        printf_P(PSTR("\"eve_threshold\":\"%u\","),daynight_evening_threshold);
+        int local_copy = i2c_int_access_cmd(EVENING_THRESHOLD,0);
+        printf_P(PSTR("\"eve_threshold\":\"%u\","),local_copy);
         command_done = 14;
     }
     else if ( (command_done == 14) ) 
@@ -121,18 +119,19 @@ void Day(unsigned long serial_print_delay_milsec)
 void check_daynight_state(void)
 {
     uint8_t state = i2c_uint8_access_cmd(DAYNIGHT_STATE,0x20); /*set bit 5 to see work nibble*/
-    // if bit 7 do night work
-    if (state & 0x80)
+    // test for work bits
+    if(state & 0xF0)
     {
-        dayState_atNightWork();
-    }
-    // if bit 6 do day work
-    if (state & 0x40)
-    {
-        dayState_atDayWork();
-    }
-    if(state & 0xF0) // mask to test for work bits
-    {
+        // if bit 7 do night work
+        if (state & 0x80)
+        {
+            dayState_atNightWork();
+        }
+        // if bit 6 do day work
+        if (state & 0x40)
+        {
+            dayState_atDayWork();
+        }
         state = i2c_uint8_access_cmd(DAYNIGHT_STATE,0x10); /*set bit 4 to clear work nibble*/
     }
     daynight_state = state;

@@ -74,7 +74,7 @@ Commands are interactive over the serial interface at 38400 baud rate. The echo 
 
 ## /\[rpu_address\]/\[command \[arg\]\]
 
-rpu_address is taken from the I2C address 0x29 (e.g. ../Uart/id.h get_Rpu_address() ). The value of rpu_address is used as a character in a string, which means don't use a null value (C strings are null terminated), but the ASCII value for '1' (0x31) is easy and looks nice.
+rpu_address is taken from the manager at I2C address 0x29 (e.g. ../Uart/id.h get_Rpu_address() ). The value of rpu_address is used as a character in a command string, which means don't use a null value (C strings are null terminated), but the ASCII value for '1' (0x31) is easy and looks nice.
 
 The STATUS_LED is bliked fast (twice per second) if the I2C address is not found, also the rpu_address defaults to '0'. 
 
@@ -97,27 +97,25 @@ Report status of the state machine.
 
 ``` 
 /1/day?
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"34941"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"39922"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"44904"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"49884"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"54866"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"59848"}
-{"state":"5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"238","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"3629"}
-{"state":"5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"8611"}
-{"state":"5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"13593"}
-{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"18574"}
-{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"238","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"23556"}
-{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"28538"}
-{"state":"1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"242","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"33518"}
-{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"710"}
-{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"5691"}
-{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"10673"}
-{"state":"2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"14"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"4994"}
-{"state":"4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"9976"}
-
-
+{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"37116"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"241","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"3057"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"8038"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"240","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"13019"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"242","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"18001"}
+Day: Charge the battry
+        WaterTheGarden
+{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"22983"}
+{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"27963"}
+{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"240","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"32945"}
+{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"4436"}
+{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"1","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"23"}
+{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"5005"}
+{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"9985"}
+{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"14967"}
+Night: Block PV caused night current loss
+          TurnOnLED's
+{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"1947"}
+{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"6929"}
 ```
 
-Callback did not run (TBD), but the state machine is working.
+

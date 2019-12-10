@@ -59,8 +59,8 @@ void ProcessCmd()
 void day_work(void)
 {
     // This shows where to place a task to run when the daynight_state changes to DAYNIGHT_WORK_STATE
-    printf_P(PSTR("Day: Charge the battry\r\n")); // manager does this
-    printf_P(PSTR("        WaterTheGarden\r\n")); // used for debuging
+    printf_P(PSTR("Day: Charge the battry\r\n")); // manager does this for you
+    printf_P(PSTR("        WaterTheGarden\r\n")); // your applicaion code would do this
     return;
 }
 
@@ -68,8 +68,8 @@ void day_work(void)
 void night_work(void)
 {
     // This shows where to place a task to run when the daynight_state changes to DAYNIGHT_WORK_STATE
-    printf_P(PSTR("Night: Block night current loss into PV\r\n")); // manager does this
-    printf_P(PSTR("          TurnOnLED's\r\n")); // used for debuging
+    printf_P(PSTR("Night: Block PV caused night current loss\r\n")); // manager does this for you
+    printf_P(PSTR("          TurnOnLED's\r\n")); // your applicaion code would do this
     return;
 }
 
@@ -117,17 +117,17 @@ void setup(void)
     
     // managers default debounce is 20 min (e.g. 1,200,000 millis) but to test this I want less
     i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL); // 18 sec is used if it is valid
-    daynight_evening_debounce = i2c_ul_access_cmd(EVENING_DEBOUNCE,0); // non valid data allows checking that it got set
     i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL);
-    daynight_morning_debounce = i2c_ul_access_cmd(MORNING_DEBOUNCE,0);
 
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
     // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
     // manager uses int bellow and analogRead(ALT_V) to check threshold. 
     i2c_int_access_cmd(EVENING_THRESHOLD,40);
-    daynight_evening_threshold = i2c_int_access_cmd(EVENING_THRESHOLD,0);
     i2c_int_access_cmd(MORNING_THRESHOLD,80);
-    daynight_morning_threshold = i2c_int_access_cmd(MORNING_THRESHOLD,0);
+
+    // register callback(s) to do the work.
+    Day_AttachWork(day_work);
+    Night_AttachWork(night_work);
 }
 
 void blink(void)

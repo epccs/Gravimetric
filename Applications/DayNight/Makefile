@@ -1,4 +1,6 @@
-# Makefile 
+# build application from source
+# when files for application change the binary image needs updated
+# https://www.gnu.org/software/make/manual/make.html
 TARGET = DayNight
 LIBDIR = ../lib
 OBJECTS = main.o \

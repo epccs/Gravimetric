@@ -242,13 +242,14 @@ uint8_t i2c_read_status(void)
 // state values range from: 0..7 and bit 7=night_work, 6=day_work, 5 is set to see 6 and 7, 4 is set to clear 6 and 7.
 uint8_t i2c_uint8_access_cmd(uint8_t command, uint8_t update_with)
 { 
+    if ( (command != 23) ) return 0;
     uint8_t twi_returnCode;
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
-
     uint8_t txBuffer[UINT8_CMD_SIZE] = UINT8_CMD;
     uint8_t length = UINT8_CMD_SIZE;
     uint8_t wait = 1;
     uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
+    txBuffer[0] = command; // replace the command byte
     txBuffer[1] = update_with;
     twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
     if (twi_returnCode != 0)
@@ -264,10 +265,7 @@ uint8_t i2c_uint8_access_cmd(uint8_t command, uint8_t update_with)
     {
         return 0;
     }
-    else
-    {
-        return rxBuffer[1];
-    }
+    return rxBuffer[1];
 }
 
 // management commands to access managers unsigned long prameters

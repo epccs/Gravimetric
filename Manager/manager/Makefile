@@ -1,4 +1,6 @@
-# manager for ATMega328pb on a RPUBUS board
+# build manager from source for ATMega328pb on a Gravimetric board
+# when files for manager change the binary image needs updated
+# https://www.gnu.org/software/make/manual/make.html
 #
 TARGET = manager
 LIBDIR = ../lib
