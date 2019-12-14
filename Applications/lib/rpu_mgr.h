@@ -1,6 +1,9 @@
 #ifndef Rpu_Mgr_h
 #define Rpu_Mgr_h
 
+extern uint8_t twi_errorCode;
+
+extern void i2c_ping(void);
 extern uint8_t i2c_set_Rpu_shutdown(void);
 extern uint8_t i2c_detect_Rpu_shutdown(void);
 extern char i2c_get_Rpu_address(void);

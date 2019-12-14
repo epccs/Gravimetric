@@ -31,7 +31,8 @@
 #include "alternat.h"
 
 
-// the manager has status bit 4 that can set (command 7) or read (command 6) ALT_EN
+// the manager status byte can be read with i2c command 6. 
+// status bit 4 has ALT_EN
 void EnableAlt(void)
 {
     if ( (command_done == 10) )

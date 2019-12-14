@@ -18,7 +18,7 @@ status bits:
 2. DTR readback not match
 3. host lockout
 4. alternate power enable (ALT_EN)
-5. SBC power enable (PIPWR_EN)
+5. SBC power enable (PIPWR_EN), use to restart SBC after a shutdown with command 5
 6. Day-Night state fail (e.g. > 20hr of day or night), clear will restart it.
 
 

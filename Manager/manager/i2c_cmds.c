@@ -213,9 +213,9 @@ void fnWtShtdnDtct(uint8_t* i2cBuffer)
 void fnRdStatus(uint8_t* i2cBuffer)
 {
     i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
-    i2cBuffer[1] &= digitalRead(ALT_EN)<<4; // report if alternat power is enabled
-    i2cBuffer[1] &= digitalRead(PIPWR_EN)<<5; // report if sbc has power
-    i2cBuffer[1] &= (daynight_state==DAYNIGHT_FAIL_STATE)<<6; // report if daynight state has failed
+    if (digitalRead(ALT_EN)) i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
+    if (digitalRead(PIPWR_EN)) i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
+    if (daynight_state==DAYNIGHT_FAIL_STATE) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
 }
 
 // I2C_COMMAND_TO_SET_STATUS
@@ -226,8 +226,11 @@ void fnWtStatus(uint8_t* i2cBuffer)
         enable_alternate_power = 1;
         alt_pwm_accum_charge_time = 0; // clear charge time
     }
-    if ( (i2cBuffer[1] & 0x20) && !shutdown_started && !shutdown_detected ) enable_sbc_power = 1;
-    if ( (i2cBuffer[1] & 0x40) ) daynight_state = DAYNIGHT_START_STATE; // restart the state machine
+    if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
+    {
+        digitalWrite(PIPWR_EN,HIGH); //restart SBC 
+    } 
+    if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_START_STATE; // restart the state machine
     status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
 }
 

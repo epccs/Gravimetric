@@ -2,13 +2,11 @@
 
 ## Overview
 
-Alternate power input is used to send current from a solar panel into a battery. 
+The manager has control of the Alternate power input that may be used to send current from the alternate supply to the primary power input. 
 
-The alternate power source needs to act as a current source, and the main power source needs to act like a battery. Do not attempt this with a bench power supply as the main power input. When the alternate power is enabled it must current limit and then charge the battery.
+The alternate power needs to act as a current source, and the principal power source needs to act as a battery. Do not attempt this with a bench power supply as the primary power input, since many will not tolerate back drive. When the alternate power is enabled, it must have a current limit bellow a safe level at which the battery can charge.
 
-The DayNight state machine is used, it has two events that run a registered callback function. The day event allows the alternate power input to enable, while the night event keeps it off. Adc channels are measured with a burst of interrupts that occurs every 100 millis. Near the time of the Adc burst, the mux channel PWR_V which is connected to an input voltage divider (a 1% 15.8k and a 0.1% 100k) is checked. This is more or less the battery voltage so can be used to turn off the Alternate power input when the battery has reached a max voltage, and then turn it back on when the voltage drops.
-
-The hardware for this lacks training wheels, it is going to take some time to refine these ideas. The target battery is lead acid, this method fails with other types. 
+The DayNight state machine is on the manager; it has two work states. The day work state is to enable the alternate input, while the night work state turns it off. Analog measurements are from the ADC during a burst of interrupts every ten milliseconds. The ADC mux channel code-named PWR_V is connected to an input voltage divider (a 1% 15.8k and a 0.1% 100k) and used to measure the battery voltage. The manager will enable the Alternate input when the battery is bellow battery_low_limit, and enable_alternate_power has been established (for details see the power_manager.c file on the manager).
 
 
 ## Wiring Needed

@@ -17,6 +17,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 */
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
+#include <util/delay.h>
 #include "../lib/parse.h"
 #include "../lib/uart.h"
 #include "../lib/parse.h"
@@ -82,7 +83,10 @@ void setup(void)
     
     /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stdout = stdin = uartstream0_init(BAUD);
-    
+
+    // manager delays (blocks) for 50mSec after power up so i2c is not running yet
+    _delay_ms(60); 
+
     /* Initialize I2C. note: I2C scan will stop without a pull-up on the bus */
     twi0_init(TWI_PULLUP);
 
@@ -91,7 +95,7 @@ void setup(void)
 
     // Enable global interrupts to start TIMER0 and UART ISR's
     sei(); 
-    
+
     blink_started_at = millis();
     
     rpu_addr = i2c_get_Rpu_address();

@@ -27,17 +27,18 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/pins_board.h"
 #include "../Uart/id.h"
 #include "../Adc/analog.h"
-//#include "../DayNight/day_night.h"
+#include "../DayNight/day_night.h"
 #include "alternat.h"
 
 #define ADC_DELAY_MILSEC 50UL
 static unsigned long adc_started_at;
 
+//pins are defined in ../lib/pins_board.h
 #define STATUS_LED CS0_EN
-
 #define DAYNIGHT_STATUS_LED CS1_EN
 #define DAYNIGHT_BLINK 500UL
 static unsigned long daynight_status_blink_started_at;
+static unsigned long daynight_status_checked_at;
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -48,23 +49,23 @@ void ProcessCmd()
 { 
     if ( (strcmp_P( command, PSTR("/id?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        Id("Alternat"); // ../Uart/id.c
+        Id("Alternat"); 
     }
     if ( (strcmp_P( command, PSTR("/analog?")) == 0) && ( (arg_count >= 1 ) && (arg_count <= 5) ) )
     {
-        Analog(20000UL); // ../Adc/analog.c: show every 20 sec until terminated
+        Analog(5000UL); 
     }
     if ( (strcmp_P( command, PSTR("/day?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        //Day(60000UL); // ../DayNight/day_night.c: show every 60 sec until terminated
+        Day(5000UL); 
     }
     if ( (strcmp_P( command, PSTR("/alt")) == 0) && ( (arg_count == 0 ) ) )
     {
-        EnableAlt(); // alternat.c
+        EnableAlt(); 
     }
     if ( (strcmp_P( command, PSTR("/altcnt?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        //AltCount(); // alternat.c
+        //AltCount();  
     }
 }
 
@@ -110,16 +111,15 @@ void setup(void)
         blink_delay = BLINK_DELAY/4;
     }
 
-    
-    // default debounce is 15 min (e.g. 900,000 millis)
-    // evening_debouce = 18000UL; // 18 sec
-    // morning_debouce = 18000UL;
-    // ALT_V reading of 40*5.0/1024.0*(11/1) is about 2.1V
-    // ALT_V reading of 80*5.0/1024.0*(11/1) is about 4.3V
-    // ALT_V reading of 160*5.0/1024.0*(11/1) is about 8.6V
-    // ALT_V reading of 320*5.0/1024.0*(11/1) is about 17.18V
-    // evening_threshold = 40; 
-    // morning_threshold = 80;
+    // managers default debounce is 20 min (e.g. 1,200,000 millis) but to test this I want less
+    i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL); // 18 sec is used if it is valid
+    i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL);
+
+    // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
+    // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
+    // manager uses int bellow and analogRead(ALT_V) to check threshold. 
+    i2c_int_access_cmd(EVENING_THRESHOLD,40);
+    i2c_int_access_cmd(MORNING_THRESHOLD,80);
 }
 
 void blink(void)
@@ -134,13 +134,20 @@ void blink(void)
     }
 }
 
-void blink_day_status(void)
+void day_status(void)
 {
-    unsigned long kRuntime = millis() - daynight_status_blink_started_at;
-    uint8_t state = DayState();
+    unsigned long kRuntime = millis() - daynight_status_checked_at;
+    if (kRuntime > (DAYNIGHT_BLINK << 1) )
+    {
+        // Check day-night state machine (once per blink is fine).
+        check_daynight_state(); // day_night.c
+        daynight_status_checked_at += (DAYNIGHT_BLINK << 1);
+    }
+    kRuntime = millis() - daynight_status_blink_started_at;
+    uint8_t state = daynight_state;
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
-           (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK/2) ) )
+        (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
+        (kRuntime > (DAYNIGHT_BLINK/2) ) )
     {
         digitalToggle(DAYNIGHT_STATUS_LED);
         
@@ -148,7 +155,7 @@ void blink_day_status(void)
         daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
     }
     if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK) ) )
+        (kRuntime > (DAYNIGHT_BLINK) ) )
     {
         digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
         
@@ -156,7 +163,7 @@ void blink_day_status(void)
         daynight_status_blink_started_at += DAYNIGHT_BLINK; 
     }
     if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK) ) )
+        (kRuntime > (DAYNIGHT_BLINK) ) )
     {
         digitalWrite(DAYNIGHT_STATUS_LED,LOW);
         
@@ -164,7 +171,7 @@ void blink_day_status(void)
         daynight_status_blink_started_at += DAYNIGHT_BLINK; 
     }
     if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
-           (kRuntime > (DAYNIGHT_BLINK/8) ) )
+        (kRuntime > (DAYNIGHT_BLINK/8) ) )
     {
         digitalToggle(DAYNIGHT_STATUS_LED);
         
@@ -173,19 +180,14 @@ void blink_day_status(void)
     }
 }
 
-uint8_t adc_burst(void)
+void adc_burst(void)
 {
     unsigned long kRuntime= millis() - adc_started_at;
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
         enable_ADC_auto_conversion(BURST_MODE);
         adc_started_at += ADC_DELAY_MILSEC; 
-        return 1;
     } 
-    else
-    {
-        return 0;
-    }
 }
 
 int main(void) 
@@ -194,18 +196,14 @@ int main(void)
 
     while(1) 
     { 
-        // use STATUS_LED to show if I2C has a bus manager
+        // use LED to show if I2C has a bus manager
         blink();
 
-        // use DAYNIGHT_STATUS_LED to show day_state
-        blink_day_status();
+        // use LED to show day_state
+        day_status();
 
         // delay between ADC burst
-        if ( adc_burst() )
-        {
-            // Check Day day-night state machine.
-
-        }
+        adc_burst();
 
         // check if character is available to assemble a command, e.g. non-blocking
         if ( (!command_done) && uart0_available() ) // command_done is an extern from parse.h

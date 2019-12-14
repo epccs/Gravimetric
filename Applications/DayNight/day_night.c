@@ -29,6 +29,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/pins_board.h"
 #include "day_night.h"
 
+uint8_t manager_status;
 uint8_t daynight_state = 0; 
 #define CHK_DAYNIGHT_DELAY 2000UL
 
@@ -62,6 +63,11 @@ void Day(unsigned long serial_print_delay_milsec)
     {
         serial_print_started_at = millis();
         printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
+        command_done = 11;
+    }
+    else if ( (command_done == 11) )
+    {
+        printf_P(PSTR("\"mgr_status\":\"0x%X\","),manager_status);
         command_done = 12;
     }
     else if ( (command_done == 12) ) 
@@ -119,6 +125,7 @@ void Day(unsigned long serial_print_delay_milsec)
 void check_daynight_state(void)
 {
     uint8_t state = i2c_uint8_access_cmd(DAYNIGHT_STATE,0x20); /*set bit 5 to see work nibble*/
+
     // test for work bits
     if(state & 0xF0)
     {
@@ -135,4 +142,13 @@ void check_daynight_state(void)
         state = i2c_uint8_access_cmd(DAYNIGHT_STATE,0x10); /*set bit 4 to clear work nibble*/
     }
     daynight_state = state;
+}
+
+// Check the manager status byte, 
+// interleave with other i2c commands so that a scan loop completes between each call.
+void check_manager_status(void)
+{
+    uint8_t status = i2c_read_status();
+    if (twi_errorCode) status = 0x02; // set bit 1 .. to show twi fail
+    manager_status = status; // main can use this (e.g., for blink code) 
 }

@@ -19,6 +19,11 @@ Copyright (C) 2019 Ronald Sutherland
 Original 2006 Nicholas Zambetti 
 Modified in 2012 by Todd Krein (todd@krein.org) to implement repeated starts
 Modified in 2016 by Ronald Sutherland (ronald.sutherlad@gmail) to use as a C library with avr-libc dependency
+
+Some 'special' bits like TWINT in the TWCR register are flags in hardware that clear after writing a 1.
+Writing 1 to TWINT casues the hardware flag to be cleared, and reading it will show 0 until the hardware 
+operation has completed and set it to 1 again. These 'special' bits behave differently for write than they do for read.
+
 */
 
 #include <stdbool.h>

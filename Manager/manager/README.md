@@ -1,9 +1,11 @@
 # To Do
 
+i2c is stuck after power up or if manager is programed (ICSP), i2c_get_Rpu_adddress function gets it going, but needs more delay
 Verify daynight state machine is working with applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
 A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
+enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
 
 # Manager

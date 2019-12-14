@@ -62,7 +62,7 @@ unsigned long dayTmrStarted;
     bit 5 is used with I2C, which if a 1 is passed then bits 7 and 6 are returned with the state
     bit 4 is used with I2C, which if set with the bytes from master/host will clear bits 7 and 6 if they are also clear on the data byte from master/host.
 */
-void check_daynight()
+void check_daynight(void)
 {
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
     int sensor_val = analogRead(ALT_V);
