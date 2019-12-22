@@ -28,8 +28,10 @@
 #include "../lib/pins_board.h"
 #include "../lib/rpu_mgr.h"
 #include "../Adc/references.h"
+#include "../DayNight/day_night.h"
 #include "alternat.h"
 
+static unsigned long alternat_serial_print_started_at;
 
 // the manager status byte can be read with i2c command 6. 
 // status bit 4 has ALT_EN
@@ -42,12 +44,10 @@ void EnableAlt(void)
     }
     else if ( (command_done == 11) )
     {
-        uint8_t status = i2c_read_status();
-        uint8_t alt_enable = ( status & (1<<4) )>>4; // bit 4 in status has ALT_EN value
+        uint8_t alt_enable = ( manager_status & (1<<4) )>>4; // bit 4 in status has ALT_EN value
         if (alt_enable)
         {
             printf_P(PSTR("\"ON\""));
-            alt_count = 0;
         }
         else
         {
@@ -66,28 +66,39 @@ void EnableAlt(void)
     }
 }
 
-/*
-void AltCount(void)
+// report ALT_EN, charge_start, charge_stop
+void AltPwrCntl(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
     {
-        printf_P(PSTR("{\"alt_count\":"));
+        alternat_serial_print_started_at = millis();
+        printf_P(PSTR("{\"mgr_alt_en\":\"0x%X\","), (manager_status & (1<<4) )); // bit 4 .. alternate power enable (ALT_EN) 
         command_done = 11;
     }
     else if ( (command_done == 11) )
     {
-        printf_P(PSTR("\"%u\""), alt_count); 
+        int local_copy = i2c_int_access_cmd(CHARGE_BATTERY_START,0);
+        printf_P(PSTR("\"charge_start\":\"%u\","),local_copy);
         command_done = 12;
     }
     else if ( (command_done == 12) )
+    {
+        int local_copy = i2c_int_access_cmd(CHARGE_BATTERY_STOP,0);
+        printf_P(PSTR("\"charge_stop\":\"%u\","),local_copy);
+        command_done = 24;
+    }
+    else if ( (command_done == 24) )
     { 
         printf_P(PSTR("}\r\n"));
-        initCommandBuffer();
+        command_done = 25;
     }
-    else
+    else if ( (command_done == 25) ) 
     {
-        initCommandBuffer();
+        unsigned long kRuntime= millis() - alternat_serial_print_started_at;
+        if ((kRuntime) > (serial_print_delay_milsec))
+        {
+            command_done = 10; /* This keeps looping output forever (until a Rx char anyway) */
+        }
     }
 } 
-*/
 

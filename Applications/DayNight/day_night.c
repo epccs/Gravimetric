@@ -43,7 +43,7 @@ typedef void (*PointerToWork)(void);
 static PointerToWork dayState_atDayWork = callback_default;
 static PointerToWork dayState_atNightWork = callback_default;
 
-static unsigned long serial_print_started_at;
+static unsigned long daynight_serial_print_started_at;
 
 /* register (i.e. save a referance to) a function callback that does somthing
  */
@@ -61,7 +61,7 @@ void Day(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
     {
-        serial_print_started_at = millis();
+        daynight_serial_print_started_at = millis();
         printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
         command_done = 11;
     }
@@ -113,7 +113,7 @@ void Day(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 25) ) 
     {
-        unsigned long kRuntime= millis() - serial_print_started_at;
+        unsigned long kRuntime= millis() - daynight_serial_print_started_at;
         if ((kRuntime) > (serial_print_delay_milsec))
         {
             command_done = 10; /* This keeps looping output forever (until a Rx char anyway) */

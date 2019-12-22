@@ -23,11 +23,14 @@ extern int i2c_int_access_cmd(uint8_t, int);
 #define DAYNIGHT_STATE 23
 
 // values used for i2c_ul_access_cmd
+#define CHARGE_BATTERY_ABSORPTION 20
 #define EVENING_DEBOUNCE 52
 #define MORNING_DEBOUNCE 53
 #define DAYNIGHT_TIMER 54
 
 // values used for i2c_int_access_cmd
+#define CHARGE_BATTERY_START 18
+#define CHARGE_BATTERY_STOP 19
 #define MORNING_THRESHOLD 21
 #define EVENING_THRESHOLD 22
 

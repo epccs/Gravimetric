@@ -1,7 +1,6 @@
 # build manager from source for ATMega328pb on a Gravimetric board
 # when files for manager change the binary image needs updated
 # https://www.gnu.org/software/make/manual/make.html
-#
 TARGET = manager
 LIBDIR = ../lib
 OBJECTS = main.o \
@@ -46,54 +45,61 @@ LOCK_FUSE = 0xEF
 # at power up set HOST_LOCKOUT_STATUS bit
 CPPFLAGS += -DHOST_LOCKOUT=1
 
-## Cross-compilation
+# Cross-compilation
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 OBJDUMP = avr-objdump
 SIZE = avr-size
 
-## Uno with Arduino as ISP sketch shows as ttyACMx
+# Uno with Arduino as ISP sketch shows as ttyACMx
 ISP_PORT = /dev/ttyACM0
 
-## Compiler/linker options
+# Compiler/linker options
 CFLAGS = -Os -g -std=gnu99 -Wall
 # CFLAGS += -funsigned-char -funsigned-bitfields 
 # CFLAGS += -fpack-struct -fshort-enums 
 CFLAGS += -ffunction-sections -fdata-sections 
 
 TARGET_ARCH = -mmcu=$(MCU) -B $(LIBDIR)/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/ -I $(LIBDIR)/Atmel.ATmega_DFP.1.3.300.atpack/include/
-## if atmega328pb is in avr-gcc mainline use
-##TARGET_ARCH = -mmcu=$(MCU)
+# if atmega328pb is in avr-gcc mainline use
+#TARGET_ARCH = -mmcu=$(MCU)
 
 LDFLAGS = -Wl,-Map,$(TARGET).map 
 LDFLAGS += -Wl,--gc-sections 
 
-all: $(TARGET).hex $(TARGET).lst
+.PHONY: help
+
+# some help for the make impaired
+# https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+all: $(TARGET).hex $(TARGET).lst ## build the image and its related files
 
 $(TARGET): $(TARGET).hex
 
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
 
-## 328pb can lock the bootloader section which I may use at some point
-isp:
+# 328pb can lock the bootloader section which I may use at some point
+isp: ## with Arduino as ISP sketch read the eeprom, set fuse, upload program image to flash
 	avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/328pb.conf -c stk500v1 -P $(ISP_PORT) -b 19200 -U eeprom:r:$(TARGET)_$(MCU)_eeprom.hex:i
 	avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/328pb.conf -c stk500v1 -P $(ISP_PORT) -b 19200 -e -U lock:w:$(UNLOCK_FUSE):m -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:$(HIGH_FUSE):m -U efuse:w:$(EXTENDED_FUSE):m
 	avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/328pb.conf -c stk500v1 -P $(ISP_PORT) -b 19200 -e -U flash:w:$(TARGET).hex -U lock:w:$(LOCK_FUSE):m
 
 # The avrdude in raspian is from
 # https://github.com/facchinm/avrdude
-linuxspi:
+linuxspi: ## with an R-Pi SPI port read the eeprom, set fuse, upload program image to flash
 	sudo avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/328pb.conf -c linuxspi -P /dev/spidev0.0 -U eeprom:r:$(TARGET)_$(MCU)_eeprom.hex:i
 	sudo avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/328pb.conf -c linuxspi -P /dev/spidev0.0 -e -U lock:w:$(UNLOCK_FUSE):m -U lfuse:w:$(LOW_FUSE):m -U hfuse:w:$(HIGH_FUSE):m -U efuse:w:$(EXTENDED_FUSE):m
 	sudo avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/328pb.conf -c linuxspi -P /dev/spidev0.0 -e -U flash:w:$(TARGET).hex -U lock:w:$(LOCK_FUSE):m
 
 # recover a saved eeprom
-recoveree:
+recoveree: ## with Arduino as ISP sketch recover the saved eeprom
 	avrdude -v -p $(MCU) -c stk500v1 -P $(ISP_PORT) -b 19200 -U eeprom:w:$(TARGET)_$(MCU)_eeprom.hex
 	rm $(TARGET)_$(MCU)_eeprom.hex
 	
-ree_linuxspi:
+ree_linuxspi: ## with an R-Pi SPI port recover the saved eeprom
 	sudo avrdude -v -p $(MCU) -c linuxspi -P /dev/spidev0.0 -U eeprom:w:$(TARGET)_$(MCU)_eeprom.hex
 	rm $(TARGET)_$(MCU)_eeprom.hex
 
@@ -104,7 +110,7 @@ $(TARGET).elf: $(OBJECTS)
 	$(SIZE) -C --mcu=atmega328p $@
 	rm -f $(TARGET).o $(OBJECTS)
 
-clean: 
+clean: ## remove the image and its related files
 	rm -f $(TARGET).hex $(TARGET).map $(TARGET).elf $(TARGET).lst
  
 %.lst: %.elf

@@ -2,16 +2,18 @@
 
 32..47 (Ox20..0x2F | 0b00100000..0b00111111)
 
-32. Analog channel 0 for ALT_I (uint16_t)
-33. Analog channel 1 for ALT_V (uint16_t)
-34. Analog channel 6 for PWR_I (uint16_t)
-35. Analog channel 7 for PWR_V (uint16_t)
-36. Analog timed accumulation for ALT_IT (uint32_t)
-37. Analog timed accumulation for PWR_IT (uint32_t)
-38. Analog referance for EXTERNAL_AVCC (uint32_t)
-39. Analog referance for INTERNAL_1V1 (uint32_t)
+32. analogRead(uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return reading)
+33. todo calibrationRead(float passed as uint32_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V,ALT_IT,PWR_IT), return channel callibration)
+34. todo calibrationWrite(float passed as uint32_t: send callibration then use calibrationRead to sellect the channel on which to save it)
+35. not used
+36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
+37. not used
+38. Analog referance for EXTERNAL_AVCC (float: passed as four bytes or uint32_t)
+39. Analog referance for INTERNAL_1V1 (float: passed as four bytes or uint32_t)
 
 ## Cmd 32..35 from the application controller /w i2c-debug running read analog channels
+
+ToDo: overhaul analogRead so 
 
 Read two bytes from I2C. They are the high byte and low byte of a buffered ADC reading from channel 7 (PWR_V).
 
@@ -29,13 +31,13 @@ picocom -b 38400 /dev/ttyUSB0
 {"rxBuffer":[{"data":"0x22"},{"data":"0x0"},{"data":"0x14"}]}
 ``` 
 
-ALT_I is from a 0.018 Ohm sense resistor that has a pre-amp with gain of 50 connected.
+ALT_I is measured with Analog channel 0 from a 0.018 Ohm sense resistor that has a pre-amp with gain of 50 connected.
 
-ALT_V is from a divider with 100k and 10k.
+ALT_V is measured with Analog channel 1 from a divider with 100k and 10k.
 
-PWR_V is from a divider with 100k and 15.8k, its two bytes are from analogRead and sum to 358 (e.g., (2**8)*0x1 + 0x66).  The corrected value is about 12.8V (e.g., (analogRead/1024)*referance*((100+15.8)/15.8) ) where the referance is 5V.
+PWR_V is measured with Analog channel 7 from a divider with 100k and 15.8k, its two bytes are from analogRead and sum to 358 (e.g., (2**8)*0x1 + 0x66).  The corrected value is about 12.8V (e.g., (analogRead/1024)*referance*((100+15.8)/15.8) ) where the referance is 5V.
 
-PWR_I is from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected, its two bytes are from analogRead and sum to 20 (e.g., 0x14). The corrected value is about 0.029A (e.g., (analogRead/1024)*referance/(0.068*50.0) ) where the referance is 5V.
+PWR_I is measured with Analog channel 6 from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected, its two bytes are from analogRead and sum to 20 (e.g., 0x14). The corrected value is about 0.029A (e.g., (analogRead/1024)*referance/(0.068*50.0) ) where the referance is 5V.
 
 
 ## Cmd 32..35 from a Raspberry Pi read analog channels

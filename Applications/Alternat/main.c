@@ -38,12 +38,15 @@ static unsigned long adc_started_at;
 #define DAYNIGHT_STATUS_LED CS1_EN
 #define DAYNIGHT_BLINK 500UL
 static unsigned long daynight_status_blink_started_at;
-static unsigned long daynight_status_checked_at;
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
-static unsigned long blink_delay;
 static char rpu_addr;
+static uint8_t rpu_addr_is_fake;
+
+#define I2C_INTERLEAVE_DELAY 1000UL
+static unsigned long last_interleave_started_at;
+static uint8_t interleave_i2c;
 
 void ProcessCmd()
 { 
@@ -63,9 +66,9 @@ void ProcessCmd()
     {
         EnableAlt(); 
     }
-    if ( (strcmp_P( command, PSTR("/altcnt?")) == 0) && ( (arg_count == 0 ) ) )
+    if ( (strcmp_P( command, PSTR("/altcntl?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        //AltCount();  
+        AltPwrCntl(5000UL);  
     }
 }
 
@@ -101,14 +104,14 @@ void setup(void)
     blink_started_at = millis();
     daynight_status_blink_started_at = millis();
     
-    rpu_addr = i2c_get_Rpu_address();
-    blink_delay = BLINK_DELAY;
+     // manager will broadcast normal mode on DTR pair of mulit-drop
+    rpu_addr = i2c_get_Rpu_address(); 
     
-    // blink fast if a default address from RPU manager not found
+    // default address, since RPU manager not found
     if (rpu_addr == 0)
     {
         rpu_addr = '0';
-        blink_delay = BLINK_DELAY/4;
+        rpu_addr_is_fake = 1;
     }
 
     // managers default debounce is 20 min (e.g. 1,200,000 millis) but to test this I want less
@@ -122,29 +125,53 @@ void setup(void)
     i2c_int_access_cmd(MORNING_THRESHOLD,80);
 }
 
-void blink(void)
+void blink_mgr_status(void)
 {
     unsigned long kRuntime = millis() - blink_started_at;
-    if ( kRuntime > blink_delay)
+
+    // normal, all is fine
+    if ( kRuntime > BLINK_DELAY)
     {
         digitalToggle(STATUS_LED);
         
         // next toggle 
-        blink_started_at += blink_delay; 
+        blink_started_at += BLINK_DELAY; 
+    }
+
+    // blink fast if address is fake
+    if ( rpu_addr_is_fake && (kRuntime > (BLINK_DELAY/4) ) )
+    {
+        digitalToggle(STATUS_LED);
+        
+        // set for next toggle 
+        blink_started_at += BLINK_DELAY/4; 
+    }
+
+    // blink very fast if manager_status bits 0 or 2 (DTR), 1 (twi), 6 (daynight) are set
+    if ( (manager_status & ((1<<0) | (1<<1) | (1<<2) | (1<<6)) ) && \
+        (kRuntime > (BLINK_DELAY/8) ) )
+    {
+        digitalToggle(STATUS_LED);
+        
+        // set for next toggle 
+        blink_started_at += BLINK_DELAY/8; 
     }
 }
 
-void day_status(void)
+void blink_daynight_state(void)
 {
-    unsigned long kRuntime = millis() - daynight_status_checked_at;
-    if (kRuntime > (DAYNIGHT_BLINK << 1) )
-    {
-        // Check day-night state machine (once per blink is fine).
-        check_daynight_state(); // day_night.c
-        daynight_status_checked_at += (DAYNIGHT_BLINK << 1);
-    }
-    kRuntime = millis() - daynight_status_blink_started_at;
+    unsigned long kRuntime = millis() - daynight_status_blink_started_at;
     uint8_t state = daynight_state;
+    if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
+        (kRuntime > (DAYNIGHT_BLINK) ) )
+    {
+        digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
+     }
+    if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
+        (kRuntime > (DAYNIGHT_BLINK) ) )
+    {
+        digitalWrite(DAYNIGHT_STATUS_LED,LOW);
+    }
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
         (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK/2) ) )
@@ -154,22 +181,6 @@ void day_status(void)
         // set for next toggle 
         daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
     }
-    if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
-        (kRuntime > (DAYNIGHT_BLINK) ) )
-    {
-        digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
-        
-        // set for next toggle 
-        daynight_status_blink_started_at += DAYNIGHT_BLINK; 
-    }
-    if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
-        (kRuntime > (DAYNIGHT_BLINK) ) )
-    {
-        digitalWrite(DAYNIGHT_STATUS_LED,LOW);
-        
-        // set for next toggle 
-        daynight_status_blink_started_at += DAYNIGHT_BLINK; 
-    }
     if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK/8) ) )
     {
@@ -177,6 +188,26 @@ void day_status(void)
         
         // set for next toggle 
         daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 
+    }
+}
+
+// don't let i2c cause long delays, thus interleave the dispatch of i2c based updates 
+void i2c_update_interleave(void)
+{
+    unsigned long kRuntime = millis() - last_interleave_started_at;
+    if (kRuntime > (I2C_INTERLEAVE_DELAY) )
+    {
+        switch (interleave_i2c)
+        {
+            case 0: 
+                check_daynight_state();
+                interleave_i2c = 1;
+                break;
+            default: 
+                check_manager_status(); 
+                interleave_i2c = 0;
+        } 
+        last_interleave_started_at += I2C_INTERLEAVE_DELAY;
     }
 }
 
@@ -196,14 +227,17 @@ int main(void)
 
     while(1) 
     { 
-        // use LED to show if I2C has a bus manager
-        blink();
+        // use LED to show manager status
+        blink_mgr_status();
 
-        // use LED to show day_state
-        day_status();
+        // use LED to show daynight_state
+        blink_daynight_state();
 
         // delay between ADC burst
         adc_burst();
+
+        // cordinate i2c updates
+        i2c_update_interleave();
 
         // check if character is available to assemble a command, e.g. non-blocking
         if ( (!command_done) && uart0_available() ) // command_done is an extern from parse.h

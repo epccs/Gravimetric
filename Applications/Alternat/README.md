@@ -1,5 +1,8 @@
 # Alternate Power Input
 
+ToDo: this is WIP, the manager needs to expose more of how the charger works so I can report it with this app.
+
+
 ## Overview
 
 The manager has control of the Alternate power input that may be used to send current from the alternate supply to the primary power input. 
@@ -54,65 +57,25 @@ identify
 
 ``` 
 /1/id?
-{"id":{"name":"Alternat","desc":"Gravimetric (17341^0) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+{"id":{"name":"Alternat","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
 ##  /0/alt
 
-This will toggle the Alternat Power enable
+This will report alternat enable
 
 ``` 
 /1/alt
-{"alt":"ON"}
+{"alt_en":"OFF"}
 ```
 
-##  /0/altcnt?
+##  /0/altcntl?
 
-This gives the number of times the charging limit was reached, it is a clue about how charged the battery is.
-
-``` 
-/1/altcnt?
-{"alt_count":"2"}
-``` 
-
-Example with limit set at 13.6V and 180mA CC supply on ALT and 18AHr AGM battery on PWR. 
+Reports alternat power control values. 
 
 ``` 
-/1/alt
-{"alt_en":"ON"}
-/1/altcnt?
-{"alt_count":"0"}
-/1/analog? 4,5,6,7
-{"ALT_V":"12.94","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"12.92"}
-{"ALT_V":"13.00","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"12.95"}
-{"ALT_V":"13.00","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"12.95"}
-{"ALT_V":"13.16","ALT_I":"0.070","PWR_I":"0.048","PWR_V":"13.20"}
-{"ALT_V":"13.32","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.34"}
-{"ALT_V":"13.48","ALT_I":"0.070","PWR_I":"0.047","PWR_V":"13.49"}
-{"ALT_V":"14.17","ALT_I":"0.005","PWR_I":"0.048","PWR_V":"13.56"}
-/1/altcnt?
-{"alt_count":"1"}
-{"ALT_V":"13.48","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.45"}
-{"ALT_V":"13.42","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.49"}
-{"ALT_V":"13.48","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.49"}
-{"ALT_V":"13.53","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.49"}
-{"ALT_V":"13.53","ALT_I":"0.070","PWR_I":"0.048","PWR_V":"13.52"}
-{"ALT_V":"13.53","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.52"}
-{"ALT_V":"13.58","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.56"}
-{"ALT_V":"13.58","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.59"}
-{"ALT_V":"13.53","ALT_I":"0.075","PWR_I":"0.048","PWR_V":"13.56"}
-{"ALT_V":"14.17","ALT_I":"0.005","PWR_I":"0.028","PWR_V":"13.52"}
-{"ALT_V":"13.64","ALT_I":"0.178","PWR_I":"0.030","PWR_V":"13.59"}
-{"ALT_V":"14.17","ALT_I":"0.000","PWR_I":"0.028","PWR_V":"13.56"}
-{"ALT_V":"13.53","ALT_I":"0.167","PWR_I":"0.030","PWR_V":"13.52"}
-{"ALT_V":"14.17","ALT_I":"0.000","PWR_I":"0.027","PWR_V":"13.52"}
-{"ALT_V":"14.17","ALT_I":"0.005","PWR_I":"0.030","PWR_V":"13.45"}
-{"ALT_V":"13.58","ALT_I":"0.172","PWR_I":"0.030","PWR_V":"13.59"}
-{"ALT_V":"13.58","ALT_I":"0.178","PWR_I":"0.030","PWR_V":"13.63"}
-/1/altcnt?
-{"alt_count":"5"}
-```
+/1/altcntl?
+{"mgr_alt_en":"0x0","charge_start":"374","charge_stop":"398"}
+``` 
 
-Note: ALT_I was changed from 90mA to 180mA when looking at this. 
-
-## [/0/analog? 0..7\[,0..7\[,0..7\[,0..7\[,0..7\]\]\]\]](../Adc#0analog-0707070707)
+The non calibrated default charge_start is 374, and charge_stop is 398. 
