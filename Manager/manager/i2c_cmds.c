@@ -45,7 +45,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     {
         {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
-        {fnRdAdcAltI, fnRdAdcAltV, fnRdAdcPwrI, fnRdAdcPwrV, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
+        {fnAnalogRead, fnNull, fnNull, fnNull, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
 
@@ -378,15 +378,28 @@ void fnDayNightState(uint8_t* i2cBuffer)
 }
 
 /********* POWER MANAGER ***********
-  *  for ALT_I, ALT_V, PWR_I, PWR_V reading     */
+  *  for analogRead of ALT_I, ALT_V, PWR_I, PWR_V reading     */
 
-// I2C command to read analog channel 0 (ten bits: 0..1023)
-// high byte is after command byte, then low byte next.
-void fnRdAdcAltI(uint8_t* i2cBuffer)
+// I2C command to read the analog channel sent.
+// returns analogRead with high byte after command byte, then low byte next.
+// Most AVR have ten analog bits, thus range is: 0..1023
+// returns zero when given an invalid channel
+void fnAnalogRead(uint8_t* i2cBuffer)
 {
-    uint16_t adc_buffer = analogRead(ALT_I);
-    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
-    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
+    uint16_t channel = 0;
+    channel += ((uint16_t)i2cBuffer[1])<<8;
+    channel += ((uint16_t)i2cBuffer[2]);
+    uint16_t adc_reading;
+    if ( (channel == ALT_I) || (channel == ALT_V) || (channel == PWR_I) || (channel == PWR_V) )
+    {
+        adc_reading = analogRead((uint8_t)channel);
+    }
+    else
+    {
+        adc_reading = 0; 
+    }
+    i2cBuffer[1] = ( (0xFF00 & adc_reading) >>8 ); 
+    i2cBuffer[2] = ( (0x00FF & adc_reading) ); 
 }
 
 // I2C command to read analog channel 1 (ten bits: 0..1023)

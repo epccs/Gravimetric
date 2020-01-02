@@ -1,5 +1,6 @@
 # To Do
 
+i2c cmd 36 (analogTimedAccumulation) send analog channel return value for channel
 Verify alternate power control with applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE

@@ -35,10 +35,10 @@ extern void fnDayNightState(uint8_t*);
 
 
 // Prototypes for Power Management commands
-extern void fnRdAdcAltI(uint8_t*);
-extern void fnRdAdcAltV(uint8_t*);
-extern void fnRdAdcPwrI(uint8_t*);
-extern void fnRdAdcPwrV(uint8_t*);
+extern void fnAnalogRead(uint8_t*);
+// todo calibrationRead
+// todo calibrationWrite
+// not used
 extern void fnRdTimedAccumAltI(uint8_t*);
 extern void fnRdTimedAccumPwrI(uint8_t*);
 extern void fnAnalogRefExternAVCC(uint8_t*);
