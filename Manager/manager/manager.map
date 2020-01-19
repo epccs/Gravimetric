@@ -5,7 +5,7 @@ Archive member included to satisfy reference by file (symbol)
 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_udivmodsi4.o)
                               ../lib/uart.o (__udivmodsi4)
 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_exit.o)
-                              ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o (exit)
+                              ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o (exit)
 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_copy_data.o)
                               dtr_transmition.o (__do_copy_data)
 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_clear_bss.o)
@@ -38,20 +38,20 @@ Archive member included to satisfy reference by file (symbol)
                               /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (fputc)
 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
                               /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(vfprintf_std.o) (__ultoa_invert)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
                               main.o (eeprom_read_byte)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
                               references.o (eeprom_read_dword)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
                               references.o (eeprom_read_word)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
                               id_in_ee.o (eeprom_update_byte)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
                               references.o (eeprom_update_dword)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
                               references.o (eeprom_update_word)
-../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
-                              ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o) (eeprom_read_blraw)
+../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+                              ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o) (eeprom_read_blraw)
 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
                               /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(printf.o) (__prologue_saves__)
 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_epilogue.o)
@@ -136,8 +136,8 @@ battery_low_limit   0x2               battery_limits.o
 
 Discarded input sections
 
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
  .text          0x0000000000000000        0x0 main.o
  .data          0x0000000000000000        0x0 main.o
  .bss           0x0000000000000000        0x0 main.o
@@ -381,27 +381,27 @@ Discarded input sections
  .text          0x0000000000000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
  .data          0x0000000000000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
  .bss           0x0000000000000000        0x0 /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
- .text          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
- .data          0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
- .bss           0x0000000000000000        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+ .text          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+ .data          0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+ .bss           0x0000000000000000        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
  .text          0x0000000000000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
  .data          0x0000000000000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
  .bss           0x0000000000000000        0x0 /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a(_prologue.o)
@@ -446,7 +446,7 @@ user_signatures  0x0000000000850000 0x0000000000000400 rw !x
 Linker script and memory map
 
 Address of section .data set to 0x800100
-LOAD ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+LOAD ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
 LOAD main.o
 LOAD rpubus_manager_state.o
 LOAD dtr_transmition.o
@@ -468,7 +468,7 @@ START GROUP
 LOAD /usr/lib/gcc/avr/5.4.0/avr5/libgcc.a
 LOAD /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libm.a
 LOAD /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a
-LOAD ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a
+LOAD ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a
 END GROUP
                 0x0000000000020000                __TEXT_REGION_LENGTH__ = DEFINED (__TEXT_REGION_LENGTH__)?__TEXT_REGION_LENGTH__:0x20000
                 0x000000000000ffa0                __DATA_REGION_LENGTH__ = DEFINED (__DATA_REGION_LENGTH__)?__DATA_REGION_LENGTH__:0xffa0
@@ -570,7 +570,7 @@ END GROUP
 
 .text           0x0000000000000000     0x3732
  *(.vectors)
- .vectors       0x0000000000000000       0xb4 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .vectors       0x0000000000000000       0xb4 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
                 0x0000000000000000                __vectors
                 0x0000000000000000                __vector_default
  *(.vectors)
@@ -601,13 +601,13 @@ END GROUP
  SORT(*)(.ctors)
  SORT(*)(.dtors)
  *(.init0)
- .init0         0x00000000000000ba        0x0 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .init0         0x00000000000000ba        0x0 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
                 0x00000000000000ba                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x00000000000000ba        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .init2         0x00000000000000ba        0xc ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
  *(.init2)
  *(.init3)
  *(.init3)
@@ -626,10 +626,10 @@ END GROUP
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x00000000000000ec        0x8 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .init9         0x00000000000000ec        0x8 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
  *(.init9)
  *(.text)
- .text          0x00000000000000f4        0x4 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .text          0x00000000000000f4        0x4 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
                 0x00000000000000f4                __vector_38
                 0x00000000000000f4                __vector_22
                 0x00000000000000f4                __vector_28
@@ -1051,28 +1051,28 @@ END GROUP
                 0x0000000000003574       0xbc /usr/lib/gcc/avr/5.4.0/../../../avr/lib/avr5/libc.a(ultoa_invert.o)
                 0x0000000000003574                __ultoa_invert
  .text.avr-libc
-                0x0000000000003630       0x10 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+                0x0000000000003630       0x10 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
                 0x0000000000003630                eeprom_read_byte
  .text.avr-libc
-                0x0000000000003640        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+                0x0000000000003640        0xc ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
                 0x0000000000003640                eeprom_read_dword
                 0x0000000000003640                eeprom_read_float
  .text.avr-libc
-                0x000000000000364c        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+                0x000000000000364c        0xc ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
                 0x000000000000364c                eeprom_read_word
  .text.avr-libc
-                0x0000000000003658       0x24 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+                0x0000000000003658       0x24 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
                 0x0000000000003658                eeprom_update_byte
                 0x000000000000365a                eeprom_update_r18
  .text.avr-libc
-                0x000000000000367c       0x18 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+                0x000000000000367c       0x18 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
                 0x000000000000367c                eeprom_update_dword
                 0x000000000000367c                eeprom_update_float
  .text.avr-libc
-                0x0000000000003694        0xc ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+                0x0000000000003694        0xc ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
                 0x0000000000003694                eeprom_update_word
  .text.avr-libc
-                0x00000000000036a0       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+                0x00000000000036a0       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
                 0x00000000000036a0                eeprom_read_block
                 0x00000000000036a4                eeprom_read_blraw
  .text.libgcc.prologue
@@ -1415,7 +1415,7 @@ END GROUP
 .note.gnu.avr.deviceinfo
                 0x0000000000000000       0x40
  .note.gnu.avr.deviceinfo
-                0x0000000000000000       0x40 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+                0x0000000000000000       0x40 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
 
 .note.gnu.build-id
  *(.note.gnu.build-id)
@@ -1435,62 +1435,62 @@ END GROUP
 .debug_aranges  0x0000000000000000       0xe0
  *(.debug_aranges)
  .debug_aranges
-                0x0000000000000000       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+                0x0000000000000000       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
  .debug_aranges
-                0x0000000000000020       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+                0x0000000000000020       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
  .debug_aranges
-                0x0000000000000040       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+                0x0000000000000040       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
  .debug_aranges
-                0x0000000000000060       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+                0x0000000000000060       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
  .debug_aranges
-                0x0000000000000080       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+                0x0000000000000080       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
  .debug_aranges
-                0x00000000000000a0       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+                0x00000000000000a0       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
  .debug_aranges
-                0x00000000000000c0       0x20 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+                0x00000000000000c0       0x20 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
 
 .debug_pubnames
  *(.debug_pubnames)
 
 .debug_info     0x0000000000000000      0xd2d
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x0000000000000000      0x8ea ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
- .debug_info    0x00000000000008ea       0x9b ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
- .debug_info    0x0000000000000985       0x9c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
- .debug_info    0x0000000000000a21       0x9b ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
- .debug_info    0x0000000000000abc       0x9c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
- .debug_info    0x0000000000000b58       0x9d ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
- .debug_info    0x0000000000000bf5       0x9c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
- .debug_info    0x0000000000000c91       0x9c ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+ .debug_info    0x0000000000000000      0x8ea ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_info    0x00000000000008ea       0x9b ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_info    0x0000000000000985       0x9c ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+ .debug_info    0x0000000000000a21       0x9b ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+ .debug_info    0x0000000000000abc       0x9c ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+ .debug_info    0x0000000000000b58       0x9d ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+ .debug_info    0x0000000000000bf5       0x9c ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+ .debug_info    0x0000000000000c91       0x9c ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
 
 .debug_abbrev   0x0000000000000000      0x8fa
  *(.debug_abbrev)
- .debug_abbrev  0x0000000000000000      0x86e ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
- .debug_abbrev  0x000000000000086e       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
- .debug_abbrev  0x0000000000000882       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
- .debug_abbrev  0x0000000000000896       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
- .debug_abbrev  0x00000000000008aa       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
- .debug_abbrev  0x00000000000008be       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
- .debug_abbrev  0x00000000000008d2       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
- .debug_abbrev  0x00000000000008e6       0x14 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+ .debug_abbrev  0x0000000000000000      0x86e ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_abbrev  0x000000000000086e       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_abbrev  0x0000000000000882       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+ .debug_abbrev  0x0000000000000896       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+ .debug_abbrev  0x00000000000008aa       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+ .debug_abbrev  0x00000000000008be       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+ .debug_abbrev  0x00000000000008d2       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+ .debug_abbrev  0x00000000000008e6       0x14 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
 
 .debug_line     0x0000000000000000      0x52c
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x0000000000000000      0x1a5 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
- .debug_line    0x00000000000001a5       0x7a ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
- .debug_line    0x000000000000021f       0x68 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
- .debug_line    0x0000000000000287       0x67 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
- .debug_line    0x00000000000002ee       0xb6 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
- .debug_line    0x00000000000003a4       0x7b ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
- .debug_line    0x000000000000041f       0x62 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
- .debug_line    0x0000000000000481       0xab ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
+ .debug_line    0x0000000000000000      0x1a5 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_line    0x00000000000001a5       0x7a ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_byte.o)
+ .debug_line    0x000000000000021f       0x68 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_dword.o)
+ .debug_line    0x0000000000000287       0x67 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_word.o)
+ .debug_line    0x00000000000002ee       0xb6 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_byte.o)
+ .debug_line    0x00000000000003a4       0x7b ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_dword.o)
+ .debug_line    0x000000000000041f       0x62 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eeupd_word.o)
+ .debug_line    0x0000000000000481       0xab ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/libatmega328pb.a(eerd_block.o)
 
 .debug_frame
  *(.debug_frame)
 
 .debug_str      0x0000000000000000      0x318
  *(.debug_str)
- .debug_str     0x0000000000000000      0x318 ../lib/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
+ .debug_str     0x0000000000000000      0x318 ../lib/ATmega_DFP/gcc/dev/atmega328pb/avr5/crtatmega328pb.o
 
 .debug_loc
  *(.debug_loc)

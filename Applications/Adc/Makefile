@@ -45,7 +45,7 @@ CFLAGS = -Os -g -std=gnu99 -Wall
 # CFLAGS += -fpack-struct -fshort-enums 
 CFLAGS += -ffunction-sections -fdata-sections 
 
-TARGET_ARCH = -mmcu=$(MCU) -B $(LIBDIR)/Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega324pb/ -I $(LIBDIR)/Atmel.ATmega_DFP.1.3.300.atpack/include/
+TARGET_ARCH = -mmcu=$(MCU) -B $(LIBDIR)/ATmega_DFP/gcc/dev/atmega324pb/ -I $(LIBDIR)/ATmega_DFP/include/
 ## if atmega324pb is in avr-gcc mainline use
 ##TARGET_ARCH = -mmcu=$(MCU)
 
@@ -53,18 +53,25 @@ LDFLAGS = -Wl,-Map,$(TARGET).map
 LDFLAGS += -Wl,--gc-sections 
 
 ## printf() is one of the vfprintf() family of functions which does not implement floating point conversion by default
-## warning this takes about 2k of program space
+## https://www.nongnu.org/avr-libc/user-manual/group__avr__stdio.html
 LDFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm
 
-all: $(TARGET).hex $(TARGET).lst
+.PHONY: help
+
+# some help for the make impaired
+# https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+all: $(TARGET).hex $(TARGET).lst ## build the image and its related files
 
 $(TARGET): $(TARGET).hex
 
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
 
-## works with optiboot which erases flash without being told (e.g. -e )
-bootload:
+# optiboot erases flash without being told (e.g. -e )
+bootload: ## upload to optiboot 
 	avrdude -v -p $(MCU) -C +$(LIBDIR)/avrdude/324pb.conf -c arduino -P $(BOOTLOAD_PORT) -b 38400 -U flash:w:$(TARGET).hex
 
 $(TARGET).elf: $(OBJECTS)
@@ -73,7 +80,7 @@ $(TARGET).elf: $(OBJECTS)
 	$(SIZE) -C --mcu=atmega324p $@
 	rm -f $(TARGET).o $(OBJECTS)
 
-clean: 
+clean: ## remove the image and its related files
 	rm -f $(TARGET).hex $(TARGET).map $(TARGET).elf $(TARGET).lst
  
 %.lst: %.elf

@@ -24,6 +24,18 @@ to the Free Software Foundation, Inc.,
 Licence can be viewed at
 http://www.fsf.org/licenses/gpl.txt
 
+Bootloader Exception: In addition to the permissions in the 
+GNU General Public License, the authors give you unlimited 
+permission to link or embed compiled bootloader and related 
+files into combinations with other programs, and to distribute 
+those combinations without any restriction coming from the 
+use of those files. (The General Public License restrictions do 
+apply in other respects; for example, they cover modification 
+of the files, and distribution when not linked into a combined 
+executable.)
+
+https://spdx.org/licenses/Bootloader-exception.html#licenseExceptionText
+
 Based on optiboot which is GPL and 
 Copyright 2013-2015 by Bill Westfield. 
 Copyright 2010 by Peter Knight. 
