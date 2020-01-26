@@ -23,6 +23,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/uart.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
+#include "main.h"
 #include "rpubus_manager_state.h"
 #include "dtr_transmition.h"
 #include "daynight_state.h"
@@ -69,7 +70,7 @@ void check_DTR(void)
         {
             if ( host_active && localhost_active && (!uart_has_TTL) && (!bootloader_started) && (!lockout_active) )
             {
-                // send a byte on the DTR pair when FTDI_nDTR is first non-active
+                // send a byte on the DTR pair when local host serial nRTS becomes non-active
                 uart_started_at = millis();
                 uart_output= RPU_HOST_DISCONNECT;
                 printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 

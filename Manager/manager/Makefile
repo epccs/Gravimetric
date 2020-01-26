@@ -21,16 +21,13 @@ OBJECTS = main.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/twi1.o
 
-## Chip and project-specific global definitions
+# Chip and project-specific global definitions
 MCU   =  atmega328pb
 F_CPU = 12000000UL  
-BAUD  =  250000UL
-I2C0_ADDRESS = 0x29
-I2C1_ADDRESS = 0x2A
-RPU_ADDRESS = 0x31
-# '0' or ascii 0x30 is default address sent on DTR pair when host connects,  e.g. pulls nDTR or nRTS active
-RPU_HOST_CONNECT = 0x30
-CPPFLAGS = -DRPU_HOST_CONNECT=$(RPU_HOST_CONNECT) -DI2C0_ADDRESS=$(I2C0_ADDRESS) -DI2C1_ADDRESS=$(I2C1_ADDRESS) -DRPU_ADDRESS=$(RPU_ADDRESS) -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. 
+
+# defines for DTR_BAUD, I2C0_ADDRESS, I2C1_ADDRESS, RPU_ADDRESS, RPU_HOST_CONNECT now in main.h
+# note BAUD is used as register on new AVR (m4809, AVR128DA)
+CPPFLAGS = -DF_CPU=$(F_CPU) -I. 
 
 #  http://eleccelerator.com/fusecalc/fusecalc.php?chip=atmega328p&LOW=FF&HIGH=D6&EXTENDED=05&LOCKBIT=3F
 LOW_FUSE = 0xFF

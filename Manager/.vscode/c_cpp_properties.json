@@ -6,10 +6,9 @@
             "compilerPath": "/usr/bin/avr-gcc",
             "includePath": [
                 "${workspaceFolder}",
-                "/usr/lib/avr/include",
-                "/usr/lib/gcc/avr/5.4.0/include"
+                "${default}"
             ],
-            "forcedInclude": [ "${workspaceFolder}/lib/Atmel.ATmega_DFP.1.3.300.atpack/include/avr/iom328pb.h" ],
+            "forcedInclude": [ "${workspaceFolder}/lib/ATmega_DFP/include/avr/iom328pb.h" ],
             "defines": ["__AVR_ATmega328PB__", "HOST_LOCKOUT=1"],
             "cStandard": "c11",
             "cppStandard": "c++17",

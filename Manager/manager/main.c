@@ -26,6 +26,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/adc.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
+#include "main.h"
 #include "rpubus_manager_state.h"
 #include "dtr_transmition.h"
 #include "i2c_cmds.h"
@@ -92,7 +93,7 @@ void setup(void)
     adc_started_at = millis();
 
     /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stdout = stdin = uartstream0_init(BAUD);
+    stdout = stdin = uartstream0_init(DTR_BAUD);
 
     // can use with a true I2C bus master that does clock stretching and repeated starts 
     twi0_setAddress(I2C0_ADDRESS);

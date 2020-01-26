@@ -764,7 +764,7 @@ static __inline__ void __iRestore(const  uint8_t *__s)
      206:	90 93 81 03 	sts	0x0381, r25	; 0x800381 <adc_started_at+0x3>
 
     /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stdout = stdin = uartstream0_init(BAUD);
+    stdout = stdin = uartstream0_init(DTR_BAUD);
      20a:	60 e9       	ldi	r22, 0x90	; 144
      20c:	70 ed       	ldi	r23, 0xD0	; 208
      20e:	83 e0       	ldi	r24, 0x03	; 3
