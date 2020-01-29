@@ -3,7 +3,7 @@
 0..15 (Ox00..0xF | 0b00000000..0b00001111)
 
 0. access the manager address (used for multi-drop bus).
-1. access the manager address (used for multi-drop bus).
+1. not used.
 2. read the multi-drop bootload address sent when DTR/RTS toggles.
 3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
@@ -82,9 +82,9 @@ print(bus.read_i2c_block_data(42, 0, 2))
 ``` 
 
 
-## Cmd 1 is same as 0
+## Cmd 1 is not used
 
-Same as command 0, it will be repurposed at some point.
+Will be repurposed.
 
 
 ## Cmd 2 from the application controller /w i2c-debug read the address sent when serial handshake RTS toggless

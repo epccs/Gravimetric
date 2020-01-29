@@ -13,34 +13,33 @@ extern void receive_i2c_event(uint8_t*, int);
 extern void transmit_i2c_event(void);
 
 // Prototypes for point 2 multipoint commands
-extern void fnRdMgrAddr(uint8_t*);
-extern void fnRdMgrAddrQuietly(uint8_t*); // SMBus should do this
-extern void fnWtMgrAddr(uint8_t*);
-extern void fnRdBootldAddr(uint8_t*);
-extern void fnWtBootldAddr(uint8_t*);
-extern void fnRdShtdnDtct(uint8_t*);
-extern void fnWtShtdnDtct(uint8_t*);
-extern void fnRdStatus(uint8_t*);
-extern void fnWtStatus(uint8_t*);
+extern void fnRdMgrAddr(uint8_t*); // 0
+extern void fnRdMgrAddrQuietly(uint8_t*); // 0 for SMBus
+// 1 not used
+extern void fnRdBootldAddr(uint8_t*); // 2
+extern void fnWtBootldAddr(uint8_t*); // 3
+extern void fnRdShtdnDtct(uint8_t*); // 4
+extern void fnWtShtdnDtct(uint8_t*); // 5
+extern void fnRdStatus(uint8_t*); // 6
+extern void fnWtStatus(uint8_t*); // 7
 
 // Prototypes for point 2 point commands
-extern void fnWtArduinMode(uint8_t*);
-extern void fnRdArduinMode(uint8_t*);
-extern void fnBatStartChrg(uint8_t*);
-extern void fnBatDoneChrg(uint8_t*);
-extern void fnRdBatChrgTime(uint8_t*);
-extern void fnMorningThreshold(uint8_t*);
-extern void fnEveningThreshold(uint8_t*);
-extern void fnDayNightState(uint8_t*);
-
+extern void fnWtArduinMode(uint8_t*); // 16
+extern void fnRdArduinMode(uint8_t*); // 17
+extern void fnBatStartChrg(uint8_t*); // 18
+extern void fnBatDoneChrg(uint8_t*); // 19
+extern void fnRdBatChrgTime(uint8_t*); // 20
+extern void fnMorningThreshold(uint8_t*); // 21
+extern void fnEveningThreshold(uint8_t*); // 22
+extern void fnDayNightState(uint8_t*); // 23
 
 // Prototypes for Power Management commands
-extern void fnAnalogRead(uint8_t*);
+extern void fnAnalogRead(uint8_t*); //1
 // todo calibrationRead
 // todo calibrationWrite
 // not used
-extern void fnRdTimedAccumAltI(uint8_t*);
-extern void fnRdTimedAccumPwrI(uint8_t*);
+extern void fnRdTimedAccum(uint8_t*);
+// not used 
 extern void fnAnalogRefExternAVCC(uint8_t*);
 extern void fnAnalogRefIntern1V1(uint8_t*);
 

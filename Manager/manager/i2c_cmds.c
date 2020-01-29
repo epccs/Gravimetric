@@ -43,9 +43,9 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnRdMgrAddr, fnWtMgrAddr, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
+        {fnRdMgrAddr, fnNull, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
-        {fnAnalogRead, fnNull, fnNull, fnNull, fnRdTimedAccumAltI, fnRdTimedAccumPwrI, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
+        {fnAnalogRead, fnNull, fnNull, fnNull, fnRdTimedAccum, fnNull, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
 
@@ -156,7 +156,7 @@ void fnRdMgrAddrQuietly(uint8_t* i2cBuffer)
     }
 }
 
-// (Obsolete) I2C command to access manager address
+/* (Obsolete) I2C command to access manager address
 void fnWtMgrAddr(uint8_t* i2cBuffer)
 {
     uint8_t tmp_addr = i2cBuffer[1];
@@ -167,7 +167,7 @@ void fnWtMgrAddr(uint8_t* i2cBuffer)
         write_rpu_address_to_eeprom = 1;
         return;
     }
-}
+} */
 
 // I2C_COMMAND_TO_READ_ADDRESS_SENT_ON_ACTIVE_DTR
 void fnRdBootldAddr(uint8_t* i2cBuffer)
@@ -378,7 +378,8 @@ void fnDayNightState(uint8_t* i2cBuffer)
 }
 
 /********* POWER MANAGER ***********
-  *  for analogRead of ALT_I, ALT_V, PWR_I, PWR_V reading     */
+  *  analogRead of ALT_I, ALT_V, PWR_I, PWR_V reading     
+  *  analogTimedAccumulationRead of ALT_I, PWR_I */
 
 // I2C command to read the analog channel sent.
 // returns analogRead with high byte after command byte, then low byte next.
@@ -402,7 +403,7 @@ void fnAnalogRead(uint8_t* i2cBuffer)
     i2cBuffer[2] = ( (0x00FF & adc_reading) ); 
 }
 
-// I2C command to read analog channel 1 (ten bits: 0..1023)
+/* remove: I2C command to read analog channel 1 (ten bits: 0..1023)
 // high byte is after command byte, then low byte next.
 void fnRdAdcAltV(uint8_t* i2cBuffer)
 {
@@ -428,30 +429,48 @@ void fnRdAdcPwrV(uint8_t* i2cBuffer)
     i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
     i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
 }
+remove: */
 
-// I2C command to read timed accumulation of analog channel ALT_I
-void fnRdTimedAccumAltI(uint8_t* i2cBuffer)
+// I2C command to read timed accumulation of analog channel ALT_I or PWR_I sent
+void fnRdTimedAccum(uint8_t* i2cBuffer)
 {
-    // there are four bytes in the unsigned long accumulate_alt_ti
-    unsigned long my_copy = accumulate_alt_ti; //updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+    uint32_t channel = 0;
+    channel += ((uint32_t)i2cBuffer[1])<<24;
+    channel += ((uint32_t)i2cBuffer[2])<<16;
+    channel += ((uint32_t)i2cBuffer[3])<<8;
+    channel += ((uint32_t)i2cBuffer[4]);
+    unsigned long my_copy; //I2C runs this in ISR but durring SMBus this is not run in ISR context
+    if (channel == ALT_I)
+    {
+        my_copy = accumulate_alt_ti;
+    }
+    else if (channel == PWR_I)
+    {
+        my_copy = accumulate_pwr_ti;
+    }
+    else
+    {
+        my_copy = 0; 
+    }
 
+    // there are four bytes in the unsigned long to send back
     i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
     i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
     i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
     i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
 
-// I2C command to read timed accumulation of analog channel PWR_I
+/* I2C command to read timed accumulation of analog channel PWR_I
 void fnRdTimedAccumPwrI(uint8_t* i2cBuffer)
 {
     // there are four bytes in the unsigned long accumulate_pwr_ti
-    unsigned long my_copy = accumulate_pwr_ti; //updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+    unsigned long my_copy = accumulate_pwr_ti; 
 
     i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
     i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
     i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
     i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
-}
+} */
 
 // I2C command for Analog referance EXTERNAL_AVCC
 // swap the I2C buffer with the ref_extern_avcc_uV in use
