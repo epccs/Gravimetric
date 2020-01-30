@@ -4,7 +4,7 @@
 
 Demonstration of General I/O, e.g. Blink an LED. 
 
-Also shows the UART core and how to redirect it to stdin and stdout, as well as some Python that sends an 'a' character to stop the LED from blinking. 
+It also links an Interrupt-Driven UART library for AVR Standard IO facilities, as well as some Python that sends an 'a' character to stop the LED from blinking. 
 
 ## Firmware Upload
 
@@ -49,10 +49,4 @@ picocom -b 38400 /dev/ttyAMA0
 a
 #exit is C-a, C-x
 ``` 
-
-# Notes
-
-I want to thank the open-source community for toolchains and development environments that are challenging without being impossible. This program is done with plane C and a Makefile; it demonstrates a practical way to write an AVR program that avoids the madness of using shared heap and stack memory on this device.
-
-https://github.com/epccs/Document/tree/master/HeapAndStack
 

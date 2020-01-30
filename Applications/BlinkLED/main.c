@@ -1,25 +1,27 @@
 /* Blink LED
 Copyright (C) 2017 Ronald Sutherland
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES 
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF 
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE 
+FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY 
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, 
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-For a copy of the GNU General Public License use
-http://www.gnu.org/licenses/gpl-2.0.html
+Note the library files are LGPL, e.g., you need to publish changes of them but can derive from this 
+source and copyright or distribute as you see fit (it is Zero Clause BSD).
+
+https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
  */ 
 
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <stdlib.h>
 #include "../lib/timers.h"
-#include "../lib/uart.h"
+#include "../lib/uart0.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
 
@@ -36,8 +38,8 @@ void setup(void)
     pinMode(STATUS_LED,OUTPUT);
     digitalWrite(STATUS_LED,HIGH);
 
-    /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stderr = stdout = stdin = uartstream0_init(BAUD);
+    /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
+    stderr = stdout = stdin = uart0_init(38400UL);
 
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers(); 
@@ -68,8 +70,8 @@ void abort_safe(void)
     // make sure pins are safe befor waiting on UART 
     pinMode(STATUS_LED,OUTPUT);
     digitalWrite(STATUS_LED,LOW);
-    // wait for the UART to finish
-    while (uart0_availableForWrite() != UART_TX0_BUFFER_SIZE );
+    // empty the UART befor halt
+    uart0_empty();
     // turn off interrupts and then loop on LED toggle 
     cli();
     while(1) 
@@ -87,7 +89,7 @@ int main(void)
     
     while (1) 
     {
-        if(uart0_available()) // refer to core file in ../lib/uart.c
+        if(uart0_available())
         {
             int input = getchar(); // standard C that gets a byte from stdin, which was redirected from the UART
             if (input == '$') 
@@ -95,7 +97,7 @@ int main(void)
                 printf_P(PSTR("{\"abort\":\"egg found\"}\r\n")); 
                 abort_safe();
             }
-            printf("%c\r\n", input); //standard C that sends the byte back to stdout which was redirected to the UART
+            printf("%c\r\n", input); //stdout was redirected to UART0
             if(input == 'a') // a will stop blinking.
             {
                 got_a = 1; 

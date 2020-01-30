@@ -4,14 +4,13 @@
 TARGET = blinkLED
 LIBDIR = ../lib
 OBJECTS = main.o \
-	$(LIBDIR)/uart.o \
+	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/timers.o 
 
 ## Chip and project-specific global definitions
 MCU   =  atmega324pb
 F_CPU = 16000000UL  
-BAUD  =  38400UL
-CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. 
+CPPFLAGS = -DF_CPU=$(F_CPU) -I. 
 
 LOCK_FUSE = 0xEF
 
@@ -66,7 +65,8 @@ bootload: ## upload to optiboot
 
 $(TARGET).elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ -o $@
-	$(SIZE) -C --mcu=$(MCU) $@
+	@echo binutils-avr do not have 324pb, but it is sized like a 324p
+	$(SIZE) -C --mcu=atmega324p $@
 	rm -f $(TARGET).o $(OBJECTS)
 
 clean: ## remove the image and its related files
