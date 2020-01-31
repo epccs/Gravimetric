@@ -34,6 +34,7 @@ static volatile uint8_t TxTail;
 static volatile uint8_t RxHead;
 static volatile uint8_t RxTail;
 
+static uint8_t options;
 volatile uint8_t UART0_error;
 
 ISR(USART0_RX_vect)
@@ -78,7 +79,7 @@ ISR(USART0_UDRE_vect)
     }
 }
 
-// Flush bytes from the transmit buffer, like the Arduino API.
+// Flush bytes from the transmit buffer with busy waiting, like the Arduino API.
 // https://www.arduino.cc/reference/en/language/functions/communication/serial/flush/
 void uart0_flush(void)
 {
@@ -88,11 +89,11 @@ void uart0_flush(void)
     };
 }
 
-// Remove any buffered incoming or outgoing serial data.
+// Immediately stop transmitting by removing any buffered outgoing serial data.
+// helps to reduce/avoid collision damage on full-duplex multi-drop
 void uart0_empty(void)
 {
     TxHead = TxTail;
-    RxHead = RxTail;
 }
 
 // Number of bytes available in the receive buffer, like the Arduino API.
@@ -117,7 +118,8 @@ int uart0_getchar(FILE *stream);
 static FILE uartstream0_f = FDEV_SETUP_STREAM(uart0_putchar, uart0_getchar, _FDEV_SETUP_RW);
 
 // Initialize the UART and return file handle, disconnect UART if baudrate is zero.
-FILE *uart0_init(uint32_t baudrate)
+// choices e.g., UART_TX_REPLACE_NL_WITH_CR & UART_RX_REPLACE_CR_WITH_NL
+FILE *uart0_init(uint32_t baudrate, uint8_t choices)
 {
     uint16_t ubrr = UART0_BAUD_SELECT(baudrate);
 
@@ -152,6 +154,8 @@ FILE *uart0_init(uint32_t baudrate)
         UBRR0L = (uint8_t) ubrr;
     }
 
+    options = choices;
+
     return &uartstream0_f;
 }
 
@@ -166,7 +170,9 @@ int uart0_putchar(char c, FILE *stream)
         ;// busy wait for free space in buffer
     }
 
-    if (c == '\n')
+    // I put a carriage return in the printf string  
+    // so I don't use UART_TX_REPLACE_NL_WITH_CR
+    if ( (options & UART_TX_REPLACE_NL_WITH_CR) && (c == '\n') )
     {
         TxBuf[next_index] = (uint8_t)'\r';
     }
@@ -202,7 +208,9 @@ int uart0_getchar(FILE *stream)
         RxTail = next_index;
         data = RxBuf[next_index]; // get byte from rx buffer
     }
-    //if(data == '\r') data = '\n';
+
+    // I use UART_RX_REPLACE_CR_WITH_NL to simplify command parsing from a host 
+    if ( (options & UART_RX_REPLACE_CR_WITH_NL) && (data == '\r') ) data = '\n';
     return (int) data;
 }
 

@@ -39,7 +39,7 @@ void setup(void)
     digitalWrite(STATUS_LED,HIGH);
 
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stderr = stdout = stdin = uart0_init(38400UL);
+    stderr = stdout = stdin = uart0_init(38400UL, UART_RX_REPLACE_CR_WITH_NL);
 
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers(); 
@@ -70,9 +70,11 @@ void abort_safe(void)
     // make sure pins are safe befor waiting on UART 
     pinMode(STATUS_LED,OUTPUT);
     digitalWrite(STATUS_LED,LOW);
-    // empty the UART befor halt
-    uart0_empty();
-    // turn off interrupts and then loop on LED toggle 
+    // flush the UART befor halt
+    uart0_flush();
+    _delay_ms(20); // wait for last byte to send
+    uart0_init(0, 0); // disable UART hardware 
+    // turn off interrupts and then spin loop a LED toggle 
     cli();
     while(1) 
     {
@@ -91,14 +93,25 @@ int main(void)
     {
         if(uart0_available())
         {
-            int input = getchar(); // standard C that gets a byte from stdin, which was redirected from the UART
+            // standard C has a libc function getchar() 
+            // which gets a byte from stdin.
+            // Since I redirected stdin to be from the UART0 this works.
+            int input = getchar();
+
+            // standard C has a libc function printf() 
+            // which sends a formated string to stdout.
+            // stdout was also redirected to UART0, so this also works.
+            printf("%c\r", input); 
+
             if (input == '$') 
             {
+                // Variant of printf() that uses a format string that resides in flash memory.
                 printf_P(PSTR("{\"abort\":\"egg found\"}\r\n")); 
                 abort_safe();
             }
-            printf("%c\r\n", input); //stdout was redirected to UART0
-            if(input == 'a') // a will stop blinking.
+
+            // press 'a' to stop blinking.
+            if(input == 'a') 
             {
                 got_a = 1; 
                 ++abort_yet; 
@@ -107,6 +120,8 @@ int main(void)
             {
               got_a = 0;
             }
+
+            // press 'a' more than five times to hault
             if (abort_yet >= 5) 
             {
                 abort_safe();
