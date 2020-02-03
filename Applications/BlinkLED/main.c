@@ -17,9 +17,10 @@ source and copyright or distribute as you see fit (it is Zero Clause BSD).
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
  */ 
 
+#include <stdbool.h>
+#include <stdlib.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
-#include <stdlib.h>
 #include "../lib/timers.h"
 #include "../lib/uart0.h"
 #include "../lib/pin_num.h"
@@ -39,7 +40,7 @@ void setup(void)
     digitalWrite(STATUS_LED,HIGH);
 
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stderr = stdout = stdin = uart0_init(38400UL, UART_RX_REPLACE_CR_WITH_NL);
+    stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
 
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers(); 

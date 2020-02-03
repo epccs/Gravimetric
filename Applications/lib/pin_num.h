@@ -22,11 +22,9 @@
 #define PinNum_h
 
 // avr-libc
+#include <stdbool.h>
 #include <avr/io.h>
 #include <util/atomic.h>
-
-// avr-gcc
-#include <stdbool.h>
 
 #define INPUT 0
 #define OUTPUT 1

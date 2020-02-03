@@ -2,7 +2,7 @@
 
 ## Overview
 
-Uart is an interactive command line program that demonstrates stdio redirect of a minimalized interrupt-driven UART for AVR. 
+Uart is an interactive command line program that demonstrates stdio redirect of a interrupt-driven UART for AVR. 
 
 ## Firmware Upload
 
@@ -49,6 +49,7 @@ Now connect with picocom (or ilk).
 ``` 
 #exit is C-a, C-x
 picocom -b 38400 /dev/ttyAMA0
+#picocom -b 38400 /dev/ttyUSB0
 ``` 
 
 

@@ -1,5 +1,5 @@
 /*
-    AVR Interrupt-Driven UART
+    Interrupt-Driven UART for AVR Standard IO facilities streams 
     Copyright (C) 2020 Ronald Sutherland
 
     This library is free software; you can redistribute it and/or
@@ -16,11 +16,25 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-    API is somewhat like Arduino Serial but done in C for AVR Standard IO facilities 
+    API has a few functions like Arduino Serial but is done in C for AVR Standard IO facilities streams
     https://www.microchip.com/webdoc/AVRLibcReferenceManual/group__avr__stdio.html
+    
+    The standard streams stdin, stdout, and stderr are provided, but contrary to the C standard, 
+    since avr-libc has no knowledge about applicable devices, these streams are not already 
+    pre-initialized at application startup. Also, since there is no notion of "file" whatsoever to 
+    avr-libc, there is no function fopen() that could be used to associate a stream to some device. 
+    Instead, the function fdevopen() is provided to associate a stream to a device, where the device 
+    needs to provide a function to send a character, to receive a character, or both. There is no 
+    differentiation between "text" and "binary" streams inside avr-libc. Character \n is sent literally 
+    down to the device's put() function. If the device requires a carriage return (\r) character to be 
+    sent before the linefeed, its put() routine must implement this 
+    
+    UART0_TX_REPLACE_NL_WITH_CR and UART0_RX_REPLACE_CR_WITH_NL may be used 
+    to filter data into and out of the uart.
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <util/atomic.h>
 #include "uart0.h"
 
@@ -43,7 +57,7 @@ ISR(USART0_RX_vect)
     uint8_t data;
  
     // check USARTn Control and Status Register A for Frame Error (FE) or Data OverRun (DOR)
-    uint8_t last_status = (UCSR0A & ((1<<FE0)|(1<<DOR)) );
+    uint8_t last_status = (UCSR0A & ((1<<FE)|(1<<DOR)) );
 
     // above errors are valid until UDR0 is read, e.g., now
     data = UDR0;
@@ -52,7 +66,7 @@ ISR(USART0_RX_vect)
     
     if ( next_index == RxTail ) 
     {
-        last_status += UART_BUFFER_OVERFLOW;
+        last_status += UART0_BUFFER_OVERFLOW;
     } 
     else 
     {
@@ -75,7 +89,7 @@ ISR(USART0_UDRE_vect)
     } 
     else 
     {
-        UCSR0B &= ~(1<<UDRIE0); // tx buffer empty, disable UDRE interrupt
+        UCSR0B &= ~(1<<UDRIE); // tx buffer empty, disable UDRE interrupt
     }
 }
 
@@ -98,16 +112,15 @@ void uart0_empty(void)
 
 // Number of bytes available in the receive buffer, like the Arduino API.
 // https://www.arduino.cc/reference/en/language/functions/communication/serial/available/
-uint16_t uart0_available(void)
+int uart0_available(void)
 {
     return (UART0_RX0_SIZE + RxHead - RxTail) & ( UART0_RX0_SIZE - 1);
 }
 
-// Number of bytes available for writing to the transmit buffer without blocking, like the Arduino API.
-// https://www.arduino.cc/reference/en/language/functions/communication/serial/availableforwrite/
-uint16_t uart0_availableForWrite(void)
+// Transmit buffer (all of it) is available for writing without blocking.
+bool uart0_availableForWrite(void)
 {
-    return (UART0_TX0_SIZE - ( (UART0_TX0_SIZE + TxHead - TxTail) & ( UART0_TX0_SIZE - 1) ) );
+    return (TxHead == TxTail);
 }
 
 // Protofunctions (code is latter) to allow UART0 to be used as a stream for printf, scanf, etc...
@@ -118,7 +131,7 @@ int uart0_getchar(FILE *stream);
 static FILE uartstream0_f = FDEV_SETUP_STREAM(uart0_putchar, uart0_getchar, _FDEV_SETUP_RW);
 
 // Initialize the UART and return file handle, disconnect UART if baudrate is zero.
-// choices e.g., UART_TX_REPLACE_NL_WITH_CR & UART_RX_REPLACE_CR_WITH_NL
+// choices e.g., UART0_TX_REPLACE_NL_WITH_CR & UART0_RX_REPLACE_CR_WITH_NL
 FILE *uart0_init(uint32_t baudrate, uint8_t choices)
 {
     uint16_t ubrr = UART0_BAUD_SELECT(baudrate);
@@ -148,8 +161,8 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
     }
     else
     {
-        UCSR0B = (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0); // enable TX and RX
-        UCSR0C = (3<<UCSZ00); // control frame format asynchronous, 8data, no parity, 1stop bit
+        UCSR0B = (1<<RXCIE)|(1<<RXEN)|(1<<TXEN); // enable TX and RX
+        UCSR0C = (3<<UCSZ0); // control frame format asynchronous, 8data, no parity, 1stop bit
         UBRR0H = (uint8_t)(ubrr>>8);
         UBRR0L = (uint8_t) ubrr;
     }
@@ -170,9 +183,9 @@ int uart0_putchar(char c, FILE *stream)
         ;// busy wait for free space in buffer
     }
 
-    // I put a carriage return in the printf string  
-    // so I don't use UART_TX_REPLACE_NL_WITH_CR
-    if ( (options & UART_TX_REPLACE_NL_WITH_CR) && (c == '\n') )
+    // I put a carriage return and newline in the printf string  
+    // so I don't use UART0_TX_REPLACE_NL_WITH_CR
+    if ( (options & UART0_TX_REPLACE_NL_WITH_CR) && (c == '\n') )
     {
         TxBuf[next_index] = (uint8_t)'\r';
     }
@@ -185,7 +198,7 @@ int uart0_putchar(char c, FILE *stream)
     // Data Register Empty Interrupt Enable (UDRIE)
     // When the UDRIE bit in UCSRnB is written to '1', the USART Data Register Empty Interrupt 
     // will be executed as long as UDRE is set (provided that global interrupts are enabled).
-    UCSR0B |= (1<<UDRIE0);
+    UCSR0B |= (1<<UDRIE);
 
     return 0;
 }
@@ -199,7 +212,7 @@ int uart0_getchar(FILE *stream)
 
     if ( RxHead == RxTail ) 
     {
-        UART0_error += UART_NO_DATA;
+        UART0_error += UART0_NO_DATA;
         data = 0;
     }
     else
@@ -209,8 +222,8 @@ int uart0_getchar(FILE *stream)
         data = RxBuf[next_index]; // get byte from rx buffer
     }
 
-    // I use UART_RX_REPLACE_CR_WITH_NL to simplify command parsing from a host 
-    if ( (options & UART_RX_REPLACE_CR_WITH_NL) && (data == '\r') ) data = '\n';
+    // I use UART0_RX_REPLACE_CR_WITH_NL to simplify command parsing from a host 
+    if ( (options & UART0_RX_REPLACE_CR_WITH_NL) && (data == '\r') ) data = '\n';
     return (int) data;
 }
 

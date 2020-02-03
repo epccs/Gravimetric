@@ -6,11 +6,10 @@
             "compilerPath": "/usr/bin/avr-gcc",
             "includePath": [
                 "${workspaceFolder}",
-                "/usr/lib/avr/include",
-                "/usr/lib/gcc/avr/5.4.0/include"
+                "${default}"
             ],
-            "forcedInclude": [ "${workspaceFolder}/lib/Atmel.ATmega_DFP.1.3.300.atpack/include/avr/iom324pb.h" ],
-            "defines": ["__AVR_ATmega324PB__"],
+            "forcedInclude": [ "${workspaceFolder}/lib/ATmega_DFP/include/avr/iom324pb.h" ],
+            "defines": ["__AVR_ATmega324PB__","F_CPU = 16000000UL"],
             "cStandard": "c11",
             "cppStandard": "c++17",
             "browse": {

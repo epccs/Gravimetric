@@ -5,7 +5,7 @@ TARGET = SelfTest
 LIBDIR = ../lib
 OBJECTS = main.o \
 	../Adc/references.o \
-	$(LIBDIR)/uart.o \
+	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/twi1.o \
 	$(LIBDIR)/rpu_mgr.o \
@@ -15,8 +15,7 @@ OBJECTS = main.o \
 ## Chip and project-specific global definitions
 MCU   =  atmega324pb
 F_CPU = 16000000UL  
-BAUD  =  38400UL
-CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. 
+CPPFLAGS = -DF_CPU=$(F_CPU) -I. 
 
 ## Cross-compilation
 CC = avr-gcc

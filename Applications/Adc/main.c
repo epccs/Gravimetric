@@ -17,10 +17,12 @@ source and copyright or distribute as you see fit (it is Zero Clause BSD).
 
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
 */
+
+#include <stdbool.h>
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include "../lib/timers.h"
-#include "../lib/uart.h"
+#include "../lib/uart0.h"
 #include "../lib/parse.h"
 #include "../lib/adc.h"
 #include "../lib/twi0.h"
@@ -78,14 +80,14 @@ void setup(void)
     // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
     initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     init_ADC_single_conversion(EXTERNAL_AVCC); // warning AREF must not be connected to anything
-    init_uart0_after_bootloader(); // bootloader may have the UART setup
+    uart0_init(0,0); // bootloader may have the UART enabled, a zero baudrate will disconnect it.
 
     // put ADC in Auto Trigger mode and fetch an array of channels
     enable_ADC_auto_conversion(BURST_MODE);
     adc_started_at = millis();
 
-    /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stdout = stdin = uartstream0_init(BAUD);
+    /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
+    stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
     
     /* Initialize I2C, with the internal pull-up 
         note: I2C scan will stop without a pull-up on the bus */
@@ -165,7 +167,7 @@ int main(void)
         adc_burst();
           
         // finish echo of the command line befor starting a reply (or the next part of a reply)
-        if ( command_done && (uart0_availableForWrite() == UART_TX0_BUFFER_SIZE) )
+        if ( command_done && uart0_availableForWrite() )
         {
             if ( !echo_on  )
             { // this happons when the address did not match 

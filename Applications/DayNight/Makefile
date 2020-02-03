@@ -7,7 +7,7 @@ OBJECTS = main.o \
 	day_night.o \
 	../Uart/id.o \
 	$(LIBDIR)/timers.o \
-	$(LIBDIR)/uart.o \
+	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
 	$(LIBDIR)/adc.o \
@@ -15,9 +15,8 @@ OBJECTS = main.o \
 
 ## Chip and project-specific global definitions
 MCU   =  atmega324pb
-F_CPU = 16000000UL  
-BAUD  =  38400UL
-CPPFLAGS = -DF_CPU=$(F_CPU) -DBAUD=$(BAUD) -I. 
+F_CPU = 16000000UL
+CPPFLAGS = -DF_CPU=$(F_CPU) -I. 
 
 ## Cross-compilation
 CC = avr-gcc

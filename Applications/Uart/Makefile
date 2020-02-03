@@ -5,7 +5,7 @@ TARGET = Uart
 LIBDIR = ../lib
 OBJECTS = main.o \
 	id.o \
-	$(LIBDIR)/uart.o \
+	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
 	$(LIBDIR)/timers.o \
