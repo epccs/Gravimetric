@@ -1,6 +1,7 @@
 # To Do
 
 i2c cmd 36 (analogTimedAccumulation) send analog channel return value for channel
+Timed Accumulation overflows to soon.
 Verify alternate power control with applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
@@ -15,22 +16,22 @@ This firmware is for the board manager.
 
 ## Overview
 
-The manager operates the multi-drop serial so that the host can bootload a single application controller or communicate with all of the connected devices. It can read voltage and current on both the input and an auxiliary input. Additional functions (battery charging, day-night state machine, SBC shutdown, and others) are a work in progress.
+The manager operates the multi-drop serial so that the host can bootload a single application controller or communicate with all of the connected application controllers. It can sense voltage and current on both the input and auxiliary input, turn on battery charging, turn off SBC power, operate SBC shutdown switch, and other related functions. The software is a work in progress and needs testing.
 
 
 ## Multi-Drop Serial
 
-In normal mode, the RX and TX lines (twisted pairs) are connected through transceivers to the controller board RX and TX pins while the DTR pair is connected to the bus manager UART and is used to set the system-wide bus state.
+In normal mode, the RX and TX signals (each a twisted pair) are connected through transceivers to the application microcontroller UART (RX and TX pins) while the DTR pair is connected to the manager UART and is used to set the system-wide multi-drop bus state.
 
-During lockout mode, the RX and TX serial lines are disconnected at the transceivers from the controller board RX and TX pins. Use LOCKOUT_DELAY to set the time in mSec.
+During lockout mode, the application controller RX and TX serial lines are disconnected by way of the transceivers control lines that are connected to the manager. Use LOCKOUT_DELAY to set the time in mSec.
 
-Bootload mode occurs when a byte on the DTR pair matches the RPU_ADDRESS of the shield. It will cause a pulse on the reset pin to activate the bootloader on the local microcontroller board. After the bootloader is done, the local microcontroller will run its application, which, if it reads the RPU_ADDRESS will cause the manager to send an RPU_NORMAL_MODE byte on the DTR pair. The RPU_ADDRESS is read with a command from the controller board. If the RPU_ADDRESS is not read, the bus manager will timeout but not connect the RX and TX transceivers to the local controller board. Use BOOTLOADER_ACTIVE to set the time in mSec; it needs to be less than LOCKOUT_DELAY.
+Bootload mode occurs when a byte (and its check) on the DTR pair matches the RPU_ADDRESS of the shield. It will cause a pulse on the reset pin to activate the bootloader on the local microcontroller board. After the bootloader is done, the local microcontroller will run its application, which, if it reads the RPU_ADDRESS, will cause the manager to send an RPU_NORMAL_MODE byte on the DTR pair. The RPU_ADDRESS is read with a command from the controller board. If the RPU_ADDRESS is not read, the bootload mode will timeout but not connect the RX and TX transceivers to the local application controller. Use BOOTLOADER_ACTIVE to set the time in mSec; it needs to be less than LOCKOUT_DELAY.
 
-The lockout mode occurs when a byte on the DTR pair does not match the RPU_ADDRESS of the manager. It will cause the lockout condition and last for a duration determined by the LOCKOUT_DELAY or when an RPU_NORMAL_MODE byte is seen on the DTR pair.
+The lockout mode occurs when a byte on the DTR pair does not match the RPU_ADDRESS of the manager. It will cause the lockout condition and last for a duration determined by the LOCKOUT_DELAY or when an RPU_NORMAL_MODE byte (and its check) is seen on the DTR pair.
 
-When nRTS (or nDTR on RPUadpt) are pulled active the bus manager will connect the HOST_TX and HOST_RX lines to the RX and TX pairs, and pull the nCTS (and nDSR) lines active to let the host know it is Ok to send. If the bus is in use, the host will remain disconnected from the bus. Note the Remote firmware sets a status bit at startup that prevents the host from connecting until it is cleared with an I2C command.
+When nRTS is active, the manager will control the transceiver to connect the HOST_TX, and HOST_RX lines to the multi-drop RX and TX twisted pairs. The manager will pull the nCTS line active to let the host know it is Ok to send. If the multi-drop bus has another active host, the local nRTS will be ignored, and the transceiver will remain disconnected. Note the manager firmware sets a status bit at startup that prevents the host from connecting until it is cleared with an I2C command.
 
-Arduino Mode is a permanent bootload mode so that the Arduino IDE can connect to a specific address (e.g., point to point). It needs to be enabled by I2C or SMBus. The command will cause a byte to be sent on the DTR pair that sets the arduino_mode thus overriding the lockout timeout and the bootload timeout (e.g., lockout and bootload mode are everlasting). 
+Arduino Mode is a permanent bootload mode so that the IDE can connect to a specific address (e.g., point to point). It needs to be enabled by I2C or SMBus. The command will cause a byte to be sent on the DTR pair that sets the arduino_mode, thus overriding the lockout timeout and the bootload timeout (e.g., lockout and bootload mode are everlasting). 
 
 Test Mode. I2C command to swithch to test_mode (save trancever control values). I2C command to recover trancever control bits after test_mode.
 
@@ -39,13 +40,13 @@ Power Management commands allow reading ADC channels, saving reference values, b
 
 ## Analog 
 
-Analog channels are connected to alternat input, and the power input into the board. The power input (PWR_V and PWR_I) allows guaging the power usage by the board. The alternat input (ALT_V and ALT_I) is for guaging power from a charging source, for example if power is from a battery and alternate from a charger (it needs to act like a current source not a voltage source).
+Analog channels are connected to both primary and alternate power inputs. The primary power input has ADC channels PWR_V and PWR_I that allow gauging the power usage by the board. The alternate power input has ADC channels ALT_V and ALT_I for gauging power from a charging source, for example, if primary power is from a battery and alternate is from a charger. The alternate input needs to be a current source (charger, PV, TEG, or ilk), not a voltage source.
 
-Timed Accumulation overflows to soon.
+Timed Accumulation is work in progress.
 
-Referances are multi-byte floats. The idea is to allow the SBC to access the values and use them for corrections.
+Referances are multi-byte floats. The idea is to allow access to the values so they can be used with channel corrections.
 
-Each channel could use a correction value as well but is flash available after the must-haves.
+Each channel has a correction that, when combined with the reference (and timed accumulation), will give the corrected value.
 
 
 ## Firmware Upload
@@ -106,8 +107,8 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [Point To Multi-Point]: ./PointToMultiPoint.md
 
-0. access the manager address (used for multi-drop bus).
-1. access the manager address (used for multi-drop bus).
+0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
+1. not used.
 2. read the multi-drop bootload address sent when DTR/RTS toggles.
 3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
@@ -135,12 +136,12 @@ Note: arduino_mode is point to point.
 
 [Power Management]: ./PowerManagement.md
 
-32. Analog channel 0 for ALT_I (uint16_t)
-33. Analog channel 1 for ALT_V (uint16_t)
-34. Analog channel 6 for PWR_I (uint16_t)
-35. Analog channel 7 for PWR_V (uint16_t)
-36. Analog timed accumulation for ALT_IT (uint32_t)
-37. Analog timed accumulation for PWR_IT (uint32_t)
+32. analogRead(uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return reading)
+33. calibrationRead(uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) after command then pass float as uint32_t, return channel and callibration)
+34. not used
+35. not used
+36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
+37. not used
 38. Analog referance for EXTERNAL_AVCC (uint32_t)
 39. Analog referance for INTERNAL_1V1 (uint32_t)
 
@@ -153,9 +154,9 @@ Note: arduino_mode is point to point.
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
-52. evening_debouce time (uint32_t)
-53. morning_debouce time (uint32_t)
-54. read millis time (uint32_t)
+52. access evening_debouce millis time (uint32_t)
+53. access morning_debouce millis time (uint32_t)
+54. read daynight_timer millis time (uint32_t)
 55. 
 
 Note: debounce is for day-night state machine (it is not a test thing and may move).

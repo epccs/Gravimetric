@@ -2,7 +2,7 @@
 
 0..15 (Ox00..0xF | 0b00000000..0b00001111)
 
-0. access the manager address (used for multi-drop bus).
+0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
 1. not used.
 2. read the multi-drop bootload address sent when DTR/RTS toggles.
 3. write the multi-drop bootload address that will be sent when DTR/RTS toggles

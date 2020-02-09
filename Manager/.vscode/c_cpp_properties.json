@@ -9,7 +9,7 @@
                 "${default}"
             ],
             "forcedInclude": [ "${workspaceFolder}/lib/ATmega_DFP/include/avr/iom328pb.h" ],
-            "defines": ["__AVR_ATmega328PB__", "HOST_LOCKOUT=1"],
+            "defines": ["__AVR_ATmega328PB__","F_CPU = 12000000UL"],
             "cStandard": "c11",
             "cppStandard": "c++17",
             "browse": {

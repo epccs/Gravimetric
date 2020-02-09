@@ -17,10 +17,11 @@ Copyright (C) 2019 Ronald Sutherland
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <stdbool.h>
 #include <util/delay.h>
 #include <avr/io.h>
 #include "../lib/timers.h"
-#include "../lib/uart.h"
+#include "../lib/uart0.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
 #include "main.h"

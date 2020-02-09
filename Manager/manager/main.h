@@ -13,5 +13,9 @@
 #define RPU_HOST_CONNECT 0x30
 // byte broadcast on DTR pair when HOST_nRTS is no longer active
 #define RPU_HOST_DISCONNECT ~RPU_HOST_CONNECT
+// at power up set HOST_LOCKOUT_STATUS bit
+#define HOST_LOCKOUT 1
+// at power up send a byte on the DTR pair to unlock the bus
+//#define DISCONNECT_AT_PWRUP 1
 
 #endif // Main_H 

@@ -1,20 +1,29 @@
-/* Remote is a RPUBUS manager firmware
-Copyright (C) 2019 Ronald Sutherland
+/* manager is a RPUBUS firmware
+(c) 2020 Ronald Sutherland.
 
- This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+Subject to your compliance with these terms, you may use this software and any derivatives 
+exclusively with Ronald Sutherland products. It is your responsibility to comply with third 
+party license terms applicable to your use of third party software (including open source 
+software) that accompany Ronald Sutherland software.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+THIS SOFTWARE IS SUPPLIED BY RONALD SUTHERLAND "AS IS". NO WARRANTIES, WHETHER
+EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY
+IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS
+FOR A PARTICULAR PURPOSE.
 
-For a copy of the GNU General Public License use
-http://www.gnu.org/licenses/gpl-2.0.html
+IN NO EVENT WILL RONALD SUTHERLAND BE LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE,
+INCIDENTAL OR CONSEQUENTIAL LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND
+WHATSOEVER RELATED TO THE SOFTWARE, HOWEVER CAUSED, EVEN IF RONALD SUTHERLAND
+HAS BEEN ADVISED OF THE POSSIBILITY OR THE DAMAGES ARE FORESEEABLE. TO
+THE FULLEST EXTENT ALLOWED BY LAW, RONALD SUTHERLAND'S TOTAL LIABILITY ON ALL
+CLAIMS IN ANY WAY RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT
+OF FEES, IF ANY, THAT YOU HAVE PAID DIRECTLY TO RONALD SUTHERLAND FOR THIS
+SOFTWARE.
+
+All the other object files are from LGPL source and are linked with this object file after compiling.
  */ 
 
+#include <stdbool.h>
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/eeprom.h>
@@ -22,7 +31,7 @@ http://www.gnu.org/licenses/gpl-2.0.html
 #include "../lib/timers.h"
 #include "../lib/twi0.h"
 #include "../lib/twi1.h"
-#include "../lib/uart.h"
+#include "../lib/uart0.h"
 #include "../lib/adc.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
@@ -92,8 +101,8 @@ void setup(void)
     enable_ADC_auto_conversion(BURST_MODE);
     adc_started_at = millis();
 
-    /* Initialize UART, it returns a pointer to FILE so redirect of stdin and stdout works*/
-    stdout = stdin = uartstream0_init(DTR_BAUD);
+    /* Initialize UART0 to 250 kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
+    stdout = stdin = uart0_init(DTR_BAUD,UART0_RX_REPLACE_CR_WITH_NL);
 
     // can use with a true I2C bus master that does clock stretching and repeated starts 
     twi0_setAddress(I2C0_ADDRESS);
@@ -140,8 +149,8 @@ void setup(void)
     printf("%c", uart_output); 
 #endif
 #if defined(HOST_LOCKOUT)
-// this will keep the host off the bus until the HOST_LOCKOUT_STATUS bit in status_byt is clear 
-// status_byt is zero at this point, but this shows how to set the bit without changing other bits
+    // this will keep the host off the bus until the HOST_LOCKOUT_STATUS bit in status_byt is clear 
+    // status_byt was zero at this point, but this sets the bit without changing the other bits
     status_byt |= (1<<HOST_LOCKOUT_STATUS);
 #endif
 }

@@ -33,6 +33,11 @@ This board has a serial bus that allows multiple boards to be connected to a Sin
 Diverting a calibration fluid onto a scale during a precisely measured time while measuring the meter flow pulses is how I am going to calibrate my meters. The start and stop events will be synchronized to the diversion control, and their event time can be compared to the flow meter events. The START and STOP can be from a volume that is being calibrated.
 
 
+## Licenses
+
+Each source file that can be compiled into an Executable and Linkable Format (e.g., ELF) and then linked with an application has a license included with its source. The linked objects have LGPL source,  while the final (target) source has ether a restrictive license or is zero-clause BSD. The restrictive license is for the manager firmware, it is not free, and you should not be using it on your projects (unless it is a product from Ronald Sutherland). The manager firmware runs on the products manager microcontroller. The zero-clause BSD license is for the examples that run on the application microcontroller; it allows a developer to derive software that they can then license in any way chosen. Keep in mind that the linked objects that I have provided with the examples are LGPL, and it is on you to respect those licenses.
+
+
 ## AVR toolchain
 
 This board uses the AVR toolchain. I use the one from Debian on Ubuntu,  Raspbian, Windows with WSL, Mac and other Operating Systems. With the toolchain installed, the AVR application can compile locally. I am not supplying the development tools; they are a community effort. 

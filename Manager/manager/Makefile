@@ -15,7 +15,7 @@ OBJECTS = main.o \
 	battery_limits.o \
 	daynight_limits.o \
 	daynight_state.o \
-	$(LIBDIR)/uart.o \
+	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/twi0.o \
@@ -35,12 +35,6 @@ HIGH_FUSE = 0xD6
 EXTENDED_FUSE = 0xFD
 UNLOCK_FUSE = 0xFF
 LOCK_FUSE = 0xEF
-
-# at power up send a byte on the DTR pair to unlock the bus
-# CPPFLAGS += -DDISCONNECT_AT_PWRUP=1
-
-# at power up set HOST_LOCKOUT_STATUS bit
-CPPFLAGS += -DHOST_LOCKOUT=1
 
 # Cross-compilation
 CC = avr-gcc

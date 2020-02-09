@@ -6,9 +6,9 @@
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
-52. evening_debouce time (uint32_t)
-53. morning_debouce time (uint32_t)
-54. read millis time (uint32_t)
+52. access evening_debouce millis time (uint32_t)
+53. access morning_debouce millis time (uint32_t)
+54. read daynight_timer millis time (uint32_t)
 55. 
 
 Note: evening_debouce and morning_debouce are used for the day-night state machine, the command number may change at some point. 
@@ -253,7 +253,7 @@ print(bus.read_i2c_block_data(42, 51, 2))
 
 ## Cmd 52 from a controller /w i2c-debug to access evening_debouce
 
-Send an ignored long integer (0) in four bytes to see what the evening_debouce value is.
+Send command and an ignored long integer (0) in four bytes to see what the evening_debouce value is.
 
 ``` 
 # I am using the bootload interface 
@@ -268,7 +268,7 @@ picocom -b 38400 /dev/ttyUSB0
 
 The four bytes sum to 1,200,000 (e.g., 0*(2**24) + 0x12*(2**16) + 0x4F*(2**8) + 0x80) mSec or 20 min.
 
-Data that is outside the valid area is ignored (8000 to 3,600,000 or 8sec to 60 min). The limits are in daynight_limits.h. 
+Values that are outside the valid range are ignored (8000 to 3,600,000 or 8sec to 60 min). The limits are in daynight_limits.h. 
 
 ``` 
 /1/ibuff 52,0,0,31,65
@@ -302,7 +302,7 @@ Same as command 52 (above) but for morning.
 
 ## Cmd 54 from a controller /w i2c-debug to read manager daynight millis timer
 
-Read the Day-Night state machine timer, it is used to do the above debounce.
+Read the Day-Night state machine timer, it is used to debounce day and night.
 
 TBD
 
