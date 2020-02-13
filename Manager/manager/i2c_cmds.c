@@ -18,6 +18,7 @@ Copyright (C) 2019 Ronald Sutherland
 */
 
 #include <stdbool.h>
+#include <string.h>
 #include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/twi0.h"
@@ -34,6 +35,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "battery_limits.h"
 #include "daynight_limits.h"
 #include "daynight_state.h"
+#include "calibration_limits.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
@@ -404,33 +406,50 @@ void fnAnalogRead(uint8_t* i2cBuffer)
     i2cBuffer[2] = ( (0x00FF & adc_reading) ); 
 }
 
-/* remove: I2C command to read analog channel 1 (ten bits: 0..1023)
-// high byte is after command byte, then low byte next.
-void fnRdAdcAltV(uint8_t* i2cBuffer)
+void fnCalibrationRead(uint8_t* i2cBuffer)
 {
-    uint16_t adc_buffer = analogRead(ALT_V);
-    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
-    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
-}
+    uint8_t is_channel_with_writebit = i2cBuffer[1];
+    uint8_t channel  = is_channel_with_writebit & CAL_CHANNEL_MASK; // removed the writebit
+    if ( (channel == ALT_I) || (channel == ALT_V) \
+            || (channel == PWR_I) || (channel == PWR_V) )
+    {
+        channel_with_writebit = is_channel_with_writebit;
 
-// I2C command to read analog channel 6 (ten bits: 0..1023)
-// high byte is after command byte, then low byte next.
-void fnRdAdcPwrI(uint8_t* i2cBuffer)
-{
-    uint16_t adc_buffer = analogRead(PWR_I);
-    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
-    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
-}
+        // I will work with float as a uint32_t (both are four bytes)
+        uint32_t old;
+        memcpy(&old, &calMap[channelMap[channel].cal_map].calibration, sizeof old);
+        uint32_t new = 0;
+        new += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
+        i2cBuffer[2] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
 
-// I2C command to read analog channel 7 (ten bits: 0..1023)
-// high byte is after command byte, then low byte next.
-void fnRdAdcPwrV(uint8_t* i2cBuffer)
-{
-    uint16_t adc_buffer = analogRead(PWR_V);
-    i2cBuffer[1] = ( (0xFF00 & adc_buffer) >>8 ); 
-    i2cBuffer[2] = ( (0x00FF & adc_buffer) ); 
+        new += ((uint32_t)i2cBuffer[3])<<16;
+        i2cBuffer[3] =  ( (0x00FF0000UL & old) >>16 ); 
+
+        new += ((uint32_t)i2cBuffer[4])<<8;
+        i2cBuffer[4] =  ( (0x0000FF00UL & old) >>8 ); 
+
+        new += ((uint32_t)i2cBuffer[5]);
+        i2cBuffer[5] =  ( (0x000000FFUL & old) ); 
+
+        // new is ready
+        if (is_channel_with_writebit & CAL_CHANNEL_WRITEBIT) // keep in SRAM if writebit is set
+        {
+            memcpy(&calMap[channelMap[channel].cal_map].calibration, &new, sizeof calMap[channelMap[channel].cal_map].calibration);
+        }
+
+        // CAL_0_TOSAVE << channelMap[channel].cal_map 
+        // if cal_map is 1 then CAL_0_TOSAVE << 1 gives CAL_1_TOSAVE 
+        cal_loaded = CAL_0_TOSAVE << channelMap[channel].cal_map; // main loop will save to eeprom or load default value if out of range
+    }
+    else // bad channel  
+    {
+        i2cBuffer[1] = 0x7F;
+        i2cBuffer[2] = 0xFF; // 0xFFFFFFFF is nan as a float
+        i2cBuffer[3] = 0xFF;
+        i2cBuffer[4] = 0xFF;
+        i2cBuffer[5] = 0xFF;
+    }
 }
-remove: */
 
 // I2C command to read timed accumulation of analog channel ALT_I or PWR_I sent
 void fnRdTimedAccum(uint8_t* i2cBuffer)
@@ -460,18 +479,6 @@ void fnRdTimedAccum(uint8_t* i2cBuffer)
     i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
     i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
-
-/* I2C command to read timed accumulation of analog channel PWR_I
-void fnRdTimedAccumPwrI(uint8_t* i2cBuffer)
-{
-    // there are four bytes in the unsigned long accumulate_pwr_ti
-    unsigned long my_copy = accumulate_pwr_ti; 
-
-    i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
-    i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
-    i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
-    i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
-} */
 
 // I2C command for Analog referance EXTERNAL_AVCC
 // swap the I2C buffer with the ref_extern_avcc_uV in use

@@ -1,5 +1,5 @@
 /*
-state for RPUBUS manager
+state for manager of the multidrop serial (RPUBUS)
 Copyright (C) 2019 Ronald Sutherland
 
   This library is free software; you can redistribute it and/or

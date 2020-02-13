@@ -1,10 +1,12 @@
 # build manager from source for ATMega328pb on a Gravimetric board
-# when files for manager change the binary image needs updated
 # https://www.gnu.org/software/make/manual/make.html
 TARGET = manager
 LIBDIR = ../lib
-OBJECTS = main.o \
-	rpubus_manager_state.o \
+# these have a restricted license, source is not published
+OBJECTRISTRICT = main.o \
+	calibration_limits.o
+# these are LGPL license
+OBJECTS = rpubus_manager_state.o \
 	dtr_transmition.o \
 	i2c_cmds.o \
 	smbus_cmds.o \
@@ -94,15 +96,16 @@ ree_linuxspi: ## with an R-Pi SPI port recover the saved eeprom
 	sudo avrdude -v -p $(MCU) -c linuxspi -P /dev/spidev0.0 -U eeprom:w:$(TARGET)_$(MCU)_eeprom.hex
 	rm $(TARGET)_$(MCU)_eeprom.hex
 
-# binutils (e.g. avr-size) is not getting updates (e.g., atmega328pb is missing)
-# I think only Microchip can fix this issue
-$(TARGET).elf: $(OBJECTS)
+# binutils (e.g. avr-size) is missing atmega328pb
+# object file from restricted source license need to be kept and distrubuted so they can be linked with
+# this allows others to modify the LGPL source and build objects that can link with the provided objects from the restricted source
+$(TARGET).elf: $(OBJECTS) $(OBJECTRISTRICT)
 	$(CC) $(LDFLAGS) $(TARGET_ARCH) $^ -o $@
 	$(SIZE) -C --mcu=atmega328p $@
 	rm -f $(TARGET).o $(OBJECTS)
 
-clean: ## remove the image and its related files
-	rm -f $(TARGET).hex $(TARGET).map $(TARGET).elf $(TARGET).lst
+clean: ## remove the image and related files
+	rm -f $(TARGET).hex $(TARGET).map $(TARGET).elf $(TARGET).lst $(OBJECTRISTRICT)
  
 %.lst: %.elf
 	$(OBJDUMP) -h -S $< > $@

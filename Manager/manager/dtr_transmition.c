@@ -1,5 +1,5 @@
 /*
-DTR pair transmition for RPUBUS manager
+DTR pair transmition for multidrop serial (RPUBUS) manager(s)
 Copyright (C) 2019 Ronald Sutherland
 
   This library is free software; you can redistribute it and/or

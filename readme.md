@@ -35,7 +35,17 @@ Diverting a calibration fluid onto a scale during a precisely measured time whil
 
 ## Licenses
 
-Each source file that can be compiled into an Executable and Linkable Format (e.g., ELF) and then linked with an application has a license included with its source. The linked objects have LGPL source,  while the final (target) source has ether a restrictive license or is zero-clause BSD. The restrictive license is for the manager firmware, it is not free, and you should not be using it on your projects (unless it is a product from Ronald Sutherland). The manager firmware runs on the products manager microcontroller. The zero-clause BSD license is for the examples that run on the application microcontroller; it allows a developer to derive software that they can then license in any way chosen. Keep in mind that the linked objects that I have provided with the examples are LGPL, and it is on you to respect those licenses.
+Each source file that can be compiled into an Executable and Linkable Format (e.g., ELF) and then linked with an application has a license within its source. Linking objects have LGPL source, with objects that have a restrictive license or zero-clause BSD is allowed. The restrictive license is for the manager firmware, it is not free, and you should not be using it on your projects (unless it is a product from Ronald Sutherland). The manager firmware runs on the products manager microcontroller. The zero-clause BSD license is for the examples that run on the application microcontroller; it allows a developer to derive software that they can then license in any way chosen. Keep in mind that the linked objects that I have provided with the examples are LGPL, and it is on you to respect those licenses.
+
+If I modify an LGPL source, I need to publish it. If I add the totality of my source to it, I need to publish that. If an IDE copies the code from an LGPL library into my program and then compiles the totality without linking, that is not the correct use of the LGPL.
+
+![LGPL](./Hardware/Documents/Practical_GPL_Compliance_Digital_page62.png "LGPL")
+
+https://www.linuxfoundation.org/open-source-management/2017/05/practical-gpl-compliance/
+
+The flowchart above is from "Practical GPL Compliance" and is for section 4.d of the LGPL. The preprocessor includes headers before compiling, so there needs to be a way to allow that. If a header has an LGPL license, the preprocessor will trigger the need to publish when it is included because the result is a derivative. When I got a speeding ticket, my excuse, "I did not know the speed officer," did not work. Section 3 is what allows using header files (it does not, however, allow an IDE to mass all the source into a single file). 
+
+https://www.gnu.org/licenses/lgpl-3.0.txt
 
 
 ## AVR toolchain

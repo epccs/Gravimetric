@@ -15,10 +15,6 @@ Copyright (C) 2019 Ronald Sutherland
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-  I believe the LGPL is used in things like libraries and allows you to include them in 
-  application code without the need to release the application source while GPL requires 
-  that all modifications be provided as source when distributed.
 */
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
@@ -153,8 +149,8 @@ uint8_t LoadAnalogRefFromEEPROM()
     return 0;
 }
 
-// save calibration referances from I2C to EEPROM (if valid)
-void CalReferancesFromI2CtoEE(void)
+// save referances from I2C to EEPROM (if valid)
+void ReferancesFromI2CtoEE(void)
 {
     if (ref_loaded > REF_DEFAULT)
     {
