@@ -12,7 +12,7 @@
 
 extern void initCommandBuffer(void);
 extern void StartEchoWhenAddressed(char);
-extern void AssembleCommand(char);
+extern void AssembleCommand(int);
 extern uint8_t findArgument(uint8_t);
 extern uint8_t findCommand(void);
 extern unsigned long is_arg_in_ul_range (uint8_t, unsigned long, unsigned long);

@@ -159,7 +159,7 @@ int main(void)
         if ( command_done && uart0_available() )
         {
             // dump the transmit buffer to limit a collision 
-            uart0_flush(); 
+            uart0_empty(); 
             initCommandBuffer();
         }
         

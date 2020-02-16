@@ -271,7 +271,7 @@ int main(void)
         if ( command_done && uart0_available() )
         {
             // dump the transmit buffer to limit a collision 
-            uart0_flush();  // ../lib/uart.c
+            uart0_empty();  // ../lib/uart.c
             initCommandBuffer();
         }
 

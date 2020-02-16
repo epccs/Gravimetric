@@ -150,19 +150,19 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
     RxHead = 0;
     RxTail = 0;
 
-    if (ubrr & 0x8000) 
-    {
-        UCSR0A = (1<<U2X0);  //Double speed mode (status register)
-        ubrr &= ~0x8000;
-    }
-
-    // disconnect UART if baud is zero
+    // disconnect UART if baudrate is zero (ubrr is 0/-1 in this case)
     if (ubrr == 0)
     {
-        UCSR0B = 0;
+        uint8_t local_UCSR0B = UCSR0B & ~(1<<TXEN0); // trun off the transmiter
+        UCSR0B = local_UCSR0B;
     }
     else
     {
+        if (ubrr & 0x8000) 
+        {
+            UCSR0A = (1<<U2X0);  //Double speed mode (status register)
+            ubrr &= ~0x8000;
+        }
         UCSR0B = (1<<RXCIE0)|(1<<RXEN0)|(1<<TXEN0); // enable TX and RX
         UCSR0C = (3<<UCSZ00); // control frame format asynchronous, 8data, no parity, 1stop bit
         UBRR0H = (uint8_t)(ubrr>>8);

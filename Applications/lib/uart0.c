@@ -1,36 +1,21 @@
 /*
-    Interrupt-Driven UART for AVR Standard IO facilities streams 
-    Copyright (C) 2020 Ronald Sutherland
+Interrupt-Driven UART for AVR Standard IO facilities streams 
+Copyright (C) 2020 Ronald Sutherland
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES 
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF 
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE 
+FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY 
+DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, 
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, 
+ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-    API has a few functions like Arduino Serial but is done in C for AVR Standard IO facilities streams
-    https://www.microchip.com/webdoc/AVRLibcReferenceManual/group__avr__stdio.html
+https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
     
-    The standard streams stdin, stdout, and stderr are provided, but contrary to the C standard, 
-    since avr-libc has no knowledge about applicable devices, these streams are not already 
-    pre-initialized at application startup. Also, since there is no notion of "file" whatsoever to 
-    avr-libc, there is no function fopen() that could be used to associate a stream to some device. 
-    Instead, the function fdevopen() is provided to associate a stream to a device, where the device 
-    needs to provide a function to send a character, to receive a character, or both. There is no 
-    differentiation between "text" and "binary" streams inside avr-libc. Character \n is sent literally 
-    down to the device's put() function. If the device requires a carriage return (\r) character to be 
-    sent before the linefeed, its put() routine must implement this 
-    
-    UART0_TX_REPLACE_NL_WITH_CR and UART0_RX_REPLACE_CR_WITH_NL may be used 
-    to filter data into and out of the uart.
+UART0_TX_REPLACE_NL_WITH_CR and UART0_RX_REPLACE_CR_WITH_NL may be used 
+to filter data into and out of the uart.
 */
 
 #include <stdio.h>
@@ -130,7 +115,8 @@ int uart0_getchar(FILE *stream);
 // Stream declaration for stdio
 static FILE uartstream0_f = FDEV_SETUP_STREAM(uart0_putchar, uart0_getchar, _FDEV_SETUP_RW);
 
-// Initialize the UART and return file handle, disconnect UART if baudrate is zero.
+// Initialize the UART and return file handle
+// disable UART if baudrate is zero
 // choices e.g., UART0_TX_REPLACE_NL_WITH_CR & UART0_RX_REPLACE_CR_WITH_NL
 FILE *uart0_init(uint32_t baudrate, uint8_t choices)
 {
@@ -138,7 +124,7 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
 
     /* UART: how optiboot does it.
           UCSR0A = _BV(U2X0); //Double speed mode 
-          UCSR0B = _BV(RXEN0) | _BV(TXEN0); // enable TX and RX glitch free
+          UCSR0B = _BV(RXEN0) | _BV(TXEN0); // enable TX and RX
           UCSR0C = (1<<UCSZ00) | (1<<UCSZ01); // control frame format
           UBRR0L = (uint8_t)( (F_CPU + BAUD * 4L) / (BAUD * 8L) - 1 );
     */
@@ -148,19 +134,19 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
     RxHead = 0;
     RxTail = 0;
 
-    if (ubrr & 0x8000) 
+    // disconnect UART if baudrate is zero (ubrr is 0/-1 in this case)
+    if (baudrate == 0)
     {
-        UCSR0A = (1<<U2X0);  //Double speed mode (status register)
-        ubrr &= ~0x8000;
-    }
-
-    // disconnect UART if baud is zero
-    if (ubrr == 0)
-    {
-        UCSR0B = 0;
+        uint8_t local_UCSR0B = UCSR0B & ~(1<<TXEN); // trun off the transmiter
+        UCSR0B = local_UCSR0B;
     }
     else
     {
+        if (ubrr & 0x8000) 
+        {
+            UCSR0A = (1<<U2X0);  //Double speed mode (bit in status register)
+            ubrr &= ~0x8000;
+        }
         UCSR0B = (1<<RXCIE)|(1<<RXEN)|(1<<TXEN); // enable TX and RX
         UCSR0C = (3<<UCSZ0); // control frame format asynchronous, 8data, no parity, 1stop bit
         UBRR0H = (uint8_t)(ubrr>>8);

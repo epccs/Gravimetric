@@ -22,10 +22,11 @@ avr-libc may have some String tokenization in C
 https://onebyezero.blogspot.com/2018/12/string-tokenization-in-c.html
 */
 #include <ctype.h>
-#include <avr/pgmspace.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <avr/pgmspace.h>
 #include "parse.h"
-#include "uart.h"
+#include "uart0.h"
 
 // used to assemble command line
 char command_buf[COMMAND_BUFFER_SIZE];
@@ -70,7 +71,7 @@ void StartEchoWhenAddressed(char address)
 }
 
 // assemble command line from incoming char's 
-void AssembleCommand(char input) 
+void AssembleCommand(int input) 
 {
     // a return or new-line finishes the line (or starts a new command line)
     if ( (input == '\r') || (input == '\n') ) // pressing enter in picocom sends a \r

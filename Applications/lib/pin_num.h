@@ -15,8 +15,8 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  
-   Hacked from William Greiman to work in C with my board
-   Functions are inspired by Wiring from Hernando Barragan
+   inline functions are inspired by William Greiman 
+   some functions are inspired by Wiring from Hernando Barragan
  */
 #ifndef PinNum_h
 #define PinNum_h
