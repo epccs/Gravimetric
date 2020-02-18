@@ -64,34 +64,62 @@ picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 33,7
-{"txBuffer[3]":[{"data":"0x21"},{"data":"0x7"},{"data":"0x7"}]}
+{"txBuffer[3]":[{"data":"0x21"},{"data":"0x7"}]}
 /1/ibuff 0,0,0,0
 {"txBuffer[6]":[{"data":"0x21"},{"data":"0x7"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
 /1/iread? 6
-this is broken atm
-{"rxBuffer":[{"data":"0x21"},{"data":"0x7"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
-#{"rxBuffer":[{"data":"0x21"},{"data":"0x7"},{"data":"0x40"},{"data":"0xEA"},{"data":"0x88"},{"data":"0x1A"}]}
+{"rxBuffer":[{"data":"0x21"},{"data":"0x7"},{"data":"0x3B"},{"data":"0xEA"},{"data":"0x88"},{"data":"0x1A"}]}
+/1/ibuff 33,6
+{"txBuffer[3]":[{"data":"0x21"},{"data":"0x6"}]}
+/1/ibuff 0,0,0,0
+{"txBuffer[6]":[{"data":"0x21"},{"data":"0x6"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x21"},{"data":"0x6"},{"data":"0x39"},{"data":"0x96"},{"data":"0x96"},{"data":"0x96"}]}
 ``` 
 
 note: i2c-debug can add up to five arguments at a time into txBuffer.
 
 ALT_I is measured with Analog channel 0 from a 0.018 Ohm sense resistor that has a pre-amp with gain of 50 connected.
 
+``` python
+# default calibration value for each bit on ALT_I, which has 0.018 Ohm sense resistor and gain of 50
+(1.0/(1<<10))/(0.068*50.0)
+0.0002872242647058823
+```
+
 ALT_V is measured with Analog channel 1 from a divider with 100k and 10k.
+
+``` python
+# default calibration value for each bit on ALT_V, which is a divider of 100k and 10.0k
+(1.0/(1<<10))*((100+10.0)/10.0)
+0.0107421875
+```
 
 PWR_V is measured with Analog channel 7 from a divider with 100k and 15.8k, its calibration value is passed in four bytes starting with the high byte. Use it with the referance to correct the analogRead value (e.g., (analogRead/1024)*referance*calibrationRead.
 
 ``` python
+# default calibration value for each bit on PWR_V, which is a divider of 100k and 15.8k
+(1.0/(1<<10))*((100+15.8)/15.8)
+0.0071573378
 from struct import *
 # how does python pack a float?
-unpack('BBBB', pack('f', (100+15.8)/15.8) )
-(26, 136, 234, 64)
+unpack('BBBB', pack('f', (1.0/(1<<10))*((100+15.8)/15.8)) )
+(26, 136, 234, 59)
 # shows that python packing order is high byte last, but my I2C data is high byte first (flip order). 
-unpack('f', pack('BBBB', 0x1A, 0x88, 0xEA, 0x40))
-(7.329113960266113,)
+unpack('f', pack('BBBB', 0x1A, 0x88, 0xEA, 0x3B))
+(0.0071573378,)
+# precision is 6..7 decimal digits
 ```
 
 PWR_I is measured with Analog channel 6 from a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected, its two bytes are from analogRead and sum to 20 (e.g., 0x14). The corrected value is about 0.029A (e.g., (analogRead/1024)*referance/(0.068*50.0) ) where the referance is 5V.
+
+``` python
+# default calibration value for each bit on PWR_I, which has 0.068 Ohm sense resistor and gain of 50
+(1.0/(1<<10))/(0.068*50.0)
+0.0002872242647058823
+unpack('f', pack('BBBB', 0x96, 0x96, 0x96, 0x39))
+(0.0002872242475859821,)
+```
 
 Add CALIBRATION_SET (0x80) to channel to save the calibration value sent (otherwise it is ignored).
 

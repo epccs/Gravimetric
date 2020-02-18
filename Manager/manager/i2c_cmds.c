@@ -49,7 +49,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     {
         {fnRdMgrAddr, fnNull, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
-        {fnAnalogRead, fnNull, fnNull, fnNull, fnRdTimedAccum, fnNull, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
+        {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
 
@@ -159,19 +159,6 @@ void fnRdMgrAddrQuietly(uint8_t* i2cBuffer)
         return;
     }
 }
-
-/* (Obsolete) I2C command to access manager address
-void fnWtMgrAddr(uint8_t* i2cBuffer)
-{
-    uint8_t tmp_addr = i2cBuffer[1];
-    i2cBuffer[1] = rpu_address; // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
-    if ( (tmp_addr>='0') && (tmp_addr<='z') ) 
-    {
-        rpu_address = tmp_addr;
-        write_rpu_address_to_eeprom = 1;
-        return;
-    }
-} */
 
 // I2C_COMMAND_TO_READ_ADDRESS_SENT_ON_ACTIVE_DTR
 void fnRdBootldAddr(uint8_t* i2cBuffer)
@@ -416,9 +403,11 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
     {
         channel_with_writebit = is_channel_with_writebit;
 
-        // I will work with float as a uint32_t (both are four bytes)
+        // place float in a uint32_t
         uint32_t old;
-        memcpy(&old, &calMap[channelMap[channel].cal_map].calibration, sizeof old);
+        float temp_calibration = calMap[channelMap[channel].cal_map].calibration;
+        memcpy(&old, &temp_calibration, sizeof old);
+
         uint32_t new = 0;
         new += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
         i2cBuffer[2] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
@@ -435,12 +424,14 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
         // new is ready
         if (is_channel_with_writebit & CAL_CHANNEL_WRITEBIT) // keep in SRAM if writebit is set
         {
-            memcpy(&calMap[channelMap[channel].cal_map].calibration, &new, sizeof calMap[channelMap[channel].cal_map].calibration);
-        }
+            // copy bytes into the memory footprint used for our tempary float
+            memcpy(&temp_calibration, &new, sizeof temp_calibration);
+            calMap[channelMap[channel].cal_map].calibration = temp_calibration;
 
-        // CAL_0_TOSAVE << channelMap[channel].cal_map 
-        // if cal_map is 1 then CAL_0_TOSAVE << 1 gives CAL_1_TOSAVE 
-        cal_loaded = CAL_0_TOSAVE << channelMap[channel].cal_map; // main loop will save to eeprom or load default value if out of range
+            // CAL_0_TOSAVE << channelMap[channel].cal_map 
+            // if cal_map is 1 then CAL_0_TOSAVE << 1 gives CAL_1_TOSAVE 
+            cal_loaded = CAL_0_TOSAVE << channelMap[channel].cal_map; // main loop will save to eeprom or load default value if out of range
+        }
     }
     else // bad channel  
     {

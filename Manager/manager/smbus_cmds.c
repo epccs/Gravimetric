@@ -59,7 +59,7 @@ void handle_smbus_receive(void)
         {
             {fnRdMgrAddrQuietly, fnNull, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
             {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
-            {fnAnalogRead, fnNull, fnNull, fnNull, fnRdTimedAccum, fnNull, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
+            {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
             {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
         };
 

@@ -13,9 +13,9 @@ extern void receive_i2c_event(uint8_t*, int);
 extern void transmit_i2c_event(void);
 
 // Prototypes for point 2 multipoint commands
-extern void fnRdMgrAddr(uint8_t*); // 0
+extern void fnRdMgrAddr(uint8_t*); // 0 for I2C
 extern void fnRdMgrAddrQuietly(uint8_t*); // 0 for SMBus
-// 1 not used
+// not used //1
 extern void fnRdBootldAddr(uint8_t*); // 2
 extern void fnWtBootldAddr(uint8_t*); // 3
 extern void fnRdShtdnDtct(uint8_t*); // 4
@@ -34,24 +34,25 @@ extern void fnEveningThreshold(uint8_t*); // 22
 extern void fnDayNightState(uint8_t*); // 23
 
 // Prototypes for Power Management commands
-extern void fnAnalogRead(uint8_t*); //1
-// todo calibrationRead
-// todo calibrationWrite
-// not used
-extern void fnRdTimedAccum(uint8_t*);
-// not used 
-extern void fnAnalogRefExternAVCC(uint8_t*);
-extern void fnAnalogRefIntern1V1(uint8_t*);
+extern void fnAnalogRead(uint8_t*); //32
+extern void fnCalibrationRead(uint8_t*); //33
+// not used //34
+// not used //35
+extern void fnRdTimedAccum(uint8_t*); //36
+// not used  //37
+extern void fnAnalogRefExternAVCC(uint8_t*); //38
+extern void fnAnalogRefIntern1V1(uint8_t*); //39
 
 
 // Prototypes for test mode commands
-extern void fnStartTestMode(uint8_t*);
-extern void fnEndTestMode(uint8_t*);
-extern void fnRdXcvrCntlInTestMode(uint8_t*);
-extern void fnWtXcvrCntlInTestMode(uint8_t*);
-extern void fnMorningDebounce(uint8_t*);
-extern void fnEveningDebounce(uint8_t*);
-extern void fnDayNightTimer(uint8_t*);
+extern void fnStartTestMode(uint8_t*); //48
+extern void fnEndTestMode(uint8_t*); //49
+extern void fnRdXcvrCntlInTestMode(uint8_t*); //50
+extern void fnWtXcvrCntlInTestMode(uint8_t*); //51
+extern void fnMorningDebounce(uint8_t*); //52
+extern void fnEveningDebounce(uint8_t*); //53
+extern void fnDayNightTimer(uint8_t*); //54
+// not used  //55
 
 /* Dummy function */
 extern  void fnNull(uint8_t*);
