@@ -20,13 +20,13 @@
 #define Pins_Board_h
 
 // ADC channels 0..7
-#define ALT_I  0
+#define ALT_I 0
 #define ALT_V 1
 #define TX_nRE 2
 #define RX_DE 3
 #define SDA0 4
 #define SCL0 5
-#define PWR_I  6
+#define PWR_I 6
 #define PWR_V 7
 
 #define SHUTDOWN 8

@@ -2,7 +2,7 @@
 #define Calibration_H
 
 // defines for: ADC_CHANNELS
-#include "../lib/adc.h"
+#include "../lib/adc_bsd.h"
 // defines for: ALT_I, ALT_V,PWR_I,PWR_V
 #include "../lib/pins_board.h"
 

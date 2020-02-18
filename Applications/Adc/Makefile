@@ -12,7 +12,7 @@ OBJECTS = main.o \
 	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
-	$(LIBDIR)/adc.o \
+	$(LIBDIR)/adc_bsd0.o \
 	$(LIBDIR)/parse.o
 
 ## Chip and project-specific global definitions

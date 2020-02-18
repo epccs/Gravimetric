@@ -24,7 +24,6 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <stdlib.h>
 #include <ctype.h>
 #include "../lib/parse.h"
-#include "../lib/adc.h"
 #include "../lib/timers.h"
 #include "../lib/pins_board.h"
 #include "references.h"

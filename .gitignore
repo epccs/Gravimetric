@@ -1,3 +1,7 @@
 # the right to distribute these source files is withheld
 Manager/manager/main.c
 Manager/manager/calibration_limits.c
+Manager/lib/uart0_bsd.c
+Manager/manager/manager.elf
+Manager/manager/manager.lst
+Manager/manager/manager.map

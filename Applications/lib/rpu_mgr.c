@@ -27,6 +27,7 @@
 // 4 .. other twi error (e.g., lost bus arbitration, bus error) 
 // 5 .. read does not match length
 // 6 .. bad command
+// 7 .. prevent sending bad data
 uint8_t twi_errorCode;
 
 // command 0 is used to read the address from manager
@@ -56,9 +57,9 @@ uint8_t twi_errorCode;
 #define UINT8_CMD {0x17,0x00}
 #define UINT8_CMD_SIZE 2
 
-// commands 32, 33, 34 and 35 have the manger do an 
+// commands 32 will have the manger do an 
 // analogRead and pass that to the application
-#define ANALOG_RD_CMD {0x20,0xFF,0xFF}
+#define ANALOG_RD_CMD {0x20,0x00,0x00}
 #define ANALOG_RD_CMD_SIZE 3
 
 // commands 52, 53 and 54  have the manger set and report an
@@ -194,43 +195,12 @@ char i2c_get_Rpu_address(void)
     }
 }
 
-// analogRead command, (channel will be added at some point to the manager code)
-// 32 .. (ANALOG_READ) ALT_I (when channel is done this will be the only command, and ALT_I will need changed to the channel value rather than command)
-// 33 .. ALT_V
-// 34 .. PWR_I
-// 35 .. PWR_V
-int i2c_get_analogRead_from_manager(uint8_t command /*, int channel*/)
+// I2C command 32 takes a channel and returns adc[channel]
+// channels are ALT_I | ALT_V | PWR_I | PWR_V
+int i2c_get_adc_from_manager(uint8_t channel)
 {
-    if ((command<32) | (command>35)) 
-    {
-        twi_errorCode = 6;
-        return 0;
-    }
-    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
-    uint8_t length = ANALOG_RD_CMD_SIZE;
-    uint8_t wait = 1;
-    uint8_t sendStop = 0; // use a repeated start after write
-    uint8_t txBuffer[ANALOG_RD_CMD_SIZE] = ANALOG_RD_CMD; // init the buffer sinse it is on the stack and can have old values 
-    txBuffer[0] = command; // replace the command byte
-    /*
-    txBuffer[1] = (uint8_t)((channel & 0xFF00)>>8);
-    txBuffer[2] = (uint8_t)(channel & 0xFF);
-    */
-    twi_errorCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
-    if (twi_errorCode)
-    {
-        return 0;
-    }
-    uint8_t rxBuffer[ANALOG_RD_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
-    if ( bytes_read != length )
-    {
-        twi_errorCode = 5;
-        return 0;
-    }
-    int value = ((int)(rxBuffer[1])<<8) + rxBuffer[2]; //  least significant byte is at end.
-    return value;
+    // use the int access cmd
+    return i2c_int_access_cmd(0x20, (int)channel);
 }
 
 // The manager has a status byte that has the following bits. 
@@ -353,11 +323,17 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with)
 // 19 .. CHARGE_BATTERY_STOP 
 // 21 .. MORNING_THRESHOLD daynight threshold prameter
 // 22 .. EVENING_THRESHOLD daynight threshold prameter
+// 32 .. takes a channel and returns analogRead(channel), channels are ALT_I | ALT_V | PWR_I | PWR_V
 int i2c_int_access_cmd(uint8_t command, int update_with)
 {
-    if ( ((command<18) | (command>22)) | (command==20) ) 
+    if ( (command != 32) & (((command<18) | (command>22)) | (command==20)) ) 
     {
         twi_errorCode = 6;
+        return 0;
+    }
+    if ( (command == 32) & ( !((update_with == ALT_I)|(update_with == ALT_V)|(update_with == PWR_I)|(update_with == PWR_V)) ) )
+    {
+        twi_errorCode = 7;
         return 0;
     }
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29

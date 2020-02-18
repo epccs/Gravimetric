@@ -2,8 +2,8 @@
 
 32..47 (Ox20..0x2F | 0b00100000..0b00111111)
 
-32. analogRead(uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return reading)
-33. calibrationRead(uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) after command then pass float as uint32_t, return channel and callibration)
+32. adc[channel] (uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return adc reading)
+33. calMap[channelMap.cal_map[channel]] (uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) and float (as uint32_t), return channel and calibration)
 34. not used
 35. not used
 36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
@@ -68,7 +68,9 @@ picocom -b 38400 /dev/ttyUSB0
 /1/ibuff 0,0,0,0
 {"txBuffer[6]":[{"data":"0x21"},{"data":"0x7"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
 /1/iread? 6
-{"rxBuffer":[{"data":"0x21"},{"data":"0x7"},{"data":"0x40"},{"data":"0xEA"},{"data":"0x88"},{"data":"0x1A"}]}
+this is broken atm
+{"rxBuffer":[{"data":"0x21"},{"data":"0x7"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+#{"rxBuffer":[{"data":"0x21"},{"data":"0x7"},{"data":"0x40"},{"data":"0xEA"},{"data":"0x88"},{"data":"0x1A"}]}
 ``` 
 
 note: i2c-debug can add up to five arguments at a time into txBuffer.

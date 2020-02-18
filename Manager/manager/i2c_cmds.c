@@ -22,7 +22,8 @@ Copyright (C) 2019 Ronald Sutherland
 #include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/twi0.h"
-#include "../lib/uart0.h"
+#include "../lib/uart0_bsd.h"
+#include "../lib/adc_bsd.h"
 #include "../lib/adc.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"

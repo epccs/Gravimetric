@@ -1,7 +1,9 @@
 # To Do
 
-calibrationRead (I2C cmd 33) used to set and read a float that converts the ADC value to its unit.
-change Adc application to use manager's channels (ALT_I, ALT_V,PWR_I,PWR_V), e.g., analogRead(ALT_I)*referanceRead(EXTERNAL_AVCC)*calibrationRead(ALT_I).
+channel calibration (I2C cmd 33) used to set and read a float that converts the ADC value to its unit.
+I2C cmd 33 ( calMap[channelMap.cal_map[channel]] ) returns zero rather than default. 
+change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration
+    e.g., i2c(32,ALT_I)*i2c(38,EXTERNAL_AVCC,float)*i2c(33,ALT_I,float].
 Timed Accumulation overflows to soon.
 Timed Accumulation needs a half LSB added (e.g. an LSB every other accumulation) because the ADC max value represents the selected reference voltage minus one LSB.
 Verify alternate power control with applicaiton
@@ -138,8 +140,8 @@ Note: arduino_mode is point to point.
 
 [Power Management]: ./PowerManagement.md
 
-32. analogRead(uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return reading)
-33. calibrationRead(uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) after command then pass float as uint32_t, return channel and callibration)
+32. adc[channel] (uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return adc reading)
+33. calMap[channelMap.cal_map[channel]] (uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) and float (as uint32_t), return channel and calibration)
 34. not used
 35. not used
 36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)

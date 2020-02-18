@@ -21,6 +21,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/timers.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
+#include "../lib/adc_bsd.h"
 #include "../lib/adc.h"
 #include "adc_burst.h"
 

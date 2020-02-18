@@ -13,7 +13,20 @@ WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
-    
+
+API is done in C for AVR Standard IO facilities streams
+https://www.microchip.com/webdoc/AVRLibcReferenceManual/group__avr__stdio.html
+
+The standard streams stdin, stdout, and stderr are provided, but contrary to the C standard, 
+since avr-libc has no knowledge about applicable devices, these streams are not already 
+pre-initialized at application startup. Also, since there is no notion of "file" whatsoever to 
+avr-libc, there is no function fopen() that could be used to associate a stream to some device. 
+Instead, the function fdevopen() is provided to associate a stream to a device, where the device 
+needs to provide a function to send a character, to receive a character, or both. There is no 
+differentiation between "text" and "binary" streams inside avr-libc. Character \n is sent literally 
+down to the device's put() function. If the device requires a carriage return (\r) character to be 
+sent before the linefeed, its put() routine must implement this 
+
 UART0_TX_REPLACE_NL_WITH_CR and UART0_RX_REPLACE_CR_WITH_NL may be used 
 to filter data into and out of the uart.
 */
@@ -78,8 +91,7 @@ ISR(USART0_UDRE_vect)
     }
 }
 
-// Flush bytes from the transmit buffer with busy waiting, like the Arduino API.
-// https://www.arduino.cc/reference/en/language/functions/communication/serial/flush/
+// Flush bytes from the transmit buffer with busy waiting.
 void uart0_flush(void)
 {
     while (TxHead != TxTail)
@@ -95,8 +107,7 @@ void uart0_empty(void)
     TxHead = TxTail;
 }
 
-// Number of bytes available in the receive buffer, like the Arduino API.
-// https://www.arduino.cc/reference/en/language/functions/communication/serial/available/
+// Number of bytes available in the receive buffer.
 int uart0_available(void)
 {
     return (UART0_RX0_SIZE + RxHead - RxTail) & ( UART0_RX0_SIZE - 1);
@@ -122,13 +133,6 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
 {
     uint16_t ubrr = UART0_BAUD_SELECT(baudrate);
 
-    /* UART: how optiboot does it.
-          UCSR0A = _BV(U2X0); //Double speed mode 
-          UCSR0B = _BV(RXEN0) | _BV(TXEN0); // enable TX and RX
-          UCSR0C = (1<<UCSZ00) | (1<<UCSZ01); // control frame format
-          UBRR0L = (uint8_t)( (F_CPU + BAUD * 4L) / (BAUD * 8L) - 1 );
-    */
-    
     TxHead = 0;
     TxTail = 0;
     RxHead = 0;
@@ -158,6 +162,7 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
     return &uartstream0_f;
 }
 
+// putchar for sending to stdio stream
 int uart0_putchar(char c, FILE *stream)
 {
     uint16_t next_index;
@@ -189,6 +194,7 @@ int uart0_putchar(char c, FILE *stream)
     return 0;
 }
 
+// getchar for reading from stdio stream
 int uart0_getchar(FILE *stream)
 {
     uint16_t next_index;

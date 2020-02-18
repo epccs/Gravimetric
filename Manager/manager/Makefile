@@ -4,7 +4,8 @@ TARGET = manager
 LIBDIR = ../lib
 # these have a restricted license, source is not published
 OBJECTRISTRICT = main.o \
-	calibration_limits.o
+	calibration_limits.o \
+	$(LIBDIR)/uart0_bsd.o
 # these are LGPL license
 OBJECTS = rpubus_manager_state.o \
 	dtr_transmition.o \
@@ -17,8 +18,8 @@ OBJECTS = rpubus_manager_state.o \
 	battery_limits.o \
 	daynight_limits.o \
 	daynight_state.o \
-	$(LIBDIR)/uart0.o \
 	$(LIBDIR)/adc.o \
+	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/twi1.o
