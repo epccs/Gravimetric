@@ -10,10 +10,11 @@ OBJECTS = main.o \
 	../Adc/references.o \
 	../DayNight/day_night.o \
 	$(LIBDIR)/timers.o \
-	$(LIBDIR)/uart0.o \
+	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
 	$(LIBDIR)/adc.o \
+	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/parse.o
 
 ## Chip and project-specific global definitions

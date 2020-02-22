@@ -1,6 +1,8 @@
 #ifndef AdcISR_h
 #define AdcISR_h
 
+#include <stdint.h>
+
 #define ADC_CHANNELS 8
 
 // Analog values range from 0 to 1023, they have 1024 slots where each 

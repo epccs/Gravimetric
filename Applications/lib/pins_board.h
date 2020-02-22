@@ -34,8 +34,8 @@
 #define CS0_EN 8
 #define CS4_EN 9
 
-// R-Pi power control
-#define SHLD_VIN_EN 10
+// not connected
+#define NC10 10
 
 // 22mA Current Source Enable
 #define CS2_EN 11
@@ -45,7 +45,7 @@
 #define MOSI 13
 
 // ICP3 pin reads start event inverted from 100 Ohm termination
-#define ICP3 13
+#define ICP3_MOSI 13
 
 // SPI
 #define MISO 14
@@ -97,6 +97,6 @@
 #define ICP1 34
 
 // ALTernate power ENable for solar panel power
-#define ALT_EN 35
+#define NC35 35
 
 #endif // Pins_Board_h

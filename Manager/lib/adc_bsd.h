@@ -16,6 +16,12 @@ extern volatile uint8_t analog_reference;
 #define ISR_ADCBURST_START 0x00
 extern volatile uint8_t adc_isr_status;
 
+enum reference {
+    EXTERN_AVCC,
+    INTERN_1V1
+    MAX_REF_NUM
+};
+
 // ADREFSMASK is used to clear all referance select (REFS) bits befor setting the needed bits
 // EXTERNAL_AVCC: connects the analog reference to AVCC power supply with capacitor on AREF pin. 
 // INTERNAL_1V1: a built-in 1.1V reference with bypass capacitor on AREF pin.

@@ -22,12 +22,8 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include "../lib/timers.h"
-#include "../lib/uart0.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
-
-// 22mA current sources enabled with CS0_EN and CS1_EN which are defined in ../lib/pins_board.h
-#define STATUS_LED CS0_EN
+#include "../lib/uart0_bsd.h"
+#include "../lib/io_enum_bsd.h"
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -36,8 +32,8 @@ static int got_a;
 
 void setup(void) 
 {
-    pinMode(STATUS_LED,OUTPUT);
-    digitalWrite(STATUS_LED,HIGH);
+    ioDir(MCU_IO_CS0_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_HIGH);
 
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
@@ -58,7 +54,7 @@ void blink(void)
     unsigned long kRuntime = millis() - blink_started_at;
     if ( kRuntime > BLINK_DELAY)
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // next toggle 
         blink_started_at += BLINK_DELAY; 
@@ -69,8 +65,8 @@ void blink(void)
 void abort_safe(void)
 {
     // make sure pins are safe befor waiting on UART 
-    pinMode(STATUS_LED,OUTPUT);
-    digitalWrite(STATUS_LED,LOW);
+    ioDir(MCU_IO_CS0_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
     // flush the UART befor halt
     uart0_flush();
     _delay_ms(20); // wait for last byte to send
@@ -80,7 +76,7 @@ void abort_safe(void)
     while(1) 
     {
         _delay_ms(100); 
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
     }
 }
 

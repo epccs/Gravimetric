@@ -22,9 +22,9 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include "../lib/timers.h"
-#include "../lib/uart0.h"
+#include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
-#include "../lib/adc_bsd0.h"
+#include "../lib/adc_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/pin_num.h"

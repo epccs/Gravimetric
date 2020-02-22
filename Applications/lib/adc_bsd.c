@@ -25,7 +25,7 @@ how to use the buffer
 */
 
 #include <util/atomic.h>
-#include "adc_bsd0.h"
+#include "adc_bsd.h"
 
 volatile int adc[ADC_CHANNELS];
 volatile uint8_t adc_channel;

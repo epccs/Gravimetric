@@ -51,14 +51,14 @@ Where x is the port A, B, C, etc.
 
 Wiring uses pin numbers to control their functions. */
 static const Pin_Map pinMap[NUM_DIGITAL_PINS] = {
-    [0] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA0 }, // ADC0
-    [1] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA1 }, // ADC1
-    [2] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA2 }, // ADC2
-    [3] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA3 }, // ADC3
-    [4] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA4 }, // ADC4
-    [5] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA5 }, //  ADC5
-    [6] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA6 }, //  ADC6
-    [7] = { .ddr=&DDRC, .pin=&PINC, .port=&PORTC, .bit= PA7 }, //  ADC7
+    [0] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA0 }, // ADC0
+    [1] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA1 }, // ADC1
+    [2] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA2 }, // ADC2
+    [3] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA3 }, // ADC3
+    [4] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA4 }, // ADC4
+    [5] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA5 }, //  ADC5
+    [6] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA6 }, //  ADC6
+    [7] = { .ddr=&DDRA, .pin=&PINA, .port=&PORTA, .bit= PA7 }, //  ADC7
     [8] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB0 }, // CS0_EN
     [9] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB1 }, // CS4_EN
     [10] = { .ddr=&DDRB, .pin=&PINB, .port=&PORTB, .bit= PB2 }, // SHLD_VIN_EN

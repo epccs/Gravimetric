@@ -1,33 +1,37 @@
 #ifndef References_H
 #define References_H
 
-//References EEPROM memory usage. 
-#define EE_ANALOG_BASE_ADDR 30
-// EEPROM byte offset
-#define EE_ANALOG_ID 0
-#define EE_ANALOG_REF_EXTERN_AVCC 2
-#define EE_ANALOG_REF_INTERN_1V1 6
+// defines for: enum EXTERN_AVCC, INTERN_1V1, MAX_REF_ENUM
+#include "../lib/adc_bsd.h"
 
-// although a uint32_t is used it is a float in truth  
-#define REF_EXTERN_AVCC_MAX 5.5
-#define REF_EXTERN_AVCC_MIN 4.5
-#define REF_INTERN_1V1_MAX 1.3
-#define REF_INTERN_1V1_MIN 0.9
+//EEPROM memory usage (see README.md). 
+#define EE_REF_BASE_ADDR 30
+// EEPROM byte offset to each reference value
+#define EE_REF_OFFSET 4
+// a reference value is held in eeprom for each enum (e.g., EXTERN_AVCC, INTERN_1V1)
+// use enum MAX_REF_ENUM for array size
 
-extern uint8_t IsValidValForAvccRef();
-extern uint8_t IsValidValFor1V1Ref();
-extern uint8_t LoadAnalogRefFromEEPROM();
-extern uint8_t WriteEeReferenceId();
-extern uint8_t WriteEeReferenceAvcc();
-extern uint8_t WriteEeReference1V1();
-extern void ReferancesFromI2CtoEE();
+struct Ref_Map { // https://yarchive.net/comp/linux/typedefs.html
+    float reference; // IEEE 754 single-precision floating-point format has about 7 significant figures
+};
 
-#define REF_LOADED 0
-#define REF_DEFAULT 1
-#define REF_AVCC_TOSAVE 2
-#define REF_1V1_TOSAVE 3
+// array of reference that needs to fill from LoadRefFromEEPROM()
+extern struct Ref_Map refMap[MAX_REF_ENUM];
+
+extern uint8_t IsValidValForRef();
+extern uint8_t LoadRefFromEEPROM();
+extern uint8_t WriteRefToEE();
+extern void ReferanceFromI2CtoEE();
+
+#define REF_CLEAR 0
+#define REF_0_DEFAULT 0x01
+#define REF_1_DEFAULT 0x02
+#define REF_0_TOSAVE 0x10
+#define REF_1_TOSAVE 0x20
 extern uint8_t ref_loaded;
-extern uint32_t ref_extern_avcc_uV;
-extern uint32_t ref_intern_1v1_uV;
+
+#define REF_SELECT_WRITEBIT 0x80 
+#define REF_SELECT_MASK 0x7F
+extern volatile uint8_t ref_select_with_writebit;
 
 #endif // Analog_H 

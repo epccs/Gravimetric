@@ -34,7 +34,7 @@ to filter data into and out of the uart.
 #include <stdio.h>
 #include <stdbool.h>
 #include <util/atomic.h>
-#include "uart0.h"
+#include "uart0_bsd.h"
 
 //  if 0x8000 bit is set then (U2X) Double speed mode is used
 #define UART0_BAUD_SELECT(baudRate) ((F_CPU+8UL*(baudRate))/(16UL*(baudRate))-1UL)

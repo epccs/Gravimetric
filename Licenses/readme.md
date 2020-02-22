@@ -7,7 +7,7 @@ it and derivatives. It is your responsibility to comply with the license terms a
 the software (including third party software) that accompany Ronald Sutherland software.
 
 NOTE! This license does *not* cover "standalone" applications that a user may develop and provide for use 
-with the Gravimetric applicaiton MCU this is merely considered normal use of the product, and does *not* 
+with the product applicaiton MCU this is merely considered normal use of the product, and does *not* 
 fall under the heading of "derived work" -- see file  Licenses/Exceptions for details.
 
 Also note that the GPL and the other licenses are copyrighted by the Free Software Foundation and other 
@@ -29,11 +29,11 @@ OF FEES, IF ANY, THAT YOU HAVE PAID DIRECTLY TO RONALD SUTHERLAND FOR THIS
 SOFTWARE.
 ```
 
-Each source file that can be compiled into an Executable and Linkable Format (e.g., ELF) and then linked with an application has a license within its source. Linking objects that have LGPL source, with objects that have another license is allowed. I have more rights reserved for some of the manager software, it is not free, and you should not be using it on your projects (unless it is a product from Ronald Sutherland). The manager firmware runs on the products manager microcontroller. I provide objects that are linked with the LGPL software that is also provided and a build script (e.g., make all). If you change LGPL software, it is on you to respect its license.
+Each source file that can be compiled into an Executable and Linkable Format (e.g., ELF) and then linked with an application has a license within its source. Linking objects that have LGPL source, with objects that have another license is allowed. I have more rights reserved for the *manager* software, it is not free, and you should not be using it on your projects (unless it is a product from Ronald Sutherland). The *manager* firmware runs on the products *manager* microcontroller.
 
-Zero-clause BSD license software is used on the examples that run on the application microcontroller; a developer can derive their software from it and then license that any way chosen. The examples often link with LGPL, in which case the developer needs to publish objects as I have done with the manager, or not use the LGPL software.
+A BSD license is used on the example software that runs on the *application* microcontroller; a developer can derive their software from it and then distribute the object (ELF) in any way chosen. If an example links with an LGPL source, the developer needs to publish their objects and build scripts so that the recipient can modify the LGPL source and link with the distributers provided object (ELF) file. 
 
-The application microcontroller also has a bootloader that has a GPL license and an exception that makes it extra clear that when it loads firmware, the result is not a derivative.
+The application microcontroller may have a bootloader that has a GPL license and an exception that makes it extra clear that when it loads firmware, the result is not a derivative. The application microcontroller may have a UPDI/ISP port that can upload and interact with the machine resources in complex and proprietary ways, but the result is again not a derivative.
 
 ![LGPL](../Hardware/Documents/Practical_GPL_Compliance_Digital_page62.png "LGPL")
 

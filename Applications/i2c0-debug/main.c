@@ -23,10 +23,9 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <util/atomic.h>
 #include <util/delay.h>
 #include "../lib/parse.h"
-#include "../lib/uart0.h"
+#include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
 #include "../lib/timers.h"
-#include "../lib/adc.h"
 #include "../lib/twi0.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/pin_num.h"
@@ -82,7 +81,6 @@ void setup(void)
     
     // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
     initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
-    init_ADC_single_conversion(EXTERNAL_AVCC); // warning AREF must not be connected to anything
     uart0_init(0,0); // bootloader may have the UART enabled, a zero baudrate will disconnect it.
     
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/

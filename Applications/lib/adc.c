@@ -19,7 +19,7 @@
 
 #include <util/atomic.h>
 #include "adc.h"
-#include "adc_bsd0.h"
+#include "adc_bsd.h"
 
 
 // report ADC reading for a given channel.

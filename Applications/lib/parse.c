@@ -26,7 +26,7 @@ https://onebyezero.blogspot.com/2018/12/string-tokenization-in-c.html
 #include <stdlib.h>
 #include <avr/pgmspace.h>
 #include "parse.h"
-#include "uart0.h"
+#include "uart0_bsd.h"
 
 // used to assemble command line
 char command_buf[COMMAND_BUFFER_SIZE];

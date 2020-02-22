@@ -2,19 +2,24 @@
 references is a library used to load and set analog conversion references in EEPROM. 
 Copyright (C) 2019 Ronald Sutherland
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+All rights reserved, specifically, the right to distribute is withheld. Subject to your compliance 
+with these terms, you may use this software and any derivatives exclusively with Ronald Sutherland 
+products. It is your responsibility to comply with third party license terms applicable to your use 
+of third party software (including open source software) that accompany Ronald Sutherland software.
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+THIS SOFTWARE IS SUPPLIED BY RONALD SUTHERLAND "AS IS". NO WARRANTIES, WHETHER
+EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY
+IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS
+FOR A PARTICULAR PURPOSE.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+IN NO EVENT WILL RONALD SUTHERLAND BE LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE,
+INCIDENTAL OR CONSEQUENTIAL LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND
+WHATSOEVER RELATED TO THE SOFTWARE, HOWEVER CAUSED, EVEN IF RONALD SUTHERLAND
+HAS BEEN ADVISED OF THE POSSIBILITY OR THE DAMAGES ARE FORESEEABLE. TO
+THE FULLEST EXTENT ALLOWED BY LAW, RONALD SUTHERLAND'S TOTAL LIABILITY ON ALL
+CLAIMS IN ANY WAY RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT
+OF FEES, IF ANY, THAT YOU HAVE PAID DIRECTLY TO RONALD SUTHERLAND FOR THIS
+SOFTWARE.
 */
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
@@ -23,97 +28,28 @@ Copyright (C) 2019 Ronald Sutherland
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include "../lib/adc.h"
 #include "../lib/timers.h"
 #include "../lib/pins_board.h"
 #include "references.h"
 
-uint8_t ref_loaded;
-uint32_t ref_extern_avcc_uV;
-uint32_t ref_intern_1v1_uV;
+volatile uint8_t ref_loaded;
+volatile uint8_t ref_select_with_writebit;
 
-// 
-uint8_t IsValidValForAvccRef() 
+// check if reference is a valid float
+// 0UL and 0xFFFFFFFFUL are not valid
+uint8_t IsValidValForRef() 
 {
-    float tmp_avcc;
-    memcpy(&tmp_avcc, &ref_extern_avcc_uV, sizeof tmp_avcc);
-    if ( ((tmp_avcc > REF_EXTERN_AVCC_MIN) && (tmp_avcc < REF_EXTERN_AVCC_MAX)) )
+    uint32_t tmp_cal;
+    memcpy(&tmp_cal, &calMap[cal_map].calibration, sizeof tmp_cal);
+    if ( (tmp_cal == 0xFFFFFFFFUL) | (tmp_cal == 0x0UL) )
     {
-        return 1;
+            return 0;
     }
-    else
-    {
-        return 0;
-    }
+    return 1;
 }
 
-uint8_t IsValidValFor1V1Ref() 
-{
-    float tmp_1v1;
-    memcpy(&tmp_1v1, &ref_intern_1v1_uV, sizeof tmp_1v1);
-    if ( ((tmp_1v1 > REF_INTERN_1V1_MIN) && (tmp_1v1 < REF_INTERN_1V1_MAX)) )
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
 
-uint8_t WriteEeReferenceId() 
-{
-    uint16_t ee_id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
-    if ( eeprom_is_ready() )
-    {
-        uint16_t value = 0x4144; // 'A' is 0x41 and 'D' is 0x44;
-        if (ee_id != value)
-        {
-            eeprom_update_word( (uint16_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID), value);
-        }
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-uint8_t WriteEeReferenceAvcc() 
-{
-    uint32_t ee_ref_extern_avcc_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC)); 
-    if ( eeprom_is_ready() )
-    {
-        if (ee_ref_extern_avcc_uV != ref_extern_avcc_uV)
-        {
-            eeprom_update_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC), ref_extern_avcc_uV);
-        }
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-uint8_t WriteEeReference1V1() 
-{
-    uint32_t ee_ref_intern_1v1_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1)); 
-    if ( eeprom_is_ready() )
-    {
-        if (ee_ref_intern_1v1_uV != ref_intern_1v1_uV)
-        {
-            eeprom_update_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1), ref_intern_1v1_uV);
-        }
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-uint8_t LoadAnalogRefFromEEPROM() 
+uint8_t LoadRefFromEEPROM() 
 {
     uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
     if (id == 0x4144) // 'A' is 0x41 and 'D' is 0x44
@@ -149,8 +85,26 @@ uint8_t LoadAnalogRefFromEEPROM()
     return 0;
 }
 
+uint8_t WriteRefToEE() 
+{
+    uint32_t ee_ref_intern_1v1_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1)); 
+    if ( eeprom_is_ready() )
+    {
+        if (ee_ref_intern_1v1_uV != ref_intern_1v1_uV)
+        {
+            eeprom_update_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1), ref_intern_1v1_uV);
+        }
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+
 // save referances from I2C to EEPROM (if valid)
-void ReferancesFromI2CtoEE(void)
+void ReferanceFromI2CtoEE(void)
 {
     if (ref_loaded > REF_DEFAULT)
     {

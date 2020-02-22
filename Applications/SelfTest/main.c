@@ -23,10 +23,11 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <util/delay.h>
 #include <avr/io.h>
 #include "../lib/timers.h"
-#include "../lib/uart0.h"
+#include "../lib/uart0_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/twi1.h"
 #include "../lib/adc.h"
+#include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/pin_num.h"
 #include "../lib/pins_board.h"
@@ -98,12 +99,12 @@ void setup_pins_off(void)
     pinMode(35,INPUT); // ADC7
     
     // R-Pi power control
-    pinMode(SHLD_VIN_EN,OUTPUT);
-    digitalWrite(SHLD_VIN_EN,LOW);
+    //pinMode(SHLD_VIN_EN,OUTPUT);
+    //digitalWrite(SHLD_VIN_EN,LOW);
     
     // Alternate power control
-    pinMode(ALT_EN,OUTPUT);
-    digitalWrite(ALT_EN,LOW);
+    //pinMode(ALT_EN,OUTPUT);
+    //digitalWrite(ALT_EN,LOW);
     
     // SPI needs a loopback on the R-Pi connector between PI_MISO and PI_MOSI
     pinMode(MISO,INPUT);
@@ -444,7 +445,7 @@ void test(void)
     _delay_ms(1000) ; // busy-wait to let the 1uF settle
     
     // Input voltage
-    int adc_pwr_v = i2c_get_analogRead_from_manager(PWR_V);
+    int adc_pwr_v = i2c_get_adc_from_manager(PWR_V);
     printf_P(PSTR("adc reading for PWR_V: %d int\r\n"), adc_pwr_v);
     float input_v = adc_pwr_v*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8);
     printf_P(PSTR("PWR at: %1.3f V\r\n"), input_v);
@@ -554,8 +555,8 @@ void test(void)
     digitalWrite(CS_FAST,LOW);
 
     // ICP3 pin is inverted from the plug interface, its Termination should have zero mA. 
-    printf_P(PSTR("ICP3 input should be HIGH with 0mA loop current: %d \r\n"), digitalRead(ICP3));
-    if (!digitalRead(ICP3)) 
+    printf_P(PSTR("ICP3 input should be HIGH with 0mA loop current: %d \r\n"), digitalRead(ICP3_MOSI));
+    if (!digitalRead(ICP3_MOSI)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP3 should be high.\r\n"));
@@ -640,7 +641,7 @@ void test(void)
     }
 
     // ICP3 pin is inverted from to the plug interface, which should have 17 mA on its 100 Ohm Termination now
-    printf_P(PSTR("ICP3 /w 8mA on termination reads: %d \r\n"), digitalRead(ICP3));
+    printf_P(PSTR("ICP3 /w 8mA on termination reads: %d \r\n"), digitalRead(ICP3_MOSI));
     if (digitalRead(ICP1)) 
     { 
         passing = 0; 
@@ -816,7 +817,7 @@ void test(void)
     _delay_ms(1500); // busy-wait delay
     
     // Input current at no load 
-    float input_i =  i2c_get_analogRead_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float input_i =  i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
     printf_P(PSTR("PWR_I at no load : %1.3f A\r\n"), input_i);
     if (input_i > 0.026) 
     { 
@@ -1061,7 +1062,7 @@ void test(void)
     // check xcvr bits after start of testmode. Note printf is done after end of testmode.
     uint8_t xcvrbits_after_testmode_start = 0xE2;
     i2c_testmode_test_xcvrbits(xcvrbits_after_testmode_start);
-    float noload_i = i2c_get_analogRead_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float noload_i = i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
 
     // End test mode 
     i2c_testmode_end();
@@ -1164,7 +1165,7 @@ void test(void)
     i2c_testmode_set_xcvrbits(xcvrbits_enable_xtde);
     i2c_testmode_test_xcvrbits(xcvrbits_enable_xtde); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
-    float load_txde_i = i2c_get_analogRead_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float load_txde_i = i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
 
     // End test mode 
     digitalWrite(TX0,HIGH); // strong pullup
@@ -1236,7 +1237,7 @@ void test(void)
     i2c_testmode_set_xcvrbits(xcvrbits_enable_xtrx);
     i2c_testmode_test_xcvrbits(xcvrbits_enable_xtrx); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
-    float load_txrx_i = i2c_get_analogRead_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float load_txrx_i = i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
     uint8_t rx_loopback = digitalRead(RX0); 
 
     // End test mode 
@@ -1316,7 +1317,7 @@ void test(void)
     i2c_testmode_set_xcvrbits(xcvrbits_enable_dtr);
     i2c_testmode_test_xcvrbits(xcvrbits_enable_dtr); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
-    float load_dtr_i = i2c_get_analogRead_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
+    float load_dtr_i = i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
 
     // End test mode will setup the DTR_TXD line and enable the manager's UART as it recovers
     i2c_testmode_end();

@@ -4,7 +4,7 @@
 TARGET = blinkLED
 LIBDIR = ../lib
 OBJECTS = main.o \
-	$(LIBDIR)/uart0.o \
+	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/timers.o 
 
 ## Chip and project-specific global definitions

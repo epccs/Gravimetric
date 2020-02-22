@@ -9,10 +9,10 @@ OBJECTS = main.o \
 	references.o \
 	../Uart/id.o \
 	$(LIBDIR)/timers.o \
-	$(LIBDIR)/uart0.o \
+	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
-	$(LIBDIR)/adc_bsd0.o \
+	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/parse.o
 
 ## Chip and project-specific global definitions

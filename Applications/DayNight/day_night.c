@@ -85,7 +85,7 @@ void Day(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 14) ) 
     {
-        int adc_reads = i2c_get_analogRead_from_manager(ALT_V);
+        int adc_reads = i2c_get_adc_from_manager(ALT_V);
         printf_P(PSTR("\"adc_alt_v\":\"%u\","),adc_reads);
         command_done = 15;
     }
