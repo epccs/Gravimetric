@@ -27,7 +27,6 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/timers.h"
-#include "../lib/pins_board.h"
 #include "analog.h"
 #include "references.h"
 

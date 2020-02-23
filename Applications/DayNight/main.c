@@ -27,17 +27,14 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/adc_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/rpu_mgr.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
 #include "day_night.h"
 
 #define ADC_DELAY_MILSEC 50UL
 static unsigned long adc_started_at;
 
-//pins are defined in ../lib/pins_board.h
-#define STATUS_LED CS0_EN
-#define DAYNIGHT_STATUS_LED CS1_EN
+
 #define DAYNIGHT_BLINK 500UL
 static unsigned long daynight_status_blink_started_at;
 
@@ -82,15 +79,17 @@ void night_work(void)
 
 void setup(void) 
 {
-    pinMode(STATUS_LED,OUTPUT);
-    digitalWrite(STATUS_LED,HIGH);
+    // STATUS_LED
+    ioDir(MCU_IO_CS0_EN, DIRECTION_OUTPUT); 
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_HIGH);
     
-    pinMode(DAYNIGHT_STATUS_LED,OUTPUT);
-    digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
+    // DAYNIGHT_STATUS_LED
+    ioDir(MCU_IO_CS1_EN, DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
     
     // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
     initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
-    init_ADC_single_conversion(EXTERNAL_AVCC); // warning AREF must not be connected to anything
+    //init_ADC_single_conversion(EXTERNAL_AVCC); // warning AREF must not be connected to anything
     uart0_init(0,0); // bootloader may have the UART enabled, a zero baudrate will disconnect it.
 
     // put ADC in Auto Trigger mode and fetch an array of channels
@@ -148,7 +147,7 @@ void blink_mgr_status(void)
     // normal, all is fine
     if ( kRuntime > BLINK_DELAY)
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN); // STATUS_LED
         
         // next toggle 
         blink_started_at += BLINK_DELAY; 
@@ -157,7 +156,7 @@ void blink_mgr_status(void)
     // blink fast if address is fake
     if ( rpu_addr_is_fake && (kRuntime > (BLINK_DELAY/4) ) )
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // set for next toggle 
         blink_started_at += BLINK_DELAY/4; 
@@ -167,7 +166,7 @@ void blink_mgr_status(void)
     if ( (manager_status & ((1<<0) | (1<<1) | (1<<2) | (1<<6)) ) && \
         (kRuntime > (BLINK_DELAY/8) ) )
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // set for next toggle 
         blink_started_at += BLINK_DELAY/8; 
@@ -181,18 +180,18 @@ void blink_daynight_state(void)
     if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK) ) )
     {
-        digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
+        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
      }
     if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK) ) )
     {
-        digitalWrite(DAYNIGHT_STATUS_LED,LOW);
+        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_LOW);
     }
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
         (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK/2) ) )
     {
-        digitalToggle(DAYNIGHT_STATUS_LED);
+        ioToggle(MCU_IO_CS1_EN);
         
         // set for next toggle 
         daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
@@ -200,7 +199,7 @@ void blink_daynight_state(void)
     if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK/8) ) )
     {
-        digitalToggle(DAYNIGHT_STATUS_LED);
+        ioToggle(MCU_IO_CS1_EN);
         
         // set for next toggle 
         daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 

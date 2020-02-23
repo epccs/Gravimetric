@@ -96,7 +96,7 @@
 // ICP1 pin reads inverted from the 100 Ohm termination
 #define ICP1 34
 
-// ALTernate power ENable for solar panel power
+// not connected
 #define NC35 35
 
 #endif // Pins_Board_h

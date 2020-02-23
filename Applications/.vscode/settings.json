@@ -5,8 +5,5 @@
         "/usr/lib/gcc/avr/5.4.0/include/**",
         "{$workspaceFolder}/**"
     ],
-    "C_Cpp.intelliSenseEngine": "Default",
-    "files.associations": {
-        "pgmspace.h": "c"
-    }
+    "C_Cpp.intelliSenseEngine": "Default"
 }

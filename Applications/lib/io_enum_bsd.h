@@ -68,8 +68,8 @@ typedef enum MCU_IO_enum {
     MCU_IO_CS_FAST, // PC2 controls a 22mA current source for fast flow into gravimetric diversion control
                                 // fast flow needs to be disabled durring the START and STOP events for best measurements
     MCU_IO_ICP4, // PC3 used for input captrue of Timer4, e.g., STOP event.
-    MCU_IO_CS_ICP4, // PC4 controls a 22mA current source for use with ICP4 STOP events
-    MCU_IO_CS_ICP3, // PC5 controls a 22mA current source for use with ICP3 START events. Control masked when nSS is LOW.
+    MCU_IO_CS_ICP4, // PC4 controls a 17mA current source for use with ICP4 STOP events
+    MCU_IO_CS_ICP3, // PC5 controls a 17mA current source for use with ICP3 START events. Control masked when nSS is LOW.
     MCU_IO_CS_DIVERSION, // PC6 controls a 22mA current source for gravimetric diversion control events. 
                                           // PC6 control is masked during ICP4 (STOP) one-shot (~1.1mSec), during which it needs to be turned off.
                                           // PC6 control overrides during ICP3 (START) one-shot (~1.1mSec), during which it needs to be turned on.
@@ -84,7 +84,7 @@ typedef enum MCU_IO_enum {
     MCU_IO_RX1, // PD2 is for use as GPIO or UART1 receiver.
     MCU_IO_TX1, // PD3 is for use as GPIO or UART1 transmitter.
     MCU_IO_CS1_EN,  // PD4 pullup to enabled 22mA current source next to ADC1
-    MCU_IO_CS_ICP1, // PD5 controls a 22mA current source for use with ICP1 FT events
+    MCU_IO_CS_ICP1, // PD5 controls a 17mA current source for use with ICP1 FT events
     MCU_IO_ICP1, // PD6 used for input captrue of Timer1, e.g., FT events.
     MCU_IO_NC35, // PD7 connected to TP35 can be used as GPIO
     MCU_IO_END

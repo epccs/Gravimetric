@@ -29,8 +29,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/adc.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "../Adc/references.h"
 
 #define BLINK_DELAY 1000UL
@@ -55,60 +54,60 @@ static uint8_t delayed_data[8];
 void setup_pins_off(void)
 {
     // Turn Off Curr Sources
-    pinMode(CS0_EN,OUTPUT);
-    digitalWrite(CS0_EN,LOW);
-    pinMode(CS1_EN,OUTPUT);
-    digitalWrite(CS1_EN,LOW);
-    pinMode(CS2_EN,OUTPUT);
-    digitalWrite(CS2_EN,LOW);
-    pinMode(CS3_EN,OUTPUT);
-    digitalWrite(CS3_EN,LOW);
-    pinMode(CS4_EN,OUTPUT);
-    digitalWrite(CS4_EN,LOW);
-    pinMode(CS_ICP1,OUTPUT);
-    digitalWrite(CS_ICP1,LOW);
-    pinMode(CS_ICP3,OUTPUT);
-    digitalWrite(CS_ICP3,LOW);
-    pinMode(CS_ICP4,OUTPUT);
-    digitalWrite(CS_ICP4,LOW);
-    pinMode(CS_FAST,OUTPUT);
-    digitalWrite(CS_FAST,LOW);
-    pinMode(CS_DIVERSION,OUTPUT);
-    digitalWrite(CS_DIVERSION,LOW);
+    ioDir(MCU_IO_CS0_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS1_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS2_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS2_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS3_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS3_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS4_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS4_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS_ICP1,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS_ICP1,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS_ICP3,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS_ICP4,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS_ICP4,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS_FAST,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS_FAST,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS_DIVERSION,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS_DIVERSION,LOGIC_LEVEL_LOW);
 
     // DIO and Analog
-    pinMode(RX1,INPUT);
-    digitalWrite(RX1,LOW);
-    pinMode(TX1,INPUT);
-    digitalWrite(TX1,LOW);
-    pinMode(RX2,INPUT);
-    digitalWrite(RX2,LOW);
-    pinMode(TX2,INPUT);
-    digitalWrite(TX2,LOW);
-    pinMode(SDA1,INPUT);
-    digitalWrite(SDA1,LOW);
-    pinMode(SCL1,INPUT);
-    digitalWrite(SCL1,LOW);
-    pinMode(28,INPUT); // ADC0
-    pinMode(29,INPUT);
-    pinMode(30,INPUT);
-    pinMode(31,INPUT);
-    pinMode(32,INPUT);
-    pinMode(33,INPUT);
-    pinMode(34,INPUT);
-    pinMode(35,INPUT); // ADC7
+    ioDir(MCU_IO_RX1,DIRECTION_INPUT);
+    ioWrite(MCU_IO_RX1,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_TX1,DIRECTION_INPUT);
+    ioWrite(MCU_IO_TX1,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_RX2,DIRECTION_INPUT);
+    ioWrite(MCU_IO_RX2,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_TX2,DIRECTION_INPUT);
+    ioWrite(MCU_IO_TX2,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_SDA1,DIRECTION_INPUT);
+    ioWrite(MCU_IO_SDA1,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_SCL1,DIRECTION_INPUT);
+    ioWrite(MCU_IO_SCL1,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_ADC0,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC1,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC2,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC3,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC4,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC5,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC6,DIRECTION_INPUT);
+    ioDir(MCU_IO_ADC7,DIRECTION_INPUT);
     
     // R-Pi power control
-    //pinMode(SHLD_VIN_EN,OUTPUT);
-    //digitalWrite(SHLD_VIN_EN,LOW);
+    //ioDir(SHLD_VIN_EN,DIRECTION_OUTPUT);
+    //ioWrite(SHLD_VIN_EN,LOGIC_LEVEL_LOW);
     
     // Alternate power control
-    //pinMode(ALT_EN,OUTPUT);
-    //digitalWrite(ALT_EN,LOW);
+    //ioDir(ALT_EN,DIRECTION_OUTPUT);
+    //ioWrite(ALT_EN,LOGIC_LEVEL_LOW);
     
     // SPI needs a loopback on the R-Pi connector between PI_MISO and PI_MOSI
-    pinMode(MISO,INPUT);
-    digitalWrite(MISO,HIGH); //a weak pull up will turn off the buffer that would otherwise pull down ICP3/MOSI
+    ioDir(MCU_IO_MISO,DIRECTION_INPUT);
+    ioWrite(MCU_IO_MISO,LOGIC_LEVEL_HIGH); //a weak pull up will turn off the buffer that would otherwise pull down ICP3/MOSI
 }
 
 
@@ -479,15 +478,15 @@ void test(void)
     }
 
     // ICP1 pin is inverted from the plug interface, its 100 Ohm Termination should have zero mA. 
-    printf_P(PSTR("ICP1 input should be HIGH with 0mA loop current: %d \r\n"), digitalRead(ICP1));
-    if (!digitalRead(ICP1)) 
+    printf_P(PSTR("ICP1 input should be HIGH with 0mA loop current: %d \r\n"), ioRead(MCU_IO_ICP1));
+    if (!ioRead(MCU_IO_ICP1)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP1 should be high.\r\n"));
     }
 
     // enable CS_ICP1 (with green LED)
-    digitalWrite(CS_ICP1,HIGH);
+    ioWrite(MCU_IO_CS_ICP1,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has CS_ICP1 on it
@@ -506,19 +505,19 @@ void test(void)
     }
 
     // ICP1 pin is inverted from to the plug interface, which should have 17 mA on its 100 Ohm Termination now
-    printf_P(PSTR("ICP1 /w 17mA on termination reads: %d \r\n"), digitalRead(ICP1));
-    if (digitalRead(ICP1)) 
+    printf_P(PSTR("ICP1 /w 17mA on termination reads: %d \r\n"), ioRead(MCU_IO_ICP1));
+    if (ioRead(MCU_IO_ICP1)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP1 should be low with 17mA.\r\n"));
     }
-    digitalWrite(CS_ICP1,LOW);
+    ioWrite(MCU_IO_CS_ICP1,LOGIC_LEVEL_LOW);
 
-    // enable CS4_EN
-    digitalWrite(CS4_EN,HIGH);
+    // enable MCU_IO_CS4_EN
+    ioWrite(MCU_IO_CS4_EN,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
 
-    // ICP1_TERM has CS4_EN on it
+    // ICP1_TERM has MCU_IO_CS4_EN on it
     float adc1_cs4_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc1_cs4_i = adc1_cs4_v / ICP1_TERM;
     printf_P(PSTR("CS4 on ICP1 TERM: %1.3f A\r\n"), adc1_cs4_i);
@@ -532,10 +531,10 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> CS4 curr is to high.\r\n"));
     }
-    digitalWrite(CS4_EN,LOW);
+    ioWrite(MCU_IO_CS4_EN,LOGIC_LEVEL_LOW);
 
     // enable CS_FAST
-    digitalWrite(CS_FAST,HIGH);
+    ioWrite(MCU_IO_CS_FAST,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has CS_FAST on it
@@ -552,11 +551,11 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> CS_FAST curr is to high.\r\n"));
     }
-    digitalWrite(CS_FAST,LOW);
+    ioWrite(MCU_IO_CS_FAST,LOGIC_LEVEL_LOW);
 
     // ICP3 pin is inverted from the plug interface, its Termination should have zero mA. 
-    printf_P(PSTR("ICP3 input should be HIGH with 0mA loop current: %d \r\n"), digitalRead(ICP3_MOSI));
-    if (!digitalRead(ICP3_MOSI)) 
+    printf_P(PSTR("ICP3 input should be HIGH with 0mA loop current: %d \r\n"), ioRead(MCU_IO_ICP3_MOSI));
+    if (!ioRead(MCU_IO_ICP3_MOSI)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP3 should be high.\r\n"));
@@ -565,9 +564,9 @@ void test(void)
     // enable CS_ICP3 which will cause ICP3 to go low and enable CS_DIVERSION that sends current to ICP1 input
     unsigned long ICP3_one_shot_started_at = millis();
     unsigned long ICP3_one_shot_time = 0;
-    digitalWrite(CS_ICP3,HIGH);
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_HIGH);
     unsigned long ICP3_one_shot_delay = 0;
-    digitalWrite(CS_ICP3,LOW);
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_LOW);
     uint8_t wait_for_ICP1_low = 0;
     uint8_t wait_for_ICP1_high = 0;
     uint8_t timeout = 0;
@@ -579,7 +578,7 @@ void test(void)
             passing = 0; 
             printf_P(PSTR(">>> CS_DIVERSION not seen after ICP3 timeout: %d\r\n"),millis() - ICP3_one_shot_started_at);
         }
-        if (!digitalRead(ICP1))
+        if (!ioRead(MCU_IO_ICP1))
         {
             ICP3_one_shot_delay = millis() - ICP3_one_shot_started_at;
             wait_for_ICP1_low =1;
@@ -597,7 +596,7 @@ void test(void)
                 ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
                 printf_P(PSTR(">>> CS_DIVERSION did not end from ICP3 befor timeout: %d\r\n"),ICP3_one_shot_time);
             }
-            if (digitalRead(ICP1))
+            if (ioRead(MCU_IO_ICP1))
             {
                 ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
                 wait_for_ICP1_high =1;
@@ -622,7 +621,7 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> ICP3 one-shot runs CS_DIVERSION but that curr was not sent to ICP1.\r\n"));
     }
-    digitalWrite(CS_ICP3,HIGH);
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
 
     // ICP3_TERM has R1 in parrallel (50Ohm) 
@@ -641,8 +640,8 @@ void test(void)
     }
 
     // ICP3 pin is inverted from to the plug interface, which should have 17 mA on its 100 Ohm Termination now
-    printf_P(PSTR("ICP3 /w 8mA on termination reads: %d \r\n"), digitalRead(ICP3_MOSI));
-    if (digitalRead(ICP1)) 
+    printf_P(PSTR("ICP3 /w 8mA on termination reads: %d \r\n"), ioRead(MCU_IO_ICP3_MOSI));
+    if (ioRead(MCU_IO_ICP1)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP3 should be low with 8mA.\r\n"));
@@ -686,19 +685,19 @@ void test(void)
             printf_P(PSTR(">>> REF_* for ADC not saved in eeprom.\r\n"));
         }
     }
-    digitalWrite(CS_ICP3,LOW);
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_LOW);
     _delay_ms(100); // busy-wait delay
 
     // ICP4 pin is inverted from the plug interface, its Termination should have zero mA. 
-    printf_P(PSTR("ICP4 input should be HIGH with 0mA loop current: %d \r\n"), digitalRead(ICP4));
-    if (!digitalRead(ICP4)) 
+    printf_P(PSTR("ICP4 input should be HIGH with 0mA loop current: %d \r\n"), ioRead(MCU_IO_ICP4));
+    if (!ioRead(MCU_IO_ICP4)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP4 should be high.\r\n"));
     }
 
     // enable CS_DIVERSION
-    digitalWrite(CS_DIVERSION,HIGH);
+    ioWrite(MCU_IO_CS_DIVERSION,LOGIC_LEVEL_HIGH);
     init_ADC_single_conversion(EXTERNAL_AVCC); 
     _delay_ms(100); // busy-wait delay
 
@@ -718,12 +717,12 @@ void test(void)
     }
 
     // enable CS_ICP4 which will cause ICP4 to go low and disable CS_DIVERSION for one or two mSec
-    if (digitalRead(ICP1)) 
+    if (ioRead(MCU_IO_ICP1)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP1 should be low befor turning on CS_ICP4.\r\n"));
     }
-    digitalWrite(CS_ICP4,HIGH);
+    ioWrite(MCU_IO_CS_ICP4,LOGIC_LEVEL_HIGH);
     unsigned long ICP4_one_shot_started_at = millis();
     unsigned long ICP4_one_shot_event = 0;
     unsigned long ICP4_one_shot_delay = 0;
@@ -738,7 +737,7 @@ void test(void)
             passing = 0; 
             printf_P(PSTR(">>> CS_DIVERSION did not end from ICP4 befor timeout: %d\r\n"), millis() - ICP4_one_shot_started_at);
         }
-        if (digitalRead(ICP1))
+        if (ioRead(MCU_IO_ICP1))
         {
             ICP4_one_shot_delay = millis() - ICP4_one_shot_started_at;
             wait_for_ICP1_high =1;
@@ -750,10 +749,10 @@ void test(void)
     float adc3_cs_icp4_i = adc3_cs_icp4_v / ICP4_TERM;
 
     // ICP4 pin is inverted logic, and should a low when 17 mA is on the ICP4_TERM Termination
-    uint8_t  icp4_befor_cs_turned_off = digitalRead(ICP4);
+    uint8_t  icp4_befor_cs_turned_off = ioRead(MCU_IO_ICP4);
 
     // ICP4 is on the gate of an n-channel level shift that will cut-off CS_DIVERSION when it is low
-    digitalWrite(CS_ICP4,LOW);
+    ioWrite(MCU_IO_CS_ICP4,LOGIC_LEVEL_LOW);
     if (wait_for_ICP1_high) 
     { 
         timeout = 0;
@@ -766,7 +765,7 @@ void test(void)
                 ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
                 printf_P(PSTR(">>> CS_DIVERSION did not restart from ICP4 befor timeout: %d\r\n"),ICP4_one_shot_event);
             }
-            if (!digitalRead(ICP1))
+            if (!ioRead(MCU_IO_ICP1))
             {
                 ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
                 wait_for_ICP1_low =1; // it was high befor turning off cs_icp4, so the one shot is the only thing holding cs_diversion off
@@ -811,8 +810,8 @@ void test(void)
     }
 
     // everything off for input current measurement
-    digitalWrite(CS_DIVERSION,LOW);
-    digitalWrite(CS_ICP4,LOW);
+    ioWrite(MCU_IO_CS_DIVERSION,LOGIC_LEVEL_LOW);
+    ioWrite(MCU_IO_CS_ICP4,LOGIC_LEVEL_LOW);
     // init_ADC_single_conversion(INTERNAL_1V1); // use ref_intern_1v1_uV
     _delay_ms(1500); // busy-wait delay
     
@@ -833,7 +832,7 @@ void test(void)
 
     //swap back to the AVCC referance and enable CS0 (through red LED)
     //init_ADC_single_conversion(EXTERNAL_AVCC); 
-    digitalWrite(CS0_EN,HIGH);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
 
     // CS0 drives ICP3 and ICP4 termination which should make a 50 Ohm drop
@@ -850,10 +849,10 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> CS0 curr is to high.\r\n"));
     }
-    digitalWrite(CS0_EN,LOW);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
 
     // enable CS1
-    digitalWrite(CS1_EN,HIGH);
+    ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
     
     // CS1  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
@@ -870,10 +869,10 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> CS1 curr is to high.\r\n"));
     }
-    digitalWrite(CS1_EN,LOW);
+    ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_LOW);
 
     // enable CS2
-    digitalWrite(CS2_EN,HIGH);
+    ioWrite(MCU_IO_CS2_EN,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
     
     // CS2  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
@@ -890,10 +889,10 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> CS2 curr is to high.\r\n"));
     }
-    digitalWrite(CS2_EN,LOW);
+    ioWrite(MCU_IO_CS2_EN,LOGIC_LEVEL_LOW);
 
     // enable CS3
-    digitalWrite(CS3_EN,HIGH);
+    ioWrite(MCU_IO_CS3_EN,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
     
     // CS3  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
@@ -910,16 +909,16 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> CS3 curr is to high.\r\n"));
     }
-    digitalWrite(CS3_EN,LOW);
+    ioWrite(MCU_IO_CS3_EN,LOGIC_LEVEL_LOW);
 
     // Serial One pins loopback, e.g., drive TX1 to test RX1.
-    pinMode(TX1,OUTPUT);
-    digitalWrite(TX1,HIGH);
-    pinMode(RX1,INPUT);
-    digitalWrite(RX1,LOW); // turn off the weak pullup
+    ioDir(MCU_IO_TX1,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_TX1,LOGIC_LEVEL_HIGH);
+    ioDir(MCU_IO_RX1,DIRECTION_INPUT);
+    ioWrite(MCU_IO_RX1,LOGIC_LEVEL_LOW); // turn off the weak pullup
     _delay_ms(50) ; // busy-wait delay
-    uint8_t tx1_rd = digitalRead(TX1);
-    uint8_t rx1_rd = digitalRead(RX1);
+    uint8_t tx1_rd = ioRead(MCU_IO_TX1);
+    uint8_t rx1_rd = ioRead(MCU_IO_RX1);
     if (tx1_rd && rx1_rd) 
     { 
         printf_P(PSTR("TX1 loopback to RX1 == HIGH\r\n"));
@@ -930,10 +929,10 @@ void test(void)
         printf_P(PSTR(">>> TX1 %d did not loopback to RX1 %d\r\n"), tx1_rd, rx1_rd);
     }
 
-    digitalWrite(TX1,LOW);
+    ioWrite(MCU_IO_TX1,LOGIC_LEVEL_LOW);
     _delay_ms(50) ; // busy-wait delay
-    tx1_rd = digitalRead(TX1);
-    rx1_rd = digitalRead(RX1);
+    tx1_rd = ioRead(MCU_IO_TX1);
+    rx1_rd = ioRead(MCU_IO_RX1);
     if ( (!tx1_rd) && (!rx1_rd) ) 
     { 
         printf_P(PSTR("TX1 loopback to RX1 == LOW\r\n"));
@@ -945,13 +944,13 @@ void test(void)
     }
 
     // Serial Two pins loopback, e.g., drive TX2 to test RX2.
-    pinMode(TX2,OUTPUT);
-    digitalWrite(TX2,HIGH);
-    pinMode(RX2,INPUT);
-    digitalWrite(RX2,LOW); // turn off the weak pullup
+    ioDir(MCU_IO_TX2,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_TX2,LOGIC_LEVEL_HIGH);
+    ioDir(MCU_IO_RX2,DIRECTION_INPUT);
+    ioWrite(MCU_IO_RX2,LOGIC_LEVEL_LOW); // turn off the weak pullup
     _delay_ms(50) ; // busy-wait delay
-    uint8_t tx2_rd = digitalRead(TX2);
-    uint8_t rx2_rd = digitalRead(RX2);
+    uint8_t tx2_rd = ioRead(MCU_IO_TX2);
+    uint8_t rx2_rd = ioRead(MCU_IO_RX2);
     if (tx2_rd && rx2_rd) 
     { 
         printf_P(PSTR("TX2 loopback to RX2 == HIGH\r\n"));
@@ -962,10 +961,10 @@ void test(void)
         printf_P(PSTR(">>> TX2 %d did not loopback to RX2 %d\r\n"), tx2_rd, rx2_rd);
     }
 
-    digitalWrite(TX2,LOW);
+    ioWrite(MCU_IO_TX2,LOGIC_LEVEL_LOW);
     _delay_ms(50) ; // busy-wait delay
-    tx2_rd = digitalRead(TX2);
-    rx2_rd = digitalRead(RX2);
+    tx2_rd = ioRead(MCU_IO_TX2);
+    rx2_rd = ioRead(MCU_IO_RX2);
     if ( (!tx2_rd) && (!rx2_rd) ) 
     { 
         printf_P(PSTR("TX2 loopback to RX2 == LOW\r\n"));
@@ -984,13 +983,13 @@ void test(void)
     smbus_address();
 
     // SPI loopback at R-Pi header. e.g., drive MISO to test MOSI.
-    pinMode(MISO,OUTPUT);
-    digitalWrite(MISO,HIGH);
-    pinMode(MOSI,INPUT);
-    digitalWrite(MOSI,LOW); // turn off the weak pullup on the 324pb side of open drain buffer since it has a 3k pullup resistor 
+    ioDir(MCU_IO_MISO, DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_MISO, LOGIC_LEVEL_HIGH);
+    ioDir(MCU_IO_ICP3_MOSI, DIRECTION_INPUT);
+    ioWrite(MCU_IO_ICP3_MOSI, LOGIC_LEVEL_LOW); // turn off the weak pullup on the 324pb side of open drain buffer since it has a 3k pullup resistor 
     _delay_ms(50) ; // busy-wait delay
-    uint8_t miso_rd = digitalRead(MISO);
-    uint8_t mosi_rd = digitalRead(MOSI);
+    uint8_t miso_rd = ioRead(MCU_IO_MISO);
+    uint8_t mosi_rd = ioRead(MCU_IO_ICP3_MOSI);
     if (miso_rd && mosi_rd) 
     { 
         printf_P(PSTR("MISO loopback to MOSI == HIGH\r\n"));
@@ -1001,10 +1000,10 @@ void test(void)
         printf_P(PSTR(">>> MISO %d did not loopback to MOSI %d\r\n"), miso_rd, mosi_rd);
     }
 
-    digitalWrite(MISO,LOW);
+    ioWrite(MCU_IO_MISO,LOGIC_LEVEL_LOW);
     _delay_ms(50) ; // busy-wait delay
-    miso_rd = digitalRead(MISO);
-    mosi_rd = digitalRead(MOSI);
+    miso_rd = ioRead(MCU_IO_MISO);
+    mosi_rd = ioRead(MCU_IO_ICP3_MOSI);
     if ( (!miso_rd) && (!mosi_rd) ) 
     { 
         printf_P(PSTR("MISO loopback to MOSI == LOW\r\n"));
@@ -1017,10 +1016,10 @@ void test(void)
     }
 
     // My R-Pi Shutdown is on BCM6 (pin31) and that loops back into SCK on the test header
-    pinMode(SCK,INPUT);
-    digitalWrite(SCK,LOW); // turn off the weak pullup, the RPUpi board has a 3k pullup resistor 
+    ioDir(MCU_IO_SCK,DIRECTION_INPUT);
+    ioWrite(MCU_IO_SCK,LOGIC_LEVEL_LOW); // turn off the weak pullup, the RPUpi board has a 3k pullup resistor 
     _delay_ms(50) ; // busy-wait delay
-    uint8_t sck_rd = digitalRead(SCK);
+    uint8_t sck_rd = ioRead(MCU_IO_SCK);
     if (sck_rd ) 
     { 
         printf_P(PSTR("SCK with Shutdown loopback == HIGH\r\n"));
@@ -1036,7 +1035,7 @@ void test(void)
     i2c_shutdown();
 
     _delay_ms(50) ; // busy-wait delay
-    sck_rd = digitalRead(SCK);
+    sck_rd = ioRead(MCU_IO_SCK);
     if (!sck_rd) 
     { 
         printf_P(PSTR("SCK with Shutdown loopback == LOW\r\n"));
@@ -1156,8 +1155,8 @@ void test(void)
     i2c_testmode_start();
     _delay_ms(50) ; // busy-wait delay
     UCSR0B &= ~( (1<<RXEN0)|(1<<TXEN0) ); // turn off UART 
-    pinMode(TX0,OUTPUT);
-    digitalWrite(TX0,LOW); // the TX pair will now be driven and load the transceiver 
+    ioDir(MCU_IO_TX0,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_TX0,LOGIC_LEVEL_LOW); // the TX pair will now be driven and load the transceiver 
 
     // control bits  HOST_nRTS:HOST_nCTS:TX_nRE:TX_DE:DTR_nRE:DTR_DE:RX_nRE:RX_DE
     // TX_DE drives the twisted pair from this UART, and TX_nRE drives the line to the host (which is not enabled)
@@ -1168,9 +1167,9 @@ void test(void)
     float load_txde_i = i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
 
     // End test mode 
-    digitalWrite(TX0,HIGH); // strong pullup
+    ioWrite(MCU_IO_TX0,LOGIC_LEVEL_HIGH); // strong pullup
     _delay_ms(10) ; // busy-wait delay
-    pinMode(TX0,INPUT); // the TX pair should probably have a weak pullup when UART starts
+    ioDir(MCU_IO_TX0,DIRECTION_INPUT); // the TX pair should probably have a weak pullup when UART starts
     UCSR0B |= (1<<RXEN0)|(1<<TXEN0); // turn on UART
     i2c_testmode_end();
     
@@ -1227,8 +1226,8 @@ void test(void)
     i2c_testmode_start();
     _delay_ms(50) ; // busy-wait delay
     UCSR0B &= ~( (1<<RXEN0)|(1<<TXEN0) ); // turn off UART 
-    pinMode(TX0,OUTPUT);
-    digitalWrite(TX0,LOW); // the TX pair will now be driven and load the transceiver 
+    ioDir(MCU_IO_TX0,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_TX0,LOGIC_LEVEL_LOW); // the TX pair will now be driven and load the transceiver 
 
     // control bits  HOST_nRTS:HOST_nCTS:TX_nRE:TX_DE:DTR_nRE:DTR_DE:RX_nRE:RX_DE
     // TX_DE drives the TX twisted pair from this UART, and TX_nRE drives the line to the host which is a loopback
@@ -1238,12 +1237,12 @@ void test(void)
     i2c_testmode_test_xcvrbits(xcvrbits_enable_xtrx); // to be clear "...set..." does not verify the setting
     _delay_ms(1000) ; // busy-wait delay
     float load_txrx_i = i2c_get_adc_from_manager(PWR_I)*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0);
-    uint8_t rx_loopback = digitalRead(RX0); 
+    uint8_t rx_loopback = ioRead(MCU_IO_RX0); 
 
     // End test mode 
-    digitalWrite(TX0,HIGH); // strong pullup
+    ioWrite(MCU_IO_TX0,LOGIC_LEVEL_HIGH); // strong pullup
     _delay_ms(10) ; // busy-wait delay
-    pinMode(TX0,INPUT); // the TX pair should probably have a weak pullup when UART starts
+    ioDir(MCU_IO_TX0,DIRECTION_INPUT); // the TX pair should probably have a weak pullup when UART starts
     UCSR0B |= (1<<RXEN0)|(1<<TXEN0); // turn on UART
     i2c_testmode_end();
     
@@ -1384,11 +1383,11 @@ void led_setup_after_test(void)
     setup_pins_off();
     if (passing)
     {
-        digitalWrite(CS_ICP1,HIGH);
+        ioWrite(MCU_IO_CS_ICP1,LOGIC_LEVEL_HIGH);
     }
     else
     {
-        digitalWrite(CS0_EN,HIGH);
+        ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_HIGH);
     }
 }
 
@@ -1399,11 +1398,11 @@ void blink(void)
     {
         if (passing)
         {
-            digitalToggle(CS_ICP1);
+            ioToggle(MCU_IO_CS_ICP1);
         }
         else
         {
-            digitalToggle(CS0_EN);
+            ioToggle(MCU_IO_CS0_EN);
         }
         
         // next toggle 

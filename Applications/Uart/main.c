@@ -25,12 +25,10 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/parse.h"
 #include "../lib/twi0.h"
 #include "../lib/rpu_mgr.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+//#include "../lib/pin_num.h"
+//#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "id.h"
-
-// 22mA current sources enabled with CS0_EN and CS1_EN which are defined in ../lib/pins_board.h
-#define STATUS_LED CS0_EN
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -47,8 +45,9 @@ void ProcessCmd()
 
 void setup(void) 
 {
-    pinMode(STATUS_LED,OUTPUT);
-    digitalWrite(STATUS_LED,HIGH);
+    // STATUS_LED
+    ioDir(MCU_IO_CS0_EN, DIRECTION_OUTPUT); 
+    ioWrite(MCU_IO_CS0_EN, LOGIC_LEVEL_HIGH);
     
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers(); 
@@ -83,7 +82,7 @@ void blink(void)
     unsigned long kRuntime = millis() - blink_started_at;
     if ( kRuntime > blink_delay)
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // next toggle 
         blink_started_at += blink_delay; 
