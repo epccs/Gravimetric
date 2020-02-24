@@ -22,8 +22,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/uart0_bsd.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "main.h"
 #include "rpubus_manager_state.h"
 #include "dtr_transmition.h"
@@ -45,13 +44,13 @@ void check_DTR(void)
 {
     if (!host_is_foreign) 
     {
-        if ( !digitalRead(HOST_nRTS) )  // if HOST_nRTS is set (active low) then assume avrdude wants to use the bootloader
+        if ( !ioRead(MCU_IO_HOST_nRTS) )  // if HOST_nRTS is set (active low) then assume avrdude wants to use the bootloader
         {
             if ( !(status_byt & (1<<HOST_LOCKOUT_STATUS)) )
             {
-                if (digitalRead(HOST_nCTS))
+                if (ioRead(MCU_IO_HOST_nCTS))
                 { // tell the host that it is OK to use serial
-                    digitalWrite(HOST_nCTS, LOW);
+                    ioWrite(MCU_IO_HOST_nCTS, LOGIC_LEVEL_LOW);
                 }
                 else
                 {
@@ -76,9 +75,9 @@ void check_DTR(void)
                 uart_output= RPU_HOST_DISCONNECT;
                 printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
                 uart_has_TTL = 1;
-                digitalWrite(LED_BUILTIN, HIGH);
+                ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
                 localhost_active = 0;
-                digitalWrite(HOST_nCTS, HIGH);
+                ioWrite(MCU_IO_HOST_nCTS, LOGIC_LEVEL_HIGH);
             }
         }
     }
@@ -151,7 +150,7 @@ void check_uart(void)
             { 
                 lockout_started_at = millis() - LOCKOUT_DELAY;
                 bootloader_started_at = millis() - BOOTLOADER_ACTIVE;
-                digitalWrite(LED_BUILTIN, LOW);
+                ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_LOW);
                 arduino_mode = 0;
                 blink_started_at = millis();
                 return;
@@ -165,16 +164,18 @@ void check_uart(void)
             if (input == RPU_START_TEST_MODE) 
             {
                 // fill transceiver_state with HOST_nRTS:HOST_nCTS:TX_nRE:TX_DE:DTR_nRE:DTR_DE:RX_nRE:RX_DE
-                transceiver_state = (digitalRead(HOST_nRTS)<<7) | (digitalRead(HOST_nCTS)<<6) |  (digitalRead(TX_nRE)<<5) | (digitalRead(TX_DE)<<4) | (digitalRead(DTR_nRE)<<3) | (digitalRead(DTR_DE)<<2) | (digitalRead(RX_nRE)<<1) | (digitalRead(RX_DE));
+                transceiver_state = (ioRead(MCU_IO_HOST_nRTS)<<7) | (ioRead(MCU_IO_HOST_nCTS)<<6) |  (ioRead(MCU_IO_TX_nRE)<<5) | \
+                                    (ioRead(MCU_IO_TX_DE)<<4) | (ioRead(MCU_IO_DTR_nRE)<<3) | (ioRead(MCU_IO_DTR_DE)<<2) | \
+                                    (ioRead(MCU_IO_RX_nRE)<<1) | (ioRead(MCU_IO_RX_DE));
                 // turn off alternate power
-                digitalWrite(ALT_EN, LOW);
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 // turn off transceiver controls except the DTR recevior
-                digitalWrite(TX_nRE, HIGH);
-                digitalWrite(TX_DE, LOW);
+                ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);
+                ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW);
                 // DTR_nRE active would block uart from seeing RPU_END_TEST_MODE
-                digitalWrite(DTR_DE, LOW); 
-                digitalWrite(RX_nRE, HIGH);
-                digitalWrite(RX_DE, LOW);
+                ioWrite(MCU_IO_DTR_DE, LOGIC_LEVEL_LOW); 
+                ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);
+                ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW);
 
                 test_mode_started = 0;
                 test_mode = 1;
@@ -183,19 +184,19 @@ void check_uart(void)
             if (input == RPU_END_TEST_MODE) 
             {
                 // recover transceiver controls
-                digitalWrite(HOST_nRTS, ( (transceiver_state>>7) & 0x01) );
-                digitalWrite(HOST_nCTS, ( (transceiver_state>>6) & 0x01) );
-                digitalWrite(TX_nRE, ( (transceiver_state>>5) & 0x01) );
-                digitalWrite(TX_DE, ( (transceiver_state>>4) & 0x01) );
+                ioWrite(MCU_IO_HOST_nRTS, ( (transceiver_state>>7) & 0x01) );
+                ioWrite(MCU_IO_HOST_nCTS, ( (transceiver_state>>6) & 0x01) );
+                ioWrite(MCU_IO_TX_nRE, ( (transceiver_state>>5) & 0x01) );
+                ioWrite(MCU_IO_TX_DE, ( (transceiver_state>>4) & 0x01) );
                 // DTR_nRE is always active... but
-                digitalWrite(DTR_nRE, ( (transceiver_state>>3) & 0x01) );
+                ioWrite(MCU_IO_DTR_nRE, ( (transceiver_state>>3) & 0x01) );
                 // the I2C command fnEndTestMode() sets the DTR_TXD pin and turns on the UART... but
-                digitalWrite(DTR_TXD,HIGH); // strong pullup
-                pinMode(DTR_TXD,INPUT); // the DTR pair driver will see a weak pullup when UART starts
+                ioWrite(MCU_IO_DTR_TXD,LOGIC_LEVEL_HIGH); // strong pullup
+                ioDir(MCU_IO_DTR_TXD, DIRECTION_INPUT); // the DTR pair driver will see a weak pullup when UART starts
                 UCSR0B |= (1<<RXEN0)|(1<<TXEN0); // turn on UART
-                digitalWrite(DTR_DE, ( (transceiver_state>>2) & 0x01) );
-                digitalWrite(RX_nRE, ( (transceiver_state>>1) & 0x01) );
-                digitalWrite(RX_DE, ( (transceiver_state) & 0x01) );
+                ioWrite(MCU_IO_DTR_DE, ( (transceiver_state>>2) & 0x01) );
+                ioWrite(MCU_IO_RX_nRE, ( (transceiver_state>>1) & 0x01) );
+                ioWrite(MCU_IO_RX_DE, ( (transceiver_state) & 0x01) );
 
                 test_mode_started = 0;
                 test_mode = 0;
@@ -208,7 +209,7 @@ void check_uart(void)
                     connect_bootload_mode();
 
                     // start the bootloader
-                    digitalWrite(MGR_nSS, LOW);   // nSS goes through a open collector buffer to nRESET
+                    ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_LOW);   // nSS goes through a open collector buffer to nRESET
                     target_reset_started_at = millis();
                     my_mcu_is_target_and_i_have_it_reset = 1;
                     return; 
@@ -219,7 +220,7 @@ void check_uart(void)
                     return;
                 } 
                 //_delay_ms(20);  // hold reset low for a short time, but this locks the mcu which which blocks i2c, SMBus, and ADC burst. 
-                digitalWrite(MGR_nSS, HIGH); // this will release the buffer with open colllector on MCU nRESET.
+                ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_HIGH); // this will release the buffer with open colllector on MCU nRESET.
                 my_mcu_is_target_and_i_have_it_reset = 0;
                 bootloader_started = 1;
                 local_mcu_is_rpu_aware = 0; // after a reset it may be loaded with new software
@@ -245,11 +246,11 @@ void check_uart(void)
                 lockout_active =0;
                 host_active =0;
                 bootloader_started = 0;
-                digitalWrite(LED_BUILTIN, HIGH);
-                digitalWrite(RX_DE, LOW); // disallow RX pair driver to enable if FTDI_TX is low
-                digitalWrite(RX_nRE, HIGH);  // disable RX pair recevior to output to local MCU's RX input
-                digitalWrite(TX_DE, LOW); // disallow TX pair driver to enable if TX (from MCU) is low
-                digitalWrite(TX_nRE, HIGH);  // disable TX pair recevior that outputs to FTDI_RX input
+                ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
+                ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
+                ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
+                ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+                ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior that outputs to FTDI_RX input
                 return;
             }
             // nothing can get past this point.

@@ -21,8 +21,6 @@ Copyright (C) 2019 Ronald Sutherland
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
 #include "../lib/timers.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
 #include "rpubus_manager_state.h"
 #include "id_in_ee.h"
 

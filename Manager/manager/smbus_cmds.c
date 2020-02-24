@@ -23,8 +23,6 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/timers.h"
 #include "../lib/twi1.h"
 #include "../lib/uart0_bsd.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
 #include "rpubus_manager_state.h"
 #include "i2c_cmds.h"
 #include "smbus_cmds.h"

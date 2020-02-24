@@ -1,10 +1,8 @@
 #ifndef Calibration_H
 #define Calibration_H
 
-// defines for: ADC_CHANNELS
+// enum ADC_CH_enum for: ADC_CH_ALT_I, ADC_CH_ALT_V, ADC_CH_PWR_I, ADC_CH_PWR_V, ADC_CHANNELS
 #include "../lib/adc_bsd.h"
-// defines for: ALT_I, ALT_V,PWR_I,PWR_V
-#include "../lib/pins_board.h"
 
 //EEPROM memory usage (see README.md). 
 #define EE_CAL_BASE_ADDR 82
@@ -27,10 +25,10 @@ struct Channel_Map { // https://yarchive.net/comp/linux/typedefs.html
 };
 
 const static struct Channel_Map channelMap[ADC_CHANNELS] = {
-    [ALT_I] = { .cal_map= 0 }, 
-    [ALT_V] = { .cal_map= 1 }, 
-    [PWR_I] = { .cal_map= 2 }, 
-    [PWR_V] = { .cal_map= 3 } 
+    [ADC_CH_ALT_I] = { .cal_map= 0 }, 
+    [ADC_CH_ALT_V] = { .cal_map= 1 }, 
+    [ADC_CH_PWR_I] = { .cal_map= 2 }, 
+    [ADC_CH_PWR_V] = { .cal_map= 3 } 
 };
 
 

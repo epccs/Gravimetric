@@ -172,18 +172,6 @@ void ioWrite(MCU_IO_t io, LOGIC_LEVEL_t level) {
 static inline __attribute__((always_inline))
 void ioToggle(MCU_IO_t io) {
     ioWrite(io, (LOGIC_LEVEL_t) !ioRead(io));
-    /* keep it simple
-    if (ioMap[io].in > ((register8_t *)(0X3F)) )  //I/O space is 0..0x3F
-    {
-        // https://www.microchip.com/webdoc/AVRLibcReferenceManual/group__avr__sfr__notes.html
-        
-    }
-    else
-    {
-        // somehow this does sbi/cbi on the bit in PORTx register, but it may quit doing that at any time.
-        *ioMap[io].in |= ioMap[io].mask;
-    } 
-    */
 }
 
 // set io direction (INPUT or OUTPUT).

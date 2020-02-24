@@ -18,8 +18,8 @@
 */
 
 #include <util/atomic.h>
-#include "adc.h"
 #include "adc_bsd.h"
+#include "adc.h"
 
 
 // report ADC reading for a given channel.
@@ -30,11 +30,7 @@ int analogRead(uint8_t channel)
 {
     if (ADC_auto_conversion)
     {
-        ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
-        {
-            // this moves two byes one at a time, so the ISR could change it durring the move
-            return adc[channel];
-        }
+        adcAtomic(channel);
     }
     else
     {

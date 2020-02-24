@@ -17,12 +17,11 @@ Copyright (C) 2019 Ronald Sutherland
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <util/atomic.h>
 #include <avr/io.h>
 #include "../lib/timers.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "../lib/adc_bsd.h"
-#include "../lib/adc.h"
 #include "adc_burst.h"
 
 unsigned long adc_started_at;
@@ -39,8 +38,12 @@ void adc_burst(void)
     unsigned long kRuntime= millis() - adc_started_at;
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
-        accumulate_alt_ti += analogRead(ALT_I);
-        accumulate_pwr_ti += analogRead(PWR_I);
+        ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
+        {
+            // this works with lots of byes at a time, and the ISR can change them at any time
+            accumulate_alt_ti += adc[MCU_IO_ALT_I];
+            accumulate_pwr_ti += adc[MCU_IO_PWR_I];
+        }
         enable_ADC_auto_conversion(BURST_MODE);
         adc_started_at += ADC_DELAY_MILSEC; 
     } 

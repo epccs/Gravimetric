@@ -22,8 +22,7 @@ Copyright (C) 2019 Ronald Sutherland
 #include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/uart0_bsd.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "rpubus_manager_state.h"
 
 unsigned long blink_started_at;
@@ -56,33 +55,33 @@ void connect_normal_mode(void)
     // connect the local mcu if it has talked to the rpu manager (e.g. got an address)
     if(host_is_foreign)
     {
-        digitalWrite(RX_DE, LOW); // disallow RX pair driver to enable if FTDI_TX is low
-        digitalWrite(RX_nRE, LOW);  // enable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
         if(local_mcu_is_rpu_aware)
         {
-            digitalWrite(TX_DE, HIGH); // allow TX pair driver to enable if TX (from MCU) is low
+            ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
         }
         else
         {
-            digitalWrite(TX_DE, LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+            ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
         }
-        digitalWrite(TX_nRE, HIGH);  // disable TX pair recevior to output to FTDI_RX input
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
     }
 
      // connect both the local mcu and host/ftdi uart if mcu is rpu aware, otherwise block MCU from using the TX pair
     else
     {
-        digitalWrite(RX_DE, HIGH); // allow RX pair driver to enable if FTDI_TX is low
-        digitalWrite(RX_nRE, LOW);  // enable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
         if(local_mcu_is_rpu_aware)
         {
-            digitalWrite(TX_DE, HIGH); // allow TX pair driver to enable if TX (from MCU) is low
+            ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
         }
         else
         {
-            digitalWrite(TX_DE, LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+            ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
         }
-        digitalWrite(TX_nRE, LOW);  // enable TX pair recevior to output to FTDI_RX input
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
     }
 }
 
@@ -91,19 +90,19 @@ void connect_bootload_mode(void)
     // connect the remote host and local mcu
     if (host_is_foreign)
     {
-        digitalWrite(RX_DE, LOW); // disallow RX pair driver to enable if FTDI_TX is low
-        digitalWrite(RX_nRE, LOW);  // enable RX pair recevior to output to local MCU's RX input
-        digitalWrite(TX_DE, HIGH); // allow TX pair driver to enable if TX (from MCU) is low
-        digitalWrite(TX_nRE, HIGH);  // disable TX pair recevior to output to FTDI_RX input
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
     }
     
     // connect the local host and local mcu
     else
     {
-        digitalWrite(RX_DE, HIGH); // allow RX pair driver to enable if FTDI_TX is low
-        digitalWrite(RX_nRE, LOW);  // enable RX pair recevior to output to local MCU's RX input
-        digitalWrite(TX_DE, HIGH); // allow TX pair driver to enable if TX (from MCU) is low
-        digitalWrite(TX_nRE, LOW);  // enable TX pair recevior to output to FTDI_RX input
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
     }
 }
 
@@ -112,19 +111,19 @@ void connect_lockout_mode(void)
     // lockout everything
     if (host_is_foreign)
     {
-        digitalWrite(RX_DE, LOW); // disallow RX pair driver to enable if FTDI_TX is low
-        digitalWrite(RX_nRE, HIGH);  // disable RX pair recevior to output to local MCU's RX input
-        digitalWrite(TX_DE, LOW); // disallow TX pair driver to enable if TX (from MCU) is low
-        digitalWrite(TX_nRE, HIGH);  // disable TX pair recevior to output to FTDI_RX input
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
     }
     
     // lockout MCU, but not host
     else
     {
-        digitalWrite(RX_DE, HIGH); // allow RX pair driver to enable if FTDI_TX is low
-        digitalWrite(RX_nRE, HIGH);  // disable RX pair recevior to output to local MCU's RX input
-        digitalWrite(TX_DE, LOW); // disallow TX pair driver to enable if TX (from MCU) is low
-        digitalWrite(TX_nRE, LOW);  // enable TX pair recevior to output to FTDI_RX input
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
     }
 }
 
@@ -149,21 +148,21 @@ void blink_on_activate(void)
         
         if ( bootloader_started  && (kRuntime > BLINK_BOOTLD_DELAY) )
         {
-            digitalToggle(LED_BUILTIN);
+            ioToggle(MCU_IO_MGR_SCK_LED);
             
             // next toggle 
             blink_started_at += BLINK_BOOTLD_DELAY; 
         }
         else if ( lockout_active  && (kRuntime > BLINK_LOCKOUT_DELAY) )
         {
-            digitalToggle(LED_BUILTIN);
+            ioToggle(MCU_IO_MGR_SCK_LED);
             
             // next toggle 
             blink_started_at += BLINK_LOCKOUT_DELAY; 
         }
         else if ( host_active  && (kRuntime > BLINK_ACTIVE_DELAY) )
         {
-            digitalToggle(LED_BUILTIN);
+            ioToggle(MCU_IO_MGR_SCK_LED);
             
             // next toggle 
             blink_started_at += BLINK_ACTIVE_DELAY; 
@@ -174,7 +173,7 @@ void blink_on_activate(void)
     {
         if ( (kRuntime > BLINK_STATUS_DELAY))
         {
-            digitalToggle(LED_BUILTIN);
+            ioToggle(MCU_IO_MGR_SCK_LED);
             
             // next toggle 
             blink_started_at += BLINK_STATUS_DELAY; 
@@ -221,8 +220,8 @@ void check_shutdown(void)
         
         if ( kRuntime > SHUTDOWN_TIME)
         {
-            pinMode(SHUTDOWN, INPUT);
-            digitalWrite(SHUTDOWN, HIGH); // trun on a weak pullup 
+            ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
+            ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // trun on a weak pullup 
             shutdown_started = 0; // set with I2C command 5
             shutdown_detected = 1; // clear when reading with I2C command 4
         }
@@ -232,12 +231,12 @@ void check_shutdown(void)
         { 
             // I2C cmd set shutdown_started =1 and set shutdown_detected = 0
             // but if it is a manual event it can have a debounce time
-            if( !digitalRead(SHUTDOWN) ) 
+            if( !ioRead(MCU_IO_SHUTDOWN) ) 
             {
-                pinMode(SHUTDOWN, OUTPUT);
-                digitalWrite(SHUTDOWN, LOW);
-                pinMode(LED_BUILTIN, OUTPUT);
-                digitalWrite(LED_BUILTIN, HIGH);
+                ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
+                ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
+                ioDir(MCU_IO_MGR_SCK_LED, DIRECTION_OUTPUT);
+                ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
                 shutdown_detected = 0; // set after SHUTDOWN_TIME timer runs
                 shutdown_started = 1; // it is cleared after SHUTDOWN_TIME timer runs
                 shutdown_started_at = millis();

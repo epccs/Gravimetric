@@ -19,12 +19,12 @@ Copyright (C) 2019 Ronald Sutherland
 
 #include <stdbool.h>
 #include <util/delay.h>
+#include <util/atomic.h>
 #include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/uart0_bsd.h"
-#include "../lib/adc.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/adc_bsd.h"
+#include "../lib/io_enum_bsd.h"
 #include "daynight_limits.h"
 #include "daynight_state.h"
 
@@ -66,7 +66,7 @@ unsigned long dayTmrStarted;
 void check_daynight(void)
 {
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
-    int sensor_val = analogRead(ALT_V);
+    int sensor_val = adcAtomic(MCU_IO_ALT_V);
     unsigned long kRuntime= millis() - dayTmrStarted;
     
     if(daynight_state == DAYNIGHT_START_STATE) 

@@ -24,9 +24,8 @@ Copyright (C) 2019 Ronald Sutherland
 #include "../lib/twi0.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/adc_bsd.h"
-#include "../lib/adc.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
+#include "main.h"
 #include "rpubus_manager_state.h"
 #include "dtr_transmition.h"
 #include "i2c_cmds.h"
@@ -189,10 +188,10 @@ void fnWtShtdnDtct(uint8_t* i2cBuffer)
     // pull ICP1 pin low to hault the host (e.g. Pi Zero on RPUpi)
     if (i2cBuffer[1] == 1)
     {
-        pinMode(SHUTDOWN, OUTPUT);
-        digitalWrite(SHUTDOWN, LOW);
-        pinMode(LED_BUILTIN, OUTPUT);
-        digitalWrite(LED_BUILTIN, HIGH);
+        ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
+        ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
+        ioDir(MCU_IO_MGR_SCK_LED, DIRECTION_OUTPUT);
+        ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
         shutdown_started = 1; // it is cleared in check_shutdown()
         shutdown_detected = 0; // it is set in check_shutdown()
         shutdown_started_at = millis();
@@ -204,8 +203,10 @@ void fnWtShtdnDtct(uint8_t* i2cBuffer)
 void fnRdStatus(uint8_t* i2cBuffer)
 {
     i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
-    if (digitalRead(ALT_EN)) i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
-    if (digitalRead(PIPWR_EN)) i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
+    if (ioRead(MCU_IO_ALT_EN)) 
+        i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
+    if (ioRead(MCU_IO_PIPWR_EN)) 
+        i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
     if (daynight_state==DAYNIGHT_FAIL_STATE) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
 }
 
@@ -219,7 +220,7 @@ void fnWtStatus(uint8_t* i2cBuffer)
     }
     if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
     {
-        digitalWrite(PIPWR_EN,HIGH); //restart SBC 
+        ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
     } 
     if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_START_STATE; // restart the state machine
     status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
@@ -382,9 +383,10 @@ void fnAnalogRead(uint8_t* i2cBuffer)
     channel += ((uint16_t)i2cBuffer[1])<<8;
     channel += ((uint16_t)i2cBuffer[2]);
     uint16_t adc_reading;
-    if ( (channel == ALT_I) || (channel == ALT_V) || (channel == PWR_I) || (channel == PWR_V) )
+    if ( (channel == ADC_CH_ALT_I) || (channel == ADC_CH_ALT_V) || \
+         (channel == ADC_CH_PWR_I) || (channel == ADC_CH_PWR_V) )
     {
-        adc_reading = analogRead((uint8_t)channel);
+        adc_reading = adcAtomic((uint8_t)channel);
     }
     else
     {
@@ -398,8 +400,8 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
 {
     uint8_t is_channel_with_writebit = i2cBuffer[1];
     uint8_t channel  = is_channel_with_writebit & CAL_CHANNEL_MASK; // removed the writebit
-    if ( (channel == ALT_I) || (channel == ALT_V) \
-            || (channel == PWR_I) || (channel == PWR_V) )
+    if ( (channel == ADC_CH_ALT_I) || (channel == ADC_CH_ALT_V) || \
+         (channel == ADC_CH_PWR_I) || (channel == ADC_CH_PWR_V) )
     {
         channel_with_writebit = is_channel_with_writebit;
 
@@ -452,11 +454,11 @@ void fnRdTimedAccum(uint8_t* i2cBuffer)
     channel += ((uint32_t)i2cBuffer[3])<<8;
     channel += ((uint32_t)i2cBuffer[4]);
     unsigned long my_copy; //I2C runs this in ISR but durring SMBus this is not run in ISR context
-    if (channel == ALT_I)
+    if (channel == ADC_CH_ALT_I)
     {
         my_copy = accumulate_alt_ti;
     }
-    else if (channel == PWR_I)
+    else if (channel == ADC_CH_PWR_I)
     {
         my_copy = accumulate_pwr_ti;
     }
@@ -558,11 +560,11 @@ void fnEndTestMode(uint8_t* i2cBuffer)
     {
         if (!test_mode_started && test_mode)
         {
-            digitalWrite(DTR_TXD,HIGH); // strong pullup
-            pinMode(DTR_TXD,INPUT); // the DTR pair driver will see a weak pullup when UART starts
-            UCSR0B |= (1<<RXEN0)|(1<<TXEN0); // turn on UART
-            digitalWrite(DTR_DE, HIGH); //DTR transceiver may have been turned off during the test
-            digitalWrite(DTR_nRE, LOW); 
+            ioWrite(MCU_IO_DTR_TXD, LOGIC_LEVEL_HIGH); // strong pullup
+            ioDir(MCU_IO_DTR_TXD, DIRECTION_INPUT); // the DTR pair driver will see a weak pullup when UART starts
+            stdout = stdin = uart0_init(DTR_BAUD,UART0_RX_REPLACE_CR_WITH_NL); // turn on UART
+            ioWrite(MCU_IO_DTR_DE, LOGIC_LEVEL_HIGH); //DTR transceiver may have been turned off during the test
+            ioWrite(MCU_IO_DTR_nRE, LOGIC_LEVEL_LOW); 
             uart_started_at = millis();
             uart_output = RPU_END_TEST_MODE;
             printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
@@ -587,7 +589,10 @@ void fnRdXcvrCntlInTestMode(uint8_t* i2cBuffer)
 {
     if (test_mode)
     {
-        i2cBuffer[1] = ( (digitalRead(HOST_nRTS)<<7) | (digitalRead(HOST_nCTS)<<6) | (digitalRead(TX_nRE)<<5) | (digitalRead(TX_DE)<<4) | (digitalRead(DTR_nRE)<<3) | (digitalRead(DTR_DE)<<2) | (digitalRead(RX_nRE)<<1) | (digitalRead(RX_DE)) ); 
+        i2cBuffer[1] = ( (ioRead(MCU_IO_HOST_nRTS)<<7) | (ioRead(MCU_IO_HOST_nCTS)<<6) | \
+                         (ioRead(MCU_IO_TX_nRE)<<5) | (ioRead(MCU_IO_TX_DE)<<4) | \
+                         (ioRead(MCU_IO_DTR_nRE)<<3) | (ioRead(MCU_IO_DTR_DE)<<2) | \
+                         (ioRead(MCU_IO_RX_nRE)<<1) | (ioRead(MCU_IO_RX_DE)) ); 
     }
     else 
     {
@@ -600,21 +605,21 @@ void fnWtXcvrCntlInTestMode(uint8_t* i2cBuffer)
 {
     if (test_mode)
     {
-        // mask the needed bit and shift it to position zero so digitalWrite can move it to where it needs to go.
-        digitalWrite(HOST_nRTS, ( (i2cBuffer[1] & (1<<7))>>7 ) );
-        digitalWrite(HOST_nCTS, ( (i2cBuffer[1] & (1<<6))>>6 ) );
-        digitalWrite(TX_nRE, ( (i2cBuffer[1] & (1<<5))>>5 ) );
-        digitalWrite(TX_DE, ( (i2cBuffer[1] & (1<<4))>>4 ) );
-        digitalWrite(DTR_nRE, ( (i2cBuffer[1] & (1<<3))>>3 ) ); // setting this will blind others state change but I need it for testing
-        if ( (i2cBuffer[1] & (1<<2))>>2 ) // enabling the dtr driver in testmode needs to cause a transcever load on the dtr pair
+        // mask the needed bit and shift it to position zero so it can be cast for ioWrite.
+        ioWrite(MCU_IO_HOST_nRTS, (LOGIC_LEVEL_t) ( (i2cBuffer[1] & (1<<7))>>7 ) );
+        ioWrite(MCU_IO_HOST_nCTS,  (LOGIC_LEVEL_t) ( (i2cBuffer[1] & (1<<6))>>6 ) );
+        ioWrite(MCU_IO_TX_nRE,  (LOGIC_LEVEL_t) ( (i2cBuffer[1] & (1<<5))>>5 ) );
+        ioWrite(MCU_IO_TX_DE,  (LOGIC_LEVEL_t) ( (i2cBuffer[1] & (1<<4))>>4 ) );
+        ioWrite(MCU_IO_DTR_nRE,  (LOGIC_LEVEL_t) ( (i2cBuffer[1] & (1<<3))>>3 ) ); // setting this will blind others to multi-drop bus state change but is needed for testing
+        if ( (i2cBuffer[1] & (1<<2))>>2 ) // enabling the dtr driver in testmode needs to cause the transcever to power the dtr pair to check for a 50 Ohm load
         {
-            UCSR0B &= ~( (1<<RXEN0)|(1<<TXEN0) ); // turn off UART 
-            pinMode(DTR_TXD,OUTPUT);
-            digitalWrite(DTR_TXD,LOW); // the DTR pair will be driven and load the transceiver 
-            digitalWrite(DTR_DE,  1); 
+            stdout = stdin = uart0_init(0,0); // turn off DTR UART 
+            ioDir(MCU_IO_DTR_TXD, DIRECTION_OUTPUT);
+            ioWrite(MCU_IO_DTR_TXD,LOGIC_LEVEL_LOW); // the DTR pair will be driven and load the transceiver 
+            ioWrite(MCU_IO_DTR_DE, LOGIC_LEVEL_HIGH); 
         }
-        digitalWrite(RX_nRE, ( (i2cBuffer[1] & (1<<1))>>1 ) );
-        digitalWrite(RX_DE,  (i2cBuffer[1] & 1) );
+        ioWrite(MCU_IO_RX_nRE, (LOGIC_LEVEL_t) ( (i2cBuffer[1] & (1<<1))>>1 ) );
+        ioWrite(MCU_IO_RX_DE, (LOGIC_LEVEL_t)  (i2cBuffer[1] & 1) );
     }
     else 
     {

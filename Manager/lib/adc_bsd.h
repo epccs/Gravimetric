@@ -1,7 +1,18 @@
 #ifndef AdcISR_h
 #define AdcISR_h
 
-#define ADC_CHANNELS 8
+// enumeraiton names for ADC_CH_<node> from schematic
+typedef enum ADC_CH_enum {
+    ADC_CH_ALT_I,  // PC0 has analog channel 0 to measure  alternate current with 0.018 Ohm sense and a gain of 50 amplifier
+    ADC_CH_ALT_V, // PC1 has analog channel 1 to measued alternate voltage with 100k and 10k Ohm divider
+    ADC_CH_NC2, // PC2 is used for MCU_IO.
+    ADC_CH_NC3, // PC3 is used for MCU_IO.
+    ADC_CH_NC4, // PC4 is used for MCU_IO.
+    ADC_CH_NC5, // PC5 is used for MCU_IO.
+    ADC_CH_PWR_I, // PE2 has analog channel 6 to measure power current with 0.068 Ohm sense and a gain of 50 amplifier
+    ADC_CH_PWR_V, // PE3 is analog channel 7 to measue power voltage with 100k and 15.8k Ohm divider
+    ADC_CHANNELS
+} ADC_CH_t;
 
 // Analog values range from 0 to 1023, they have 1024 slots where each 
 // reperesents 1/1024 of the reference. The last slot has issues see datasheet.
@@ -18,7 +29,7 @@ extern volatile uint8_t adc_isr_status;
 
 enum reference {
     EXTERN_AVCC,
-    INTERN_1V1
+    INTERN_1V1,
     MAX_REF_NUM
 };
 
@@ -55,10 +66,12 @@ enum reference {
 #ifndef EXTERNAL_AVCC
 #   error your mcu is not supported
 #endif
-extern void init_ADC_single_conversion(uint8_t reference);
+extern void init_ADC_single_conversion(uint8_t);
 
 #define FREE_RUNNING 1
 #define BURST_MODE 0
-extern void enable_ADC_auto_conversion(uint8_t free_run);
+extern void enable_ADC_auto_conversion(uint8_t);
+
+extern int adcAtomic(ADC_CH_t);
 
 #endif // AdcISR_h

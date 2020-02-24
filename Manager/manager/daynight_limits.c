@@ -16,15 +16,15 @@ Copyright (C) 2019 Ronald Sutherland
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include <avr/pgmspace.h>
-#include <util/atomic.h>
-#include <avr/eeprom.h> 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <avr/pgmspace.h>
+#include <util/atomic.h>
+#include <avr/eeprom.h> 
 #include "../lib/adc.h"
 #include "../lib/timers.h"
-#include "../lib/pins_board.h"
 #include "daynight_limits.h"
 
 uint8_t daynight_values_loaded;

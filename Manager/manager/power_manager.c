@@ -22,9 +22,8 @@ Copyright (C) 2019 Ronald Sutherland
 #include <avr/io.h>
 #include "../lib/timers.h"
 #include "../lib/uart0_bsd.h"
-#include "../lib/adc.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/adc_bsd.h"
+#include "../lib/io_enum_bsd.h"
 #include "battery_limits.h"
 #include "power_manager.h"
 
@@ -40,12 +39,12 @@ void check_if_alt_should_be_on(void)
 {
     if (enable_alternate_power)
     {
-        int battery = analogRead(PWR_V);
+        int battery = adcAtomic(ADC_CH_PWR_V);
         if (battery >= battery_high_limit)
         {
-            if (digitalRead(ALT_EN))
+            if (ioRead(MCU_IO_ALT_EN))
             {
-                digitalWrite(ALT_EN,LOW);
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 enable_alternate_power = 0; // charge is done
             }
             return; // if alt_en is not on do nothing
@@ -55,11 +54,11 @@ void check_if_alt_should_be_on(void)
         if (battery < (battery_low_limit + pwm_range ) )
         { // half way between high and low limit pwm will occure at 2 sec intervals
             unsigned long offtime = ALT_PWM_PERIOD * ( (battery_high_limit - battery) / pwm_range );
-            if (digitalRead(ALT_EN))
+            if (ioRead(MCU_IO_ALT_EN))
             {
                 if ( (kRuntime + offtime) > ALT_PWM_PERIOD )
                 {
-                    digitalWrite(ALT_EN,LOW);
+                    ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                     alt_pwm_accum_charge_time += kRuntime;
                 }
             }
@@ -67,7 +66,7 @@ void check_if_alt_should_be_on(void)
             {
                 if ( kRuntime > ALT_PWM_PERIOD )
                 {
-                    digitalWrite(ALT_EN,HIGH);
+                    ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
                     if (kRuntime > (ALT_PWM_PERIOD<<1) )
                     {
                         alt_pwm_started_at = millis();
@@ -80,11 +79,11 @@ void check_if_alt_should_be_on(void)
             }
             return;
         }
-        else if (digitalRead(ALT_EN))
+        else if (ioRead(MCU_IO_ALT_EN))
         { // if pwm is not occuring we still need to rest every so often to measure the battery
             if ( (kRuntime + ALT_REST) > ALT_REST_PERIOD )
             {
-                digitalWrite(ALT_EN,LOW);
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
             }
             return;
         }
@@ -92,7 +91,7 @@ void check_if_alt_should_be_on(void)
         {
             if ( kRuntime > ALT_REST_PERIOD)
             { // end of resting time, start charging
-                digitalWrite(ALT_EN,HIGH);
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
                 if (kRuntime > (ALT_REST_PERIOD<<1) )
                 {
                     alt_pwm_started_at = millis();
@@ -107,6 +106,6 @@ void check_if_alt_should_be_on(void)
     }
     else 
     {
-        digitalWrite(ALT_EN,LOW);
+        ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
     }
 }

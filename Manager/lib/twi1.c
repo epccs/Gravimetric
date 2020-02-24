@@ -24,8 +24,7 @@ Modified in 2016 by Ronald Sutherland (ronald.sutherlad@gmail) to use as a C lib
 #include <stdbool.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
-#include "pin_num.h"
-#include "pins_board.h"
+#include "io_enum_bsd.h"
 #include "twi1.h"
 
 static volatile uint8_t twi1_state;
@@ -84,15 +83,15 @@ void twi1_init(uint8_t pull_up)
     twi1_sendStop = 1;		// default value
     twi1_inRepStart = 0;
 
-    pinMode(SCL1,INPUT); // 328pb DDRE &= ~(1 << DDE0)
-    pinMode(SDA1,INPUT); // 328pb DDRE &= ~(1 << DDE1)
+    ioDir(MCU_IO_SCL1, DIRECTION_INPUT); // 328pb DDRE &= ~(1 << DDE0)
+    ioDir(MCU_IO_SDA1, DIRECTION_INPUT); // 328pb DDRE &= ~(1 << DDE1)
 
     // Do not use pull-up for twi pins if the MCU is running at a higher voltage.
     // e.g. if MCU has 5V and others have 3.3V do not use the pull-up. 
     if (pull_up) 
     {
-        digitalWrite(SCL1,HIGH); // 328pb PORTE |= (1 << PORTE0)
-        digitalWrite(SDA1,HIGH); // 328pb PORTE |= (1 << PORTE1)
+        ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_HIGH); // 328pb PORTE |= (1 << PORTE0)
+        ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_HIGH); // 328pb PORTE |= (1 << PORTE1)
     }
 
     // initialize twi prescaler and bit rate
@@ -116,8 +115,8 @@ void twi1_disable(void)
     TWCR1 &= ~((1<<TWEN) | (1<<TWIE) | (1<<TWEA));
 
     // deactivate internal pullups for twi.
-    digitalWrite(SCL1,LOW); // 328pb PORTE &= ~(1 << PORTE0)
-    digitalWrite(SDA1,LOW); // 328pb PORTE &= ~(1 << PORTE1)
+    ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_LOW); // 328pb PORTE &= ~(1 << PORTE0)
+    ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_LOW); // 328pb PORTE &= ~(1 << PORTE1)
 }
 
 /* init slave address and enable interrupt */

@@ -18,7 +18,6 @@ OBJECTS = rpubus_manager_state.o \
 	battery_limits.o \
 	daynight_limits.o \
 	daynight_state.o \
-	$(LIBDIR)/adc.o \
 	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/timers.o \
 	$(LIBDIR)/twi0.o \

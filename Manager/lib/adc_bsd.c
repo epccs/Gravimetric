@@ -33,10 +33,8 @@ how to use the buffer
 
 #include <util/atomic.h>
 #include "adc_bsd.h"
+#include "io_enum_bsd.h"
 
-//**** must not use LGPL 
-#include "pin_num.h"
-#include "pins_board.h"
 
 volatile int adc[ADC_CHANNELS];
 volatile uint8_t adc_channel;
@@ -46,7 +44,7 @@ volatile uint8_t adc_isr_status;
 
 static uint8_t free_running;
 
-// Interrupt service routine for enable_ADC_auto_conversion
+// Interrupt service routine started with enable_ADC_auto_conversion
 ISR(ADC_vect){
     adc[adc_channel] = ADC;
     
@@ -54,7 +52,7 @@ ISR(ADC_vect){
     
     // ch 0 is ALT_I, always read
     // ch 1 is ALT_V, only read when ALT_EN is low (e.g., at rest/not charging)
-    if ( (adc_channel == 1) && digitalRead(ALT_EN) )
+    if ( (adc_channel == 1) && ioRead(MCU_IO_ALT_EN) )
     {
         adc_channel = 6; // skip channel 1
     }
@@ -65,7 +63,7 @@ ISR(ADC_vect){
     }
     // ch 6 is PWR_I, always read
     // ch 7 is PWR_V, only read when ALT_EN is low (e.g., at rest/not charging)
-    if ( (adc_channel == 7) && digitalRead(ALT_EN) )
+    if ( (adc_channel == 7) && ioRead(MCU_IO_ALT_EN) )
     {
         adc_channel = 8; // skip channel 7
     }
@@ -180,4 +178,19 @@ void enable_ADC_auto_conversion(uint8_t free_run)
 #   error missing ADCSRA register which has ADSC bit that is used to start a conversion
 #endif
     ADC_auto_conversion =1;
+}
+
+// return two byes from the last ADC update, use atomic to make sure ISR does not change it durring read
+int adcAtomic(ADC_CH_t channel)
+{
+    int x;
+    if (channel < ADC_CHANNELS) {
+        ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
+        {
+            x = adc[channel];
+        }
+        return x;
+    } 
+    else return 0;
+
 }
