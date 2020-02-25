@@ -27,11 +27,19 @@ extern volatile uint8_t analog_reference;
 #define ISR_ADCBURST_START 0x00
 extern volatile uint8_t adc_isr_status;
 
-enum reference {
-    EXTERN_AVCC,
-    INTERN_1V1,
-    MAX_REF_NUM
-};
+typedef enum REFERENCE_enum {
+    REFERENCE_EXTERN_AVCC, // 5V SMPS can be used as referance, it changes some with load.
+    REFERENCE_INTERN_1V1, // Internal 1.1V band gap which may range from .9 to 1.3V from factory but is stable once known.
+    REFERENCE_OPTIONS
+} REFERENCE_t;
+
+typedef enum CAL_CH_enum {
+    CAL_CH_ALT_I, // index of ALT_I calibration in map
+    CAL_CH_ALT_V, // index of ALT_V calibration in map
+    CAL_CH_PWR_I, // index of PWR_I calibration in map
+    CAL_CH_PWR_V, // index of PWR_V calibration in map
+    CAL_CH_END
+} CAL_CH_t;
 
 // ADREFSMASK is used to clear all referance select (REFS) bits befor setting the needed bits
 // EXTERNAL_AVCC: connects the analog reference to AVCC power supply with capacitor on AREF pin. 

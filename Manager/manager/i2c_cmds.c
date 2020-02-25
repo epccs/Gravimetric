@@ -2,19 +2,32 @@
 i2c_cmds is a i2c RPUBUS manager commands library in the form of a function pointer array  
 Copyright (C) 2019 Ronald Sutherland
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+All rights reserved, specifically, the right to Redistribut is withheld. Subject 
+to your compliance with these terms, you may use this software and derivatives. 
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+Use in source and binary forms, with or without modification, are permitted 
+provided that the following conditions are met:
+1. Source code must retain the above copyright notice, this list of 
+conditions and the following disclaimer.
+2. Binary derivatives are exclusively for use with Ronald Sutherland 
+products.
+3. Neither the name of the copyright holders nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+THIS SOFTWARE IS SUPPLIED BY RONALD SUTHERLAND "AS IS". NO WARRANTIES, WHETHER
+EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY
+IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY, AND FITNESS
+FOR A PARTICULAR PURPOSE.
+
+IN NO EVENT WILL RONALD SUTHERLAND BE LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE,
+INCIDENTAL OR CONSEQUENTIAL LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND
+WHATSOEVER RELATED TO THE SOFTWARE, HOWEVER CAUSED, EVEN IF RONALD SUTHERLAND
+HAS BEEN ADVISED OF THE POSSIBILITY OR THE DAMAGES ARE FORESEEABLE. TO
+THE FULLEST EXTENT ALLOWED BY LAW, RONALD SUTHERLAND'S TOTAL LIABILITY ON ALL
+CLAIMS IN ANY WAY RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT
+OF FEES, IF ANY, THAT YOU HAVE PAID DIRECTLY TO RONALD SUTHERLAND FOR THIS
+SOFTWARE.
 */
 
 #include <stdbool.h>
@@ -48,7 +61,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
     {
         {fnRdMgrAddr, fnNull, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
-        {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnAnalogRefExternAVCC, fnAnalogRefIntern1V1},
+        {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
 
@@ -396,6 +409,11 @@ void fnAnalogRead(uint8_t* i2cBuffer)
     i2cBuffer[2] = ( (0x00FF & adc_reading) ); 
 }
 
+// I2C command for Calibration of ADC_CH_ALT_I, ADC_CH_ALT_V, ADC_CH_PWR_I, ADC_CH_PWR_V adc channels
+// byte after command is used to select channel
+// swap the next four I2C buffer bytes with the calMap[convert_channel_to_cal_map_index(channel)].calibration float
+// set cal_loaded so main loop will save it to EEPROM if valid or
+// recover EEPROM (or default) value if new was not valid
 void fnCalibrationRead(uint8_t* i2cBuffer)
 {
     uint8_t is_channel_with_writebit = i2cBuffer[1];
@@ -424,7 +442,7 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
         i2cBuffer[5] =  ( (0x000000FFUL & old) ); 
 
         // new is ready
-        if (is_channel_with_writebit & CAL_CHANNEL_WRITEBIT) // keep in SRAM if writebit is set
+        if (is_channel_with_writebit & CAL_CHANNEL_WRITEBIT) // keep new in SRAM if writebit is set
         {
             // copy bytes into the memory footprint used for our tempary float
             memcpy(&temp_calibration, &new, sizeof temp_calibration);
@@ -474,55 +492,56 @@ void fnRdTimedAccum(uint8_t* i2cBuffer)
     i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
 
-// I2C command for Analog referance EXTERNAL_AVCC
-// swap the I2C buffer with the ref_extern_avcc_uV in use
-// set ref_loaded so main loop will try to save it to EEPROM
-// the main loop will reload EEPROM or default value if new is out of range
-void fnAnalogRefExternAVCC(uint8_t* i2cBuffer)
+// I2C command for Referance EXTERNAL_AVCC and INTERN_1V1
+// byte after command is used to select 
+// swap the next four I2C buffer bytes with the refMap[select].reference float
+// set ref_loaded so main loop will save it to EEPROM if valid or
+// recover EEPROM (or default) value if new was not valid
+void fnReferance(uint8_t* i2cBuffer)
 {
-    // I work with ref_extern_avcc_uV as a uint32_t, but it is a float (both are four bytes)
-    uint32_t old = ref_extern_avcc_uV;
-    uint32_t new = 0;
-    new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    i2cBuffer[1] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
+    uint8_t is_referance_with_writebit = i2cBuffer[1];
+    uint8_t referance = is_referance_with_writebit & REF_SELECT_MASK; // removed the writebit
+    if ( (referance < REFERENCE_OPTIONS) )
+    {
+        ref_select_with_writebit = is_referance_with_writebit;
 
-    new += ((uint32_t)i2cBuffer[2])<<16;
-    i2cBuffer[2] =  ( (0x00FF0000UL & old) >>16 ); 
+        // place old float in a uint32_t
+        uint32_t old;
+        float temp_referance = refMap[referance].reference;
+        memcpy(&old, &temp_referance, sizeof old);
 
-    new += ((uint32_t)i2cBuffer[3])<<8;
-    i2cBuffer[3] =  ( (0x0000FF00UL & old) >>8 ); 
+        uint32_t new = 0;
+        new += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
+        i2cBuffer[2] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
 
-    new += ((uint32_t)i2cBuffer[4]);
-    i2cBuffer[4] =  ( (0x000000FFUL & old) ); 
+        new += ((uint32_t)i2cBuffer[3])<<16;
+        i2cBuffer[3] =  ( (0x00FF0000UL & old) >>16 ); 
 
-    // new is ready
-    ref_extern_avcc_uV = new;
+        new += ((uint32_t)i2cBuffer[4])<<8;
+        i2cBuffer[4] =  ( (0x0000FF00UL & old) >>8 ); 
 
-    ref_loaded = REF_AVCC_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
-}
+        new += ((uint32_t)i2cBuffer[5]);
+        i2cBuffer[5] =  ( (0x000000FFUL & old) ); 
 
-// I2C command for Analog referance INTERNAL_1V1
-void fnAnalogRefIntern1V1(uint8_t* i2cBuffer)
-{
-    // I work with ref_extern_avcc_uV as a uint32_t, but it is a float (both are four bytes)
-    uint32_t old = ref_intern_1v1_uV;
-    uint32_t new = 0;
-    new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    i2cBuffer[1] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
+        // new is ready
+        if (is_referance_with_writebit & REF_SELECT_WRITEBIT) // keep new in SRAM if writebit is set
+        {
+            // copy bytes into the memory footprint used for our tempary float
+            memcpy(&temp_referance, &new, sizeof temp_referance);
+            refMap[referance].reference = temp_referance;
 
-    new += ((uint32_t)i2cBuffer[2])<<16;
-    i2cBuffer[2] =  ( (0x00FF0000UL & old) >>16 ); 
-
-    new += ((uint32_t)i2cBuffer[3])<<8;
-    i2cBuffer[3] =  ( (0x0000FF00UL & old) >>8 ); 
-
-    new += ((uint32_t)i2cBuffer[4]);
-    i2cBuffer[4] =  ( (0x000000FFUL & old) ); 
-
-    // new is ready
-    ref_intern_1v1_uV = new;
-    
-    ref_loaded = REF_1V1_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+            // if referance is 1 then REF_0_TOSAVE << 1 gives REF_1_TOSAVE 
+            ref_loaded = REF_0_TOSAVE << referance; // main loop will save to eeprom or load default value if bad value
+        }
+    }
+    else // bad select  
+    {
+        i2cBuffer[1] = 0x7F;
+        i2cBuffer[2] = 0xFF; // 0xFFFFFFFF is nan as a float
+        i2cBuffer[3] = 0xFF;
+        i2cBuffer[4] = 0xFF;
+        i2cBuffer[5] = 0xFF;
+    }
 }
 
 /********* TEST MODE ***********

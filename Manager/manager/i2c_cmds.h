@@ -40,8 +40,8 @@ extern void fnCalibrationRead(uint8_t*); //33
 // not used //35
 extern void fnRdTimedAccum(uint8_t*); //36
 // not used  //37
-extern void fnAnalogRefExternAVCC(uint8_t*); //38
-extern void fnAnalogRefIntern1V1(uint8_t*); //39
+extern void fnReferance(uint8_t*); //38
+// not used  //39
 
 
 // Prototypes for test mode commands

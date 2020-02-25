@@ -1,6 +1,5 @@
 # To Do
 
-change I2C command 38..39 so they work like channelMap but for the managers band gap referances.
 change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration.
     e.g., i2c(32,ALT_I)*i2c(38,EXTERNAL_AVCC,float)*i2c(33,ALT_I,float].
 Timed Accumulation overflows to soon.

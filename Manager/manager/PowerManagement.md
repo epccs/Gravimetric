@@ -8,8 +8,8 @@
 35. not used
 36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
 37. not used
-38. Analog referance for EXTERNAL_AVCC (float: passed as four bytes or uint32_t)
-39. Analog referance for INTERNAL_1V1 (float: passed as four bytes or uint32_t)
+38. refMap[select] (uint8_t+uint32_t: send select (0x80:REF_SELECT_WRITEBIT+0:EXTERNAL_AVCC,1:INTERNAL_1V1) and float (as uint32_t), return select and referance)
+39. not used
 
 ## Cmd 32 from the application controller /w i2c-debug running read analog channels
 
@@ -141,27 +141,36 @@ picocom -b 38400 /dev/ttyUSB0
 The PWR_IT four bytes sum to 15,1337,334 (e.g., 9*(2**24) + 5*(2**16) + 57*(2**8) + 118). PWR_I is measured with analog channel 6 on a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected and a referance of 5V. PWR_IT is accumulated every 10mSec, so use PWR_I correction and divide by 1000*3600/100 to get 6.037mAHr (e.g., (accumulated/1024)*referance/(0.068*50.0)/36000)). Clearly it is running to fast, but it seems to work.
 
 
-## Cmd 38 and 39 from the application controller /w i2c-debug running read analog referance.
+## Cmd 38 from the application controller /w i2c-debug running read analog referance.
 
-Read four bytes from I2C. They are from a buffered value mirrored in the manager's EEPROM. The value is ignored if out of range. Use 38 for EXTERNAL_AVCC, and 39 for INTERNAL_1V1 (not loaded by SelfTest).
+Needs six bytes from I2C. Example shows command followed by select followed by referance value (float). Use select=0 for EXTERNAL_AVCC, and select=1 for INTERNAL_1V1 (SelfTest needs to be update to save EXTERNAL_AVCC,but INTERNAL_1V1 is not used at this time).
 
 ``` 
 picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
 {"address":"0x29"}
-/1/ibuff 38,255,255,255,255
-{"txBuffer[5]":[{"data":"0x26"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"},{"data":"0xFF"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x26"},{"data":"0x40"},{"data":"0xA0"},{"data":"0x0"},{"data":"0x0"}]}
-``` 
+/1/ibuff 38,0
+{"txBuffer[3]":[{"data":"0x26"},{"data":"0x0"}]}
+/1/ibuff 0,0,0,0
+{"txBuffer[6]":[{"data":"0x26"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x26"},{"data":"0x0"},{"data":"0x40"},{"data":"0xA0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/ibuff 38,1
+{"txBuffer[3]":[{"data":"0x26"},{"data":"0x1"}]}
+/1/ibuff 0,0,0,0
+{"txBuffer[6]":[{"data":"0x26"},{"data":"0x1"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x26"},{"data":"0x1"},{"data":"0x3F"},{"data":"0x8A"},{"data":"0x3D"},{"data":"0x71"}]}
+```
 
-The EXTERNAL_AVCC four bytes are a float so lets use python to see if they are right. 
+For select = 0 the value of EXTERNAL_AVCC (four bytes) are returned as a float so lets use python to see if they are right. 
 
 ``` python
 from struct import *
 # packing order is high byte last
 unpack('f', pack('BBBB', 0x0, 0x0, 0xA0, 0x40))
+(5.0,)
+unpack('f', pack('BBBB', 0x71, 0x3D, 0x8A, 0x3F))
+(1.0800000429153442,)
 ```
-
-Output is: (5.0,)
 

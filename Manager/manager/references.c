@@ -2,10 +2,18 @@
 references is a library used to load and set analog conversion references in EEPROM. 
 Copyright (C) 2019 Ronald Sutherland
 
-All rights reserved, specifically, the right to distribute is withheld. Subject to your compliance 
-with these terms, you may use this software and any derivatives exclusively with Ronald Sutherland 
-products. It is your responsibility to comply with third party license terms applicable to your use 
-of third party software (including open source software) that accompany Ronald Sutherland software.
+All rights reserved, specifically, the right to Redistribut is withheld. Subject 
+to your compliance with these terms, you may use this software and derivatives. 
+
+Use in source and binary forms, with or without modification, are permitted 
+provided that the following conditions are met:
+1. Source code must retain the above copyright notice, this list of 
+conditions and the following disclaimer.
+2. Binary derivatives are exclusively for use with Ronald Sutherland 
+products.
+3. Neither the name of the copyright holders nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
 
 THIS SOFTWARE IS SUPPLIED BY RONALD SUTHERLAND "AS IS". NO WARRANTIES, WHETHER
 EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE, INCLUDING ANY
@@ -28,117 +36,108 @@ SOFTWARE.
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-#include "../lib/timers.h"
-#include "../lib/pins_board.h"
 #include "references.h"
 
 volatile uint8_t ref_loaded;
 volatile uint8_t ref_select_with_writebit;
 
+struct Ref_Map refMap[REFERENCE_OPTIONS];
+
 // check if reference is a valid float
 // 0UL and 0xFFFFFFFFUL are not valid
-uint8_t IsValidValForRef() 
+uint8_t IsValidValForRef(REFERENCE_t ref_map) 
 {
-    uint32_t tmp_cal;
-    memcpy(&tmp_cal, &calMap[cal_map].calibration, sizeof tmp_cal);
-    if ( (tmp_cal == 0xFFFFFFFFUL) | (tmp_cal == 0x0UL) )
+        if (ref_map > REFERENCE_OPTIONS)
+    {
+        return 0;
+    }
+    uint32_t tmp_ref;
+    memcpy(&tmp_ref, &refMap[ref_map], sizeof tmp_ref);
+    if ( (tmp_ref == 0xFFFFFFFFUL) | (tmp_ref == 0x0UL) )
     {
             return 0;
     }
     return 1;
 }
 
-
-uint8_t LoadRefFromEEPROM() 
+// save channel reference if writebit is set and eeprom is ready
+uint8_t WriteRefToEE() 
 {
-    uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
-    if (id == 0x4144) // 'A' is 0x41 and 'D' is 0x44
+    if (ref_select_with_writebit & 0x80)
     {
-        ref_extern_avcc_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_EXTERN_AVCC));
-        if ( IsValidValForAvccRef() ) 
+        uint8_t select  = ref_select_with_writebit & 0x7F; // mask the writebit to select the reference
+        // use update functions to skip the burning if the old value is the same with new.
+        // https://www.microchip.com/webdoc/AVRLibcReferenceManual/group__avr__eeprom.html
+        if ( eeprom_is_ready() )
         {
-            ref_intern_1v1_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1));
-            if ( IsValidValFor1V1Ref() )
-            {
-                ref_loaded = REF_LOADED;
-                return 1;
-            }
-            else
-            { // 1v1 is not used (should it be removed?)
-                float tmp_1v1 = 1.08;
-                memcpy(&ref_intern_1v1_uV, &tmp_1v1, sizeof ref_intern_1v1_uV);
-                ref_loaded = REF_LOADED;
-                return 1;
-            }
-            
-
+            eeprom_update_float( (float *)(EE_REF_BASE_ADDR+(EE_REF_OFFSET*select)), refMap[select].reference);
+            ref_select_with_writebit = select;
+            return 1;
         }
     }
-
-    // use defaults
-    // on AVR sizeof(float) == sizeof(uint32_t)
-    float tmp_avcc = 5.0;
-    memcpy(&ref_extern_avcc_uV, &tmp_avcc, sizeof ref_extern_avcc_uV);
-    float tmp_1v1 = 1.08;
-    memcpy(&ref_intern_1v1_uV, &tmp_1v1, sizeof ref_intern_1v1_uV);
-    ref_loaded = REF_DEFAULT;
     return 0;
 }
 
-uint8_t WriteRefToEE() 
+// load a reference from EEPROM or set default if not valid (0 or 0xFFFFFFFF are not valid).
+// Befor loading references from EEPROM set 
+// ref_loaded = REF_CLEAR; 
+// then loop load reference for each enum in REFERENCE_t
+void LoadRefFromEEPROM(REFERENCE_t ref_map) 
 {
-    uint32_t ee_ref_intern_1v1_uV = eeprom_read_dword((uint32_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1)); 
-    if ( eeprom_is_ready() )
+    if (ref_map < REFERENCE_OPTIONS) // ignore if out of range
     {
-        if (ee_ref_intern_1v1_uV != ref_intern_1v1_uV)
+        refMap[ref_map].reference = eeprom_read_float((float *)(EE_REF_BASE_ADDR+(EE_REF_OFFSET*ref_map)));
+        if ( !IsValidValForRef(ref_map) ) 
         {
-            eeprom_update_dword( (uint32_t *)(EE_ANALOG_BASE_ADDR+EE_ANALOG_REF_INTERN_1V1), ref_intern_1v1_uV);
+            if (ref_map == REFERENCE_EXTERN_AVCC)
+            {
+                refMap[ref_map].reference = 5.0;
+                ref_loaded = ref_loaded + REF_0_DEFAULT;
+            }
+            if (ref_map == REFERENCE_INTERN_1V1)
+            {
+                refMap[ref_map].reference = 1.08; 
+                ref_loaded = ref_loaded + REF_1_DEFAULT;
+            }
         }
-        return 1;
-    }
-    else
-    {
-        return 0;
+        else
+        {
+            // reference from EEPROM is valid, so it has been kept. It is not a default value so
+            // clear the REF_n_DEFAULT bit (0..1) of ref_loaded
+            uint8_t mask_for_ref_default_bit = ~(1<<ref_map);
+            ref_loaded = ref_loaded & mask_for_ref_default_bit; // now clear the REF_n_DEFAULT bit
+        }
     }
 }
-
 
 // save referances from I2C to EEPROM (if valid)
 void ReferanceFromI2CtoEE(void)
 {
-    if (ref_loaded > REF_DEFAULT)
+    if (ref_loaded & (REF_0_TOSAVE | REF_1_TOSAVE ) )
     {
-        if ( IsValidValForAvccRef() && IsValidValFor1V1Ref() )
+        // ref_select_with_writebit agree (e.g., writebit set)
+        if (ref_select_with_writebit & 0x80)
         {
-            uint16_t id = eeprom_read_word((uint16_t*)(EE_ANALOG_BASE_ADDR+EE_ANALOG_ID));
-            if (id != 0x4144) // 'A' is 0x41 and 'D' is 0x44
+            uint8_t select = ref_select_with_writebit & 0x7F;
+
+            // final check befor trying to save
+            if ( IsValidValForRef( (REFERENCE_t) select) )
             {
-                WriteEeReferenceId();
-                return; // that is enough for this loop
+                if (WriteRefToEE())
+                {
+                    // clear the REF_n_TOSAVE bits
+                    ref_loaded = ref_loaded & 0x0F;
+                    // also clear the correct REF_n_DEFAULT bit (referance is not default)
+                    uint8_t mask_for_ref_default_bit = ~(1<<select);
+                    ref_loaded = ref_loaded & mask_for_ref_default_bit; // now clear the REF_n_DEFAULT bit
+                    return; // all done
+                }
             }
-            else 
+            else
             {
-                if (ref_loaded == REF_1V1_TOSAVE)
-                {
-                    if (WriteEeReference1V1())
-                    {
-                        ref_loaded = REF_LOADED;
-                        return; // all done
-                    }
-                }
-                if (ref_loaded == REF_AVCC_TOSAVE)
-                {
-                    if (WriteEeReferenceAvcc())
-                    {
-                        ref_loaded = REF_LOADED; 
-                        return; // all done
-                    }
-                }
-            }       
-        }
-        else
-        {
-            LoadAnalogRefFromEEPROM(); // ignore values that are not valid
+                LoadRefFromEEPROM((REFERENCE_t) select); // ignore value since it is not valid
+            }
+   
         }
     }
 }

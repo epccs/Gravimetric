@@ -1,7 +1,8 @@
 #ifndef Calibration_H
 #define Calibration_H
 
-// enum ADC_CH_enum for: ADC_CH_ALT_I, ADC_CH_ALT_V, ADC_CH_PWR_I, ADC_CH_PWR_V, ADC_CHANNELS
+// use ADC_CH_enum for: ADC_CH_ALT_I, ADC_CH_ALT_V, ADC_CH_PWR_I, ADC_CH_PWR_V, ADC_CHANNELS
+// use CAL_CH_enum for: CAL_CH_ALT_I, CAL_CH_ALT_V, CAL_CH_PWR_I, CAL_CH_PWR_V, CAL_CH_END
 #include "../lib/adc_bsd.h"
 
 //EEPROM memory usage (see README.md). 
@@ -9,7 +10,7 @@
 // EEPROM byte offset to each calibration value
 #define EE_CAL_OFFSET 4
 // number of calibration values held in eeprom
-#define EE_CAL_NUM 4
+// use enum CAL_CH_END for array size
 
 // calibrations needed for channels: ALT_I, ALT_V,PWR_I,PWR_V
 struct Cal_Map { // https://yarchive.net/comp/linux/typedefs.html
@@ -17,25 +18,25 @@ struct Cal_Map { // https://yarchive.net/comp/linux/typedefs.html
 };
 
 // array of calibration that needs to fill from LoadCalFromEEPROM()
-extern struct Cal_Map calMap[EE_CAL_NUM];
+extern struct Cal_Map calMap[CAL_CH_END];
 
 // map channel to calibration: ALT_I, ALT_V,PWR_I,PWR_V defined in ../lib/pins_board.h
 struct Channel_Map { // https://yarchive.net/comp/linux/typedefs.html
-    uint8_t cal_map; // channel number for ADC
+    CAL_CH_t cal_map; // map to calibration for ADC channel
 };
 
 const static struct Channel_Map channelMap[ADC_CHANNELS] = {
-    [ADC_CH_ALT_I] = { .cal_map= 0 }, 
-    [ADC_CH_ALT_V] = { .cal_map= 1 }, 
-    [ADC_CH_PWR_I] = { .cal_map= 2 }, 
-    [ADC_CH_PWR_V] = { .cal_map= 3 } 
+    [ADC_CH_ALT_I] = { .cal_map= CAL_CH_ALT_I }, 
+    [ADC_CH_ALT_V] = { .cal_map= CAL_CH_ALT_V }, 
+    [ADC_CH_PWR_I] = { .cal_map= CAL_CH_PWR_I }, 
+    [ADC_CH_PWR_V] = { .cal_map= CAL_CH_PWR_V } 
 };
 
 
-extern uint8_t IsValidValForCal(uint8_t);
+extern uint8_t IsValidValForCal(CAL_CH_t);
 extern uint8_t IsValidValForCalChannel(void);
 extern uint8_t WriteCalToEE(void);
-extern void LoadCalFromEEPROM(uint8_t);
+extern void LoadCalFromEEPROM(CAL_CH_t);
 extern void ChannelCalFromI2CtoEE(void);
 
 #define CAL_CLEAR 0
