@@ -151,3 +151,18 @@ void enable_ADC_auto_conversion(uint8_t free_run)
 #endif
     ADC_auto_conversion =1;
 }
+
+// return two byes from the last ADC update, use atomic to make sure ISR does not change it durring read
+int adcAtomic(ADC_CH_t channel)
+{
+    int x;
+    if (channel < ADC_CHANNELS) {
+        ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
+        {
+            x = adc[channel];
+        }
+        return x;
+    } 
+    else return 0;
+
+}

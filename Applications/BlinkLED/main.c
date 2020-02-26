@@ -21,9 +21,9 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <stdlib.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
-#include "../lib/timers.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/io_enum_bsd.h"
+#include "../lib/timers_bsd.h"
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -43,15 +43,15 @@ void setup(void)
 
     sei(); // Enable global interrupts to start TIMER0
     
-    blink_started_at = millis();
+    blink_started_at = milliseconds();
     
     got_a = 0;
 }
 
-// don't block (e.g. _delay_ms(1000) ), just ckeck if it is time to toggle 
+// don't block (e.g. _delay_ms(1000) ), just ckeck if time has elapsed to toggle 
 void blink(void)
 {
-    unsigned long kRuntime = millis() - blink_started_at;
+    unsigned long kRuntime = elapsed(&blink_started_at);
     if ( kRuntime > BLINK_DELAY)
     {
         ioToggle(MCU_IO_CS0_EN);

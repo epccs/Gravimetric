@@ -3,7 +3,18 @@
 
 #include <stdint.h>
 
-#define ADC_CHANNELS 8
+// enumeraiton names for ADC_CH_<node> from schematic
+typedef enum ADC_CH_enum {
+    ADC_CH_ADC0, // PA0 has analog channel 0
+    ADC_CH_ADC1, // PA1 has analog channel 1
+    ADC_CH_ADC2, // PA2 has analog channel 2
+    ADC_CH_ADC3, // PA3 has analog channel 3
+    ADC_CH_ADC4, // PA4 has analog channel 4
+    ADC_CH_ADC5, // PA5 has analog channel 5
+    ADC_CH_ADC6, // PA6 has analog channel 6
+    ADC_CH_ADC7, // PA7 has analog channel 7
+    ADC_CHANNELS
+} ADC_CH_t;
 
 // Analog values range from 0 to 1023, they have 1024 slots where each 
 // reperesents 1/1024 of the reference. The last slot has issues see datasheet.

@@ -5,7 +5,7 @@ TARGET = blinkLED
 LIBDIR = ../lib
 OBJECTS = main.o \
 	$(LIBDIR)/uart0_bsd.o \
-	$(LIBDIR)/timers.o 
+	$(LIBDIR)/timers_bsd.o 
 
 ## Chip and project-specific global definitions
 MCU   =  atmega324pb
