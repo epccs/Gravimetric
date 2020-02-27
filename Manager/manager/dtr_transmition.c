@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdbool.h>
 #include <util/delay.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/io_enum_bsd.h"
 #include "main.h"
@@ -70,7 +70,7 @@ void check_DTR(void)
                     if ( !(bootloader_started  || lockout_active || host_active || uart_has_TTL) )
                     {
                         // send the bootload_addres on the DTR pair when nDTR/nRTS becomes active
-                        uart_started_at = millis();
+                        uart_started_at = milliseconds();
                         uart_output= bootloader_address; // set by I2C, default is RPU_HOST_CONNECT
                         printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 )  ); 
                         uart_has_TTL = 1;
@@ -84,7 +84,7 @@ void check_DTR(void)
             if ( host_active && localhost_active && (!uart_has_TTL) && (!bootloader_started) && (!lockout_active) )
             {
                 // send a byte on the DTR pair when local host serial nRTS becomes non-active
-                uart_started_at = millis();
+                uart_started_at = milliseconds();
                 uart_output= RPU_HOST_DISCONNECT;
                 printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
                 uart_has_TTL = 1;
@@ -105,7 +105,7 @@ void check_DTR(void)
 */
 void check_uart(void)
 {
-    unsigned long kRuntime = millis() - uart_started_at;
+    unsigned long kRuntime = elapsed(&uart_started_at);
  
     if ( uart_has_TTL && (kRuntime > UART_TTL) )
     { // perhaps the DTR line is stuck (e.g. pulled low) so may need to time out
@@ -161,11 +161,11 @@ void check_uart(void)
 
             if (input == RPU_NORMAL_MODE) // end the lockout or bootloader if it was set.
             { 
-                lockout_started_at = millis() - LOCKOUT_DELAY;
-                bootloader_started_at = millis() - BOOTLOADER_ACTIVE;
+                lockout_started_at = milliseconds() - LOCKOUT_DELAY;
+                bootloader_started_at = milliseconds() - BOOTLOADER_ACTIVE;
                 ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_LOW);
                 arduino_mode = 0;
-                blink_started_at = millis();
+                blink_started_at = milliseconds();
                 return;
             }
             if (input == RPU_ARDUINO_MODE) 
@@ -223,11 +223,11 @@ void check_uart(void)
 
                     // start the bootloader
                     ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_LOW);   // nSS goes through a open collector buffer to nRESET
-                    target_reset_started_at = millis();
+                    target_reset_started_at = milliseconds();
                     my_mcu_is_target_and_i_have_it_reset = 1;
                     return; 
                 }
-                unsigned long kRuntime= millis() - target_reset_started_at;
+                unsigned long kRuntime = elapsed(&target_reset_started_at);
                 if (kRuntime < 20UL) // hold reset low for a short time but don't delay (the mcu runs 200k instruction in 20 mSec)
                 {
                     return;
@@ -237,8 +237,8 @@ void check_uart(void)
                 my_mcu_is_target_and_i_have_it_reset = 0;
                 bootloader_started = 1;
                 local_mcu_is_rpu_aware = 0; // after a reset it may be loaded with new software
-                blink_started_at = millis();
-                bootloader_started_at = millis();
+                blink_started_at = milliseconds();
+                bootloader_started_at = milliseconds();
                 return;
             }
             if (input <= 0x7F) // values > 0x80 are for a host disconnect e.g. the bitwise negation of an RPU_ADDRESS
@@ -249,8 +249,8 @@ void check_uart(void)
 
                 connect_lockout_mode();
 
-                lockout_started_at = millis();
-                blink_started_at = millis();
+                lockout_started_at = milliseconds();
+                blink_started_at = milliseconds();
                 return;
             }
             if (input > 0x7F) // RPU_HOST_DISCONNECT is the bitwise negation of an RPU_ADDRESS it will be > 0x80 (seen as a uint8_t)

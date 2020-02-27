@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdbool.h>
 #include <util/delay.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/io_enum_bsd.h"
@@ -63,7 +63,7 @@ void check_if_alt_should_be_on(void)
             return; // if alt_en is not on do nothing
         }
         int pwm_range = ( (battery_high_limit - battery_low_limit)>>1 ); // half the diff between high and low limit
-        unsigned long kRuntime = millis() - alt_pwm_started_at;
+        unsigned long kRuntime = elapsed(&alt_pwm_started_at);
         if (battery < (battery_low_limit + pwm_range ) )
         { // half way between high and low limit pwm will occure at 2 sec intervals
             unsigned long offtime = ALT_PWM_PERIOD * ( (battery_high_limit - battery) / pwm_range );
@@ -82,7 +82,7 @@ void check_if_alt_should_be_on(void)
                     ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
                     if (kRuntime > (ALT_PWM_PERIOD<<1) )
                     {
-                        alt_pwm_started_at = millis();
+                        alt_pwm_started_at = milliseconds();
                     }
                     else
                     {
@@ -107,7 +107,7 @@ void check_if_alt_should_be_on(void)
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
                 if (kRuntime > (ALT_REST_PERIOD<<1) )
                 {
-                    alt_pwm_started_at = millis();
+                    alt_pwm_started_at = milliseconds();
                 }
                 else
                 {

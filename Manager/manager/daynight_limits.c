@@ -36,8 +36,6 @@ SOFTWARE.
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include <avr/eeprom.h> 
-#include "../lib/adc.h"
-#include "../lib/timers.h"
 #include "daynight_limits.h"
 
 uint8_t daynight_values_loaded;
@@ -154,7 +152,7 @@ uint8_t WriteEEEveningThreshold()
     }
 }
 
-// wrtite daynight_morning_debounce (debounce time in millis) to EEPROM
+// wrtite daynight_morning_debounce (debounce time in milliseconds) to EEPROM
 uint8_t WriteEEMorningDebounce() 
 {
     uint32_t tmp_daynight_morning_debounce= eeprom_read_dword((uint32_t*)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_MORNING_DEBOUNCE_OFFSET)); 
@@ -172,7 +170,7 @@ uint8_t WriteEEMorningDebounce()
     }
 }
 
-// wrtite daynight_evening_debounce (debounce time in millis) to EEPROM
+// wrtite daynight_evening_debounce (debounce time in milliseconds) to EEPROM
 uint8_t WriteEEEveningDebounce() 
 {
     uint32_t tmp_daynight_evening_debounce= eeprom_read_dword((uint32_t*)(EE_DAYNIGHT_ADDR+EE_DAYNIGHT_EVENING_DEBOUNCE_OFFSET)); 

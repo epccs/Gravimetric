@@ -36,8 +36,6 @@ SOFTWARE.
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include <avr/eeprom.h> 
-#include "../lib/adc.h"
-#include "../lib/timers.h"
 #include "battery_limits.h"
 
 uint8_t bat_limit_loaded;

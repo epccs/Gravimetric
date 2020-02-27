@@ -32,7 +32,7 @@ SOFTWARE.
 
 #include <util/atomic.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/io_enum_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "adc_burst.h"
@@ -48,7 +48,7 @@ unsigned long accumulate_pwr_ti;
 // accumulate_pwr_ti*((ref_extern_avcc)/1024.0)/(0.068*50.0)/360 is in mAHr 
 void adc_burst(void)
 {
-    unsigned long kRuntime= millis() - adc_started_at;
+    unsigned long kRuntime= elapsed(&adc_started_at);
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
         ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )

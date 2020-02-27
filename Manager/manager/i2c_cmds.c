@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdbool.h>
 #include <string.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/adc_bsd.h"
@@ -137,7 +137,7 @@ void fnRdMgrAddr(uint8_t* i2cBuffer)
     if (localhost_active) 
     {
         // If the local host is active then broadcast on DTR pair
-        uart_started_at = millis();
+        uart_started_at = milliseconds();
         uart_output = RPU_NORMAL_MODE;
         printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
         uart_has_TTL = 1; // causes host_is_foreign to be false
@@ -146,15 +146,15 @@ void fnRdMgrAddr(uint8_t* i2cBuffer)
         if (bootloader_started)
         {
             // If the bootloader_started has not timed out yet broadcast on DTR pair
-            uart_started_at = millis();
+            uart_started_at = milliseconds();
             uart_output = RPU_NORMAL_MODE;
             printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
             uart_has_TTL = 0; // causes host_is_foreign to be true, so local DTR/RTS is not accepted
         } 
         else
         {
-            lockout_started_at = millis() - LOCKOUT_DELAY;
-            bootloader_started_at = millis() - BOOTLOADER_ACTIVE;
+            lockout_started_at = milliseconds() - LOCKOUT_DELAY;
+            bootloader_started_at = milliseconds() - BOOTLOADER_ACTIVE;
         }
         
 }
@@ -207,7 +207,7 @@ void fnWtShtdnDtct(uint8_t* i2cBuffer)
         ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
         shutdown_started = 1; // it is cleared in check_shutdown()
         shutdown_detected = 0; // it is set in check_shutdown()
-        shutdown_started_at = millis();
+        shutdown_started_at = milliseconds();
     }
     // else ignore
 }
@@ -249,7 +249,7 @@ void fnWtArduinMode(uint8_t* i2cBuffer)
     {
         if (!arduino_mode_started)
         {
-            uart_started_at = millis();
+            uart_started_at = milliseconds();
             uart_output = RPU_ARDUINO_MODE;
             printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
             uart_has_TTL = 1; // causes host_is_foreign to be false
@@ -554,7 +554,7 @@ void fnStartTestMode(uint8_t* i2cBuffer)
     {
         if (!test_mode_started && !test_mode)
         {
-            uart_started_at = millis();
+            uart_started_at = milliseconds();
             uart_output = RPU_START_TEST_MODE;
             printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
             uart_has_TTL = 1; // causes host_is_foreign to be false
@@ -584,7 +584,7 @@ void fnEndTestMode(uint8_t* i2cBuffer)
             stdout = stdin = uart0_init(DTR_BAUD,UART0_RX_REPLACE_CR_WITH_NL); // turn on UART
             ioWrite(MCU_IO_DTR_DE, LOGIC_LEVEL_HIGH); //DTR transceiver may have been turned off during the test
             ioWrite(MCU_IO_DTR_nRE, LOGIC_LEVEL_LOW); 
-            uart_started_at = millis();
+            uart_started_at = milliseconds();
             uart_output = RPU_END_TEST_MODE;
             printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
             uart_has_TTL = 1; // causes host_is_foreign to be false
@@ -697,7 +697,7 @@ void fnEveningDebounce(uint8_t* i2cBuffer)
 // I2C command to read day daynight timer offset
 void fnDayNightTimer(uint8_t* i2cBuffer)
 {
-    unsigned long daynight_timer = millis() - dayTmrStarted;
+    unsigned long daynight_timer = elapsed(&dayTmrStarted);
     // there are four bytes in an unsigned long
     i2cBuffer[1] = ( (0xFF000000UL & daynight_timer) >>24 ); 
     i2cBuffer[2] =  ( (0x00FF0000UL & daynight_timer) >>16 ); 

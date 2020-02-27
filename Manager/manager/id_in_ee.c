@@ -33,7 +33,6 @@ SOFTWARE.
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/pgmspace.h>
-#include "../lib/timers.h"
 #include "rpubus_manager_state.h"
 #include "id_in_ee.h"
 

@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdbool.h>
 #include <util/delay.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/io_enum_bsd.h"
 #include "rpubus_manager_state.h"
@@ -148,7 +148,7 @@ void blink_on_activate(void)
         return;
     }
     
-    unsigned long kRuntime = millis() - blink_started_at;
+    unsigned long kRuntime = elapsed(&blink_started_at);
     
     // Remote will start with the lockout bit set so don't blink for that
     if (!(status_byt & ~(1<<HOST_LOCKOUT_STATUS) )) 
@@ -198,7 +198,7 @@ void check_Bootload_Time(void)
 {
     if (bootloader_started)
     {
-        unsigned long kRuntime = millis() - bootloader_started_at;
+        unsigned long kRuntime = elapsed(&bootloader_started_at);
         
         if (!arduino_mode && (kRuntime > BOOTLOADER_ACTIVE))
         {
@@ -213,7 +213,7 @@ void check_Bootload_Time(void)
 // lockout needs to happoen for a long enough time to insure bootloading is finished,
 void check_lockout(void)
 {
-    unsigned long kRuntime = millis() - lockout_started_at;
+    unsigned long kRuntime = elapsed(&lockout_started_at);
     
     if (!arduino_mode && ( lockout_active && (kRuntime > LOCKOUT_DELAY) ))
     {
@@ -229,7 +229,7 @@ void check_shutdown(void)
 {
     if (shutdown_started)
     {
-        unsigned long kRuntime = millis() - shutdown_started_at;
+        unsigned long kRuntime = elapsed(&shutdown_started_at);
         
         if ( kRuntime > SHUTDOWN_TIME)
         {
@@ -252,7 +252,7 @@ void check_shutdown(void)
                 ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
                 shutdown_detected = 0; // set after SHUTDOWN_TIME timer runs
                 shutdown_started = 1; // it is cleared after SHUTDOWN_TIME timer runs
-                shutdown_started_at = millis();
+                shutdown_started_at = milliseconds();
             }
         }
 }

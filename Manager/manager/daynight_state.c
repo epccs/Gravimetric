@@ -34,7 +34,7 @@ SOFTWARE.
 #include <util/delay.h>
 #include <util/atomic.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/io_enum_bsd.h"
@@ -80,7 +80,7 @@ void check_daynight(void)
 {
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
     int sensor_val = adcAtomic(MCU_IO_ALT_V);
-    unsigned long kRuntime= millis() - dayTmrStarted;
+    unsigned long kRuntime= elapsed(&dayTmrStarted);
     
     if(daynight_state == DAYNIGHT_START_STATE) 
     { 
@@ -89,12 +89,12 @@ void check_daynight(void)
             if(sensor_val > daynight_evening_threshold ) 
             {
                 daynight_state = DAYNIGHT_DAY_STATE; 
-                dayTmrStarted = millis();
+                dayTmrStarted = milliseconds();
             } 
             else 
             {
                 daynight_state = DAYNIGHT_NIGHT_STATE;
-                dayTmrStarted = millis();
+                dayTmrStarted = milliseconds();
             }
         }
         return;
@@ -105,12 +105,12 @@ void check_daynight(void)
         if (sensor_val < daynight_evening_threshold ) 
         {
             daynight_state = DAYNIGHT_EVENING_DEBOUNCE_STATE;
-            dayTmrStarted = millis();
+            dayTmrStarted = milliseconds();
         }
         if (kRuntime > DAYNIGHT_TO_LONG) 
         {
             daynight_state = DAYNIGHT_FAIL_STATE;
-            dayTmrStarted = millis();
+            dayTmrStarted = milliseconds();
         }
         return;
     }
@@ -122,13 +122,13 @@ void check_daynight(void)
             if (kRuntime > daynight_evening_debounce) 
             {
                 daynight_state = DAYNIGHT_NIGHTWORK_STATE;
-                dayTmrStarted = millis();
+                dayTmrStarted = milliseconds();
             } 
         } 
         else 
         {
             daynight_state = DAYNIGHT_DAY_STATE;
-            dayTmrStarted = millis();
+            dayTmrStarted = milliseconds();
         }
         return;
     }
@@ -146,12 +146,12 @@ void check_daynight(void)
         if (sensor_val > daynight_morning_threshold ) 
         {
             daynight_state = DAYNIGHT_MORNING_DEBOUNCE_STATE;
-            dayTmrStarted = millis();
+            dayTmrStarted = milliseconds();
         }
         if (kRuntime > DAYNIGHT_TO_LONG) 
         {
             daynight_state = DAYNIGHT_FAIL_STATE;
-            dayTmrStarted = millis();
+            dayTmrStarted = milliseconds();
         }
         return;
     }

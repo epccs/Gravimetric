@@ -33,7 +33,6 @@ SOFTWARE.
 #include <stdbool.h>
 #include <avr/io.h>
 #include <util/delay.h>
-#include "../lib/timers.h"
 #include "../lib/twi1.h"
 #include "../lib/uart0_bsd.h"
 #include "rpubus_manager_state.h"
