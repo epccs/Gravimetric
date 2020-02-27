@@ -6,11 +6,10 @@ LIBDIR = ../lib
 OBJECTS = main.o \
 	day_night.o \
 	../Uart/id.o \
-	$(LIBDIR)/timers.o \
+	$(LIBDIR)/timers_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
-	$(LIBDIR)/adc.o \
 	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/parse.o
 

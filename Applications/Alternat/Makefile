@@ -9,11 +9,10 @@ OBJECTS = main.o \
 	../Adc/analog.o \
 	../Adc/references.o \
 	../DayNight/day_night.o \
-	$(LIBDIR)/timers.o \
+	$(LIBDIR)/timers_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \
-	$(LIBDIR)/adc.o \
 	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/parse.o
 

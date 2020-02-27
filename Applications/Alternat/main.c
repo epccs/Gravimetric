@@ -23,12 +23,11 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <util/atomic.h>
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/rpu_mgr.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
+#include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
 #include "../Adc/analog.h"
 #include "../DayNight/day_night.h"
@@ -37,9 +36,6 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #define ADC_DELAY_MILSEC 50UL
 static unsigned long adc_started_at;
 
-//pins are defined in ../lib/pins_board.h
-#define STATUS_LED CS0_EN
-#define DAYNIGHT_STATUS_LED CS1_EN
 #define DAYNIGHT_BLINK 500UL
 static unsigned long daynight_status_blink_started_at;
 
@@ -78,11 +74,11 @@ void ProcessCmd()
 
 void setup(void) 
 {
-    pinMode(STATUS_LED,OUTPUT);
-    digitalWrite(STATUS_LED,HIGH);
+    ioDir(MCU_IO_CS0_EN, DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN, LOGIC_LEVEL_HIGH);
 
-    pinMode(DAYNIGHT_STATUS_LED,OUTPUT);
-    digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
+    ioDir(MCU_IO_CS1_EN, DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
 
     // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
     initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
@@ -91,7 +87,7 @@ void setup(void)
 
     // put ADC in Auto Trigger mode and fetch an array of channels
     enable_ADC_auto_conversion(BURST_MODE);
-    adc_started_at = millis();
+    adc_started_at = milliseconds();
 
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
@@ -105,8 +101,8 @@ void setup(void)
     // Enable global interrupts to start TIMER0 and UART ISR's
     sei(); 
     
-    blink_started_at = millis();
-    daynight_status_blink_started_at = millis();
+    blink_started_at = milliseconds();
+    daynight_status_blink_started_at = milliseconds();
     
      // manager will broadcast normal mode on DTR pair of mulit-drop
     rpu_addr = i2c_get_Rpu_address(); 
@@ -118,7 +114,7 @@ void setup(void)
         rpu_addr_is_fake = 1;
     }
 
-    // managers default debounce is 20 min (e.g. 1,200,000 millis) but to test this I want less
+    // managers default debounce is 20 min (e.g. 1,200,000 milliseconds) but to test this I want less
     i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL); // 18 sec is used if it is valid
     i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL);
 
@@ -131,12 +127,12 @@ void setup(void)
 
 void blink_mgr_status(void)
 {
-    unsigned long kRuntime = millis() - blink_started_at;
+    unsigned long kRuntime = elapsed(&blink_started_at);
 
     // normal, all is fine
     if ( kRuntime > BLINK_DELAY)
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // next toggle 
         blink_started_at += BLINK_DELAY; 
@@ -145,7 +141,7 @@ void blink_mgr_status(void)
     // blink fast if address is fake
     if ( rpu_addr_is_fake && (kRuntime > (BLINK_DELAY/4) ) )
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // set for next toggle 
         blink_started_at += BLINK_DELAY/4; 
@@ -155,7 +151,7 @@ void blink_mgr_status(void)
     if ( (manager_status & ((1<<0) | (1<<1) | (1<<2) | (1<<6)) ) && \
         (kRuntime > (BLINK_DELAY/8) ) )
     {
-        digitalToggle(STATUS_LED);
+        ioToggle(MCU_IO_CS0_EN);
         
         // set for next toggle 
         blink_started_at += BLINK_DELAY/8; 
@@ -164,23 +160,23 @@ void blink_mgr_status(void)
 
 void blink_daynight_state(void)
 {
-    unsigned long kRuntime = millis() - daynight_status_blink_started_at;
+    unsigned long kRuntime = elapsed(&daynight_status_blink_started_at);
     uint8_t state = daynight_state;
     if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK) ) )
     {
-        digitalWrite(DAYNIGHT_STATUS_LED,HIGH);
+        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
      }
     if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK) ) )
     {
-        digitalWrite(DAYNIGHT_STATUS_LED,LOW);
+        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_LOW);
     }
     if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
         (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK/2) ) )
     {
-        digitalToggle(DAYNIGHT_STATUS_LED);
+        ioToggle(MCU_IO_CS1_EN);
         
         // set for next toggle 
         daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
@@ -188,7 +184,7 @@ void blink_daynight_state(void)
     if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
         (kRuntime > (DAYNIGHT_BLINK/8) ) )
     {
-        digitalToggle(DAYNIGHT_STATUS_LED);
+        ioToggle(MCU_IO_CS1_EN);
         
         // set for next toggle 
         daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 
@@ -198,7 +194,7 @@ void blink_daynight_state(void)
 // don't let i2c cause long delays, thus interleave the dispatch of i2c based updates 
 void i2c_update_interleave(void)
 {
-    unsigned long kRuntime = millis() - last_interleave_started_at;
+    unsigned long kRuntime = elapsed(&last_interleave_started_at);
     if (kRuntime > (I2C_INTERLEAVE_DELAY) )
     {
         switch (interleave_i2c)
@@ -217,7 +213,7 @@ void i2c_update_interleave(void)
 
 void adc_burst(void)
 {
-    unsigned long kRuntime= millis() - adc_started_at;
+    unsigned long kRuntime= elapsed(&adc_started_at);
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
         enable_ADC_auto_conversion(BURST_MODE);

@@ -25,11 +25,9 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/parse.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/rpu_mgr.h"
-//#include "../lib/pin_num.h"
-//#include "../lib/pins_board.h"
 #include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
 #include "i2c0-scan.h"
@@ -97,7 +95,7 @@ void setup(void)
     // Enable global interrupts to start TIMER0 and UART ISR's
     sei(); 
 
-    blink_started_at = millis();
+    blink_started_at = milliseconds();
     
     rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
@@ -113,7 +111,7 @@ void setup(void)
 // Status LED
 void blink(void)
 {
-    unsigned long kRuntime = millis() - blink_started_at;
+    unsigned long kRuntime = elapsed(&blink_started_at);
     if ( kRuntime > blink_delay)
     {
         ioToggle(MCU_IO_CS0_EN);

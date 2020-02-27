@@ -1,10 +1,7 @@
 #ifndef TimersTick_h
 #define TimersTick_h
 
-// somewhat corrected time
-#define MILLIS_TO_TICK_CORRECTION(t) ( (t) - ( t * (64 * 256) / ( F_CPU / 1000000UL ) / 1000UL ) )
-#define MILLIS_TO_TICK(t) ( (t) - MILLIS_TO_TICK_CORRECTION(t) )
-
+#define MICROSEC_TICK_CORRECTION (( (64 * 256) / ( F_CPU / 1000000UL ) ) % 1000UL)
 
 extern void initTimers(void);
 extern uint32_t tickAtomic(void);

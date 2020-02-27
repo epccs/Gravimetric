@@ -172,8 +172,8 @@ unsigned long milliseconds(void)
         {
             // update millisec time
             ++millisec;
-            ktick_byt--;
-            uS_balance  = uS_balance  + ( (64 * 256) / ( F_CPU / 1000000UL ) % 1000UL ); // tick is a perfect unit of time in microseconds
+            ktick_byt--; 
+            uS_balance  = uS_balance + MICROSEC_TICK_CORRECTION; // tick is a perfect unit of time in microseconds
             if (uS_balance > 1000) 
             {
                 uS_balance = uS_balance - 1000;

@@ -7,7 +7,7 @@ OBJECTS = main.o \
 	i2c0-scan.o \
 	i2c0-cmd.o \
 	../Uart/id.o \
-	$(LIBDIR)/timers.o \
+	$(LIBDIR)/timers_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \

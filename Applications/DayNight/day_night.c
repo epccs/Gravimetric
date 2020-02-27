@@ -23,7 +23,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <stdlib.h>
 #include <ctype.h>
 #include "../lib/parse.h"
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "day_night.h"
 
@@ -59,7 +59,7 @@ void Day(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
     {
-        daynight_serial_print_started_at = millis();
+        daynight_serial_print_started_at = milliseconds();
         printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
         command_done = 11;
     }
@@ -111,7 +111,7 @@ void Day(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 25) ) 
     {
-        unsigned long kRuntime= millis() - daynight_serial_print_started_at;
+        unsigned long kRuntime= elapsed(&daynight_serial_print_started_at);
         if ((kRuntime) > (serial_print_delay_milsec))
         {
             command_done = 10; /* This keeps looping output forever (until a Rx char anyway) */

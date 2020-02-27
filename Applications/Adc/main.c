@@ -21,7 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <stdbool.h>
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
 #include "../lib/adc_bsd.h"
@@ -80,7 +80,7 @@ void setup(void)
 
     // put ADC in Auto Trigger mode and fetch an array of channels
     enable_ADC_auto_conversion(BURST_MODE);
-    adc_started_at = millis();
+    adc_started_at = milliseconds();
 
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
@@ -95,7 +95,7 @@ void setup(void)
     // Enable global interrupts to start TIMER0 and UART ISR's
     sei(); 
     
-    blink_started_at = millis();
+    blink_started_at = milliseconds();
     
     rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
@@ -110,7 +110,7 @@ void setup(void)
 
 void blink(void)
 {
-    unsigned long kRuntime = millis() - blink_started_at;
+    unsigned long kRuntime = elapsed(&blink_started_at);
     if ( kRuntime > blink_delay)
     {
         ioToggle(MCU_IO_CS0_EN);
@@ -122,7 +122,7 @@ void blink(void)
 
 void adc_burst(void)
 {
-    unsigned long kRuntime= millis() - adc_started_at;
+    unsigned long kRuntime= elapsed(&adc_started_at);
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
         enable_ADC_auto_conversion(BURST_MODE);

@@ -8,7 +8,7 @@ OBJECTS = main.o \
 	calibrate.o \
 	references.o \
 	../Uart/id.o \
-	$(LIBDIR)/timers.o \
+	$(LIBDIR)/timers_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0.o \
 	$(LIBDIR)/rpu_mgr.o \

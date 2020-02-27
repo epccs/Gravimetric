@@ -23,11 +23,8 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <stdlib.h>
 #include <ctype.h>
 #include "../lib/parse.h"
-#include "../lib/adc.h"
-#include "../lib/timers.h"
-#include "../lib/pin_num.h"
-#include "../lib/pins_board.h"
 #include "../lib/rpu_mgr.h"
+#include "../lib/timers_bsd.h"
 #include "../Adc/references.h"
 #include "../DayNight/day_night.h"
 #include "alternat.h"
@@ -72,7 +69,7 @@ void AltPwrCntl(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
     {
-        alternat_serial_print_started_at = millis();
+        alternat_serial_print_started_at = milliseconds();
         printf_P(PSTR("{\"mgr_alt_en\":\"0x%X\","), (manager_status & (1<<4) )); // bit 4 .. alternate power enable (ALT_EN) 
         command_done = 11;
     }
@@ -95,7 +92,7 @@ void AltPwrCntl(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 25) ) 
     {
-        unsigned long kRuntime= millis() - alternat_serial_print_started_at;
+        unsigned long kRuntime= elapsed(&alternat_serial_print_started_at);
         if ((kRuntime) > (serial_print_delay_milsec))
         {
             command_done = 10; /* This keeps looping output forever (until a Rx char anyway) */

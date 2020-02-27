@@ -11,7 +11,7 @@ OBJECTS = main.o \
 	$(LIBDIR)/rpu_mgr.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/adc_bsd.o \
-	$(LIBDIR)/timers.o
+	$(LIBDIR)/timers_bsd.o
 
 ## Chip and project-specific global definitions
 MCU   =  atmega324pb

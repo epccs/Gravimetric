@@ -12,8 +12,7 @@ DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
 WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, 
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Note the library files are LGPL, e.g., you need to publish changes of them but can derive from this 
-source and copyright or distribute as you see fit (it is Zero Clause BSD).
+Note some library files are LGPL.
 
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
 */ 
@@ -22,7 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <avr/io.h>
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/twi0.h"
 #include "../lib/twi1.h"
@@ -130,7 +129,7 @@ void setup(void)
     // Enable global interrupts to start TIMER0 and UART
     sei(); 
 
-    blink_started_at = millis();
+    blink_started_at = milliseconds();
 
     rpu_addr = i2c_get_Rpu_address();
     blink_delay = BLINK_DELAY;
@@ -562,7 +561,7 @@ void test(void)
     }
 
     // enable CS_ICP3 which will cause ICP3 to go low and enable CS_DIVERSION that sends current to ICP1 input
-    unsigned long ICP3_one_shot_started_at = millis();
+    unsigned long ICP3_one_shot_started_at = milliseconds();
     unsigned long ICP3_one_shot_time = 0;
     ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_HIGH);
     unsigned long ICP3_one_shot_delay = 0;
@@ -572,15 +571,15 @@ void test(void)
     uint8_t timeout = 0;
     while(!wait_for_ICP1_low && !timeout)
     {
-        if ( (millis() - ICP3_one_shot_started_at) > 100) 
+        if ( elapsed(&ICP3_one_shot_started_at) > 100) 
         {
             timeout =1;
             passing = 0; 
-            printf_P(PSTR(">>> CS_DIVERSION not seen after ICP3 timeout: %d\r\n"),millis() - ICP3_one_shot_started_at);
+            printf_P(PSTR(">>> CS_DIVERSION not seen after ICP3 timeout: %d\r\n"),elapsed(&ICP3_one_shot_started_at));
         }
         if (!ioRead(MCU_IO_ICP1))
         {
-            ICP3_one_shot_delay = millis() - ICP3_one_shot_started_at;
+            ICP3_one_shot_delay = elapsed(&ICP3_one_shot_started_at);
             wait_for_ICP1_low =1;
         }
     }
@@ -589,16 +588,16 @@ void test(void)
         timeout = 0;
         while(!wait_for_ICP1_high && !timeout)
         {
-            if ( (millis() - ICP3_one_shot_started_at) > 1000)
+            if ( (elapsed(&ICP3_one_shot_started_at)) > 1000)
             {
                 timeout =1;
                 passing = 0; 
-                ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
+                ICP3_one_shot_time = elapsed(&ICP3_one_shot_started_at);
                 printf_P(PSTR(">>> CS_DIVERSION did not end from ICP3 befor timeout: %d\r\n"),ICP3_one_shot_time);
             }
             if (ioRead(MCU_IO_ICP1))
             {
-                ICP3_one_shot_time = millis() - ICP3_one_shot_started_at;
+                ICP3_one_shot_time = elapsed(&ICP3_one_shot_started_at);
                 wait_for_ICP1_high =1;
             }
         }
@@ -723,7 +722,7 @@ void test(void)
         printf_P(PSTR(">>> ICP1 should be low befor turning on CS_ICP4.\r\n"));
     }
     ioWrite(MCU_IO_CS_ICP4,LOGIC_LEVEL_HIGH);
-    unsigned long ICP4_one_shot_started_at = millis();
+    unsigned long ICP4_one_shot_started_at = milliseconds();
     unsigned long ICP4_one_shot_event = 0;
     unsigned long ICP4_one_shot_delay = 0;
     wait_for_ICP1_high = 0;
@@ -731,15 +730,15 @@ void test(void)
     timeout = 0;
     while(!wait_for_ICP1_high && !timeout)
     {
-        if ( (millis() - ICP4_one_shot_started_at) > 100) 
+        if ( (elapsed(&ICP4_one_shot_started_at)) > 100) 
         {
             timeout =1;
             passing = 0; 
-            printf_P(PSTR(">>> CS_DIVERSION did not end from ICP4 befor timeout: %d\r\n"), millis() - ICP4_one_shot_started_at);
+            printf_P(PSTR(">>> CS_DIVERSION did not end from ICP4 befor timeout: %d\r\n"), elapsed(&ICP4_one_shot_started_at));
         }
         if (ioRead(MCU_IO_ICP1))
         {
-            ICP4_one_shot_delay = millis() - ICP4_one_shot_started_at;
+            ICP4_one_shot_delay = elapsed(&ICP4_one_shot_started_at);
             wait_for_ICP1_high =1;
         }
     }
@@ -758,16 +757,16 @@ void test(void)
         timeout = 0;
         while(!wait_for_ICP1_low && !timeout)
         {
-            if ( (millis() - ICP4_one_shot_started_at) > 1000)
+            if ( (elapsed(&ICP4_one_shot_started_at)) > 1000)
             {
                 timeout =1;
                 passing = 0; 
-                ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
+                ICP4_one_shot_event = elapsed(&ICP4_one_shot_started_at);
                 printf_P(PSTR(">>> CS_DIVERSION did not restart from ICP4 befor timeout: %d\r\n"),ICP4_one_shot_event);
             }
             if (!ioRead(MCU_IO_ICP1))
             {
-                ICP4_one_shot_event = millis() - ICP4_one_shot_started_at;
+                ICP4_one_shot_event = elapsed(&ICP4_one_shot_started_at);
                 wait_for_ICP1_low =1; // it was high befor turning off cs_icp4, so the one shot is the only thing holding cs_diversion off
             }
         }
@@ -1393,7 +1392,7 @@ void led_setup_after_test(void)
 
 void blink(void)
 {
-    unsigned long kRuntime = millis() - blink_started_at;
+    unsigned long kRuntime = elapsed(&blink_started_at);
     if ( kRuntime > blink_delay)
     {
         if (passing)

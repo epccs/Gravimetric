@@ -26,7 +26,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/parse.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
-#include "../lib/timers.h"
+#include "../lib/timers_bsd.h"
 #include "analog.h"
 #include "references.h"
 
@@ -60,7 +60,7 @@ void Analog(unsigned long serial_print_delay_milsec)
         }
 
         // print in steps otherwise the serial buffer will fill and block the program from running
-        serial_print_started_at = millis();
+        serial_print_started_at = milliseconds();
         printf_P(PSTR("{"));
         adc_arg_index= 0;
         command_done = 11;
@@ -152,7 +152,7 @@ void Analog(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 13) ) 
     { // delay between JSON printing
-        unsigned long kRuntime= millis() - serial_print_started_at;
+        unsigned long kRuntime= elapsed(&serial_print_started_at);
         if ((kRuntime) > (serial_print_delay_milsec))
         {
             command_done = 10; /* This keeps looping output forever (until a Rx char anyway) */
