@@ -29,8 +29,7 @@ operation has completed and set it to 1 again. These 'special' bits behave diffe
 #include <stdbool.h>
 #include <avr/interrupt.h>
 #include <util/twi.h>
-#include "pin_num.h"
-#include "pins_board.h"
+#include "io_enum_bsd.h"
 #include "twi1.h"
 
 static volatile uint8_t twi1_state;
@@ -82,15 +81,15 @@ void twi1_init(uint8_t pull_up)
     twi1_sendStop = 1;		// default value
     twi1_inRepStart = 0;
 
-    pinMode(SCL1,INPUT);
-    pinMode(SDA1,INPUT);
+    ioDir(MCU_IO_SCL1, DIRECTION_INPUT);
+    ioDir(MCU_IO_SDA1, DIRECTION_INPUT);
 
     // Do not use pull-up for twi pins if the MCU is running at a higher voltage.
     // e.g. if MCU has 5V and others have 3.3V do not use the pull-up. 
     if (pull_up) 
     {
-        digitalWrite(SCL1,HIGH); // weak pullup
-        digitalWrite(SDA1,HIGH); // weak pullup
+        ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_HIGH); // weak pullup
+        ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_HIGH); // weak pullup
     }
 
     // initialize twi prescaler and bit rate
@@ -114,8 +113,8 @@ void twi1_disable(void)
     TWCR1 &= ~((1<<TWEN) | (1<<TWIE) | (1<<TWEA));
 
     // deactivate internal pullups for twi.
-    digitalWrite(SCL1,LOW); // disable the pull-up
-    digitalWrite(SDA1,LOW); //
+    ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_LOW); // disable the pull-up
+    ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_LOW); //
 }
 
 /* init slave address and enable interrupt */
