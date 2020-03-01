@@ -9,9 +9,8 @@ OBJECTS = main.o \
 	../Uart/id.o \
 	$(LIBDIR)/timers_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \
-	$(LIBDIR)/twi0.o \
+	$(LIBDIR)/twi0_bsd.o \
 	$(LIBDIR)/rpu_mgr.o \
-	$(LIBDIR)/adc.o \
 	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/parse.o
 

@@ -79,3 +79,18 @@ volume_start_to_stop = water_mass_collected / density_of_water
 
 The instrument to be proven may have other correction factors that need to be applied to the volume, for example a volume prover will need corrections for both temperature and pressure.
 
+
+# Calibration
+
+The idea is to base flow measurements on a known standard, and then have that be the top of a hierarchy (like a file system root directory). A volume is measured with displaced water, and that is what gets weighed. The scale needs to be calibrated to a reference in the hierarchy of known standards, and the properties of water are considered reliable.
+
+![Tank](./Setup/gravimetric_tank_trailer_mounted.jpg)
+
+
+# Networking
+
+If your printers lock up unexpectedly, it may be because they were port scanned, and an overflow crashed the printer software; it is a clue about being owned. Do not throughout the printer; it is your friend because it tells the truth.
+
+https://arstechnica.com/information-technology/2020/02/a-us-gas-pipeline-operator-was-infected-by-malware-your-questions-answered/?comments=1&post=38660092
+
+Note the idea of "operational historian", I need to consider how that should be implemented.

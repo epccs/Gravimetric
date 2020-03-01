@@ -22,7 +22,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <ctype.h>
 #include <avr/pgmspace.h>
 #include "../lib/parse.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "i2c0-cmd.h"
 
 
@@ -131,10 +131,9 @@ void I2c0_write(void)
 {
     if (command_done == 10)
     {
-        uint8_t wait = 1;
         uint8_t sendStop = 1; 
         uint8_t txBufferLength = txBufferIndex;
-        returnCode = twi0_writeTo(I2cAddress, txBuffer, txBufferLength, wait, sendStop);
+        returnCode = twi0_masterBlockingWrite(I2cAddress, txBuffer, txBufferLength, sendStop);
         if (returnCode == 0)
         {
             printf_P(PSTR("{\"returnCode\":\"success\""));
@@ -180,10 +179,9 @@ void I2c0_read(void)
         // send command byte(s) without a Stop (causing a repeated Start durring read)
         if (txBufferIndex) 
         {
-            uint8_t wait = 1;
             uint8_t sendStop = 0; 
             uint8_t txBufferLength = txBufferIndex;
-            returnCode = twi0_writeTo(I2cAddress, txBuffer, txBufferLength, wait, sendStop);
+            returnCode = twi0_masterBlockingWrite(I2cAddress, txBuffer, txBufferLength, sendStop);
             if (returnCode == 0)
             {
                 printf_P(PSTR("{\"rxBuffer\":["));
@@ -214,7 +212,7 @@ void I2c0_read(void)
         // read I2C, it will cause a repeated start if a command has been sent.
         uint8_t sendStop = 1; 
         uint8_t quantity = (uint8_t) atoi(arg[0]); // arg[0] has been checked to be in range 1..32
-        uint8_t read = twi0_readFrom(I2cAddress, rxBuffer, quantity, sendStop);
+        uint8_t read = twi0_masterBlockingRead(I2cAddress, rxBuffer, quantity, sendStop);
         rxBufferLength = read;
         JsonIndex = 0;
         command_done = 12;

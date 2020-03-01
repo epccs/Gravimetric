@@ -21,7 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <stdlib.h> 
 #include <avr/pgmspace.h>
 #include "../lib/parse.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "i2c0-scan.h"
 
 static uint8_t address;
@@ -41,7 +41,7 @@ void I2c0_scan(void)
         start_address = 0x8; // 0-0x7 is reserved (e.g. general call, CBUS, Hs-mode...)
         end_address = 0x77; // 0x78-0x7F is reserved (e.g. 10-bit...)
         address = start_address;
-        found_addresses = 0;
+        found_addresses = 0; // count of addresses found, it is used to format JSON
         printf_P(PSTR("{\"scan\":[")); // start of JSON
         command_done = 11;
     }
@@ -50,9 +50,8 @@ void I2c0_scan(void)
     {
         uint8_t data = 0;
         uint8_t length = 0;
-        uint8_t wait = 1;
         uint8_t sendStop = 1;
-        returnCode = twi0_writeTo(address, &data, length, wait, sendStop); 
+        returnCode = twi0_masterBlockingWrite(address, &data, length, sendStop); 
         
         if ( (returnCode == 0) && (found_addresses > 0) )
         {

@@ -26,7 +26,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
 #include "../lib/timers_bsd.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
@@ -86,8 +86,8 @@ void setup(void)
     // manager delays (blocks) for 50mSec after power up so i2c is not running yet
     _delay_ms(60); 
 
-    /* Initialize I2C. note: I2C scan will stop without a pull-up on the bus */
-    twi0_init(TWI_PULLUP);
+    /* Initialize I2C. note: an I2C scan will stop without a pull-up on the bus */
+    twi0_init(100000UL, TWI0_PINS_PULLUP);
 
     /* Clear and setup the command buffer, (probably not needed at this point) */
     initCommandBuffer();
