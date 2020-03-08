@@ -28,7 +28,6 @@ static uint8_t address;
 static uint8_t start_address;
 static uint8_t end_address;
 static uint8_t found_addresses;
-static uint8_t returnCode;
 
 /* Scan the I2C bus between addresses from_addr and to_addr.
    On each address, call the callback function with the address and result.
@@ -45,36 +44,103 @@ void I2c0_scan(void)
         printf_P(PSTR("{\"scan\":[")); // start of JSON
         command_done = 11;
     }
-    
+
     else if (command_done == 11)
     {
         uint8_t data = 0;
         uint8_t length = 0;
         uint8_t sendStop = 1;
-        returnCode = twi0_masterBlockingWrite(address, &data, length, sendStop); 
-        
-        if ( (returnCode == 0) && (found_addresses > 0) )
+        // attempt TWI asynchronous write.
+        TWI0_WRT_t twi_attempt = twi0_masterAsyncWrite(address, &data, length, sendStop); 
+        if (twi_attempt == TWI0_WRT_TRANSACTION_STARTED)
         {
-            printf_P(PSTR(","));
+            command_done = 12;
+            return; // back to loop
         }
-        
-        if (returnCode == 0)
+        else if(twi_attempt == TWI0_WRT_TO_MUCH_DATA)
         {
+            if (found_addresses > 0)
+            {
+                printf_P(PSTR(","));
+            }
+            printf_P(PSTR("{\"twi0_wrt_error\":\"data_to_much\"}"));
+            command_done = 13;
+            return;
+        }
+        else // if(twi_attempt == TWI0_WRT_NOT_READY)
+        {
+            return; // twi is not ready so back to loop
+        }
+    }
+
+    else if (command_done == 12)
+    {
+        TWI0_WRT_STAT_t status;
+        status = twi0_masterAsyncWrite_status(); 
+        if (status == TWI0_WRT_STAT_BUSY)
+        {
+            return; // twi write operation not complete, so back to loop
+        }
+
+        // address send, NACK received
+        if (status == TWI0_WRT_STAT_ADDR_NACK)
+        {
+            /* do not report
+            if (found_addresses > 0)
+            {
+                printf_P(PSTR(","));
+            }
+            printf_P(PSTR("{\"nack\":\"0x%X\"}"),address);
+            found_addresses += 1;
+            */
+        }
+
+        // data send, NACK received
+        if (status == TWI0_WRT_STAT_DATA_NACK)
+        {
+            // should never report
+            if (found_addresses > 0)
+            {
+                printf_P(PSTR(","));
+            }
+            printf_P(PSTR("{\"data_nack\":\"0x%X\"}"),address);
+            found_addresses += 1;
+        }
+
+        // illegal start or stop condition
+        if (status == TWI0_WRT_STAT_ILLEGAL)
+        {
+            // is a broken master trying to take the bus?
+            if (found_addresses > 0)
+            {
+                printf_P(PSTR(","));
+            }
+            printf_P(PSTR("{\"error\":\"illegal\"}"));
+            found_addresses += 1;
+        }
+
+        if ( (status == TWI0_WRT_STAT_SUCCESS) )
+        {
+            if (found_addresses > 0)
+            {
+                printf_P(PSTR(","));
+            }
             printf_P(PSTR("{\"addr\":\"0x%X\"}"),address);
             found_addresses += 1;
         }
         
         if (address >= end_address) 
         {
-            command_done = 12;
+            command_done = 13;
         }
         else
         {
             address += 1;
+            command_done = 11;
         }
     }
     
-    else if ( (command_done == 12) )
+    else if ( (command_done == 13) )
     {
         printf_P(PSTR("]}\r\n"));
         initCommandBuffer();
