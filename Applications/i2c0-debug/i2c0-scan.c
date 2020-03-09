@@ -12,9 +12,6 @@ DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
 WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, 
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Note some of the the library files are LGPL, e.g., you need to publish changes of them but can derive from this 
-source and copyright or distribute as you see fit (it is Zero Clause BSD).
-
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
 */
 #include <stdio.h>
@@ -29,10 +26,7 @@ static uint8_t start_address;
 static uint8_t end_address;
 static uint8_t found_addresses;
 
-/* Scan the I2C bus between addresses from_addr and to_addr.
-   On each address, call the callback function with the address and result.
-   If result==0, address was found, otherwise, address wasn't found
-   can use result to potentially get other status off the I2C bus, see twi.c   */
+// Scan the I2C bus between addresses from_addr and to_addr.
 void I2c0_scan(void)
 {
     if (command_done == 10)
@@ -63,7 +57,7 @@ void I2c0_scan(void)
             {
                 printf_P(PSTR(","));
             }
-            printf_P(PSTR("{\"twi0_wrt_error\":\"data_to_much\"}"));
+            printf_P(PSTR("{\"error\":\"data_to_much\"}"));
             command_done = 13;
             return;
         }
@@ -90,7 +84,7 @@ void I2c0_scan(void)
             {
                 printf_P(PSTR(","));
             }
-            printf_P(PSTR("{\"nack\":\"0x%X\"}"),address);
+            printf_P(PSTR("{\"error\":\"addr_nack\""));
             found_addresses += 1;
             */
         }
@@ -103,14 +97,14 @@ void I2c0_scan(void)
             {
                 printf_P(PSTR(","));
             }
-            printf_P(PSTR("{\"data_nack\":\"0x%X\"}"),address);
+            printf_P(PSTR("{\"error\":\"data_nack\""));
             found_addresses += 1;
         }
 
         // illegal start or stop condition
         if (status == TWI0_WRT_STAT_ILLEGAL)
         {
-            // is a broken master trying to take the bus?
+            // is a master trying to take the bus?
             if (found_addresses > 0)
             {
                 printf_P(PSTR(","));

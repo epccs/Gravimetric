@@ -4,11 +4,9 @@
 
 2-wire Serial Interface (TWI, a.k.a. I2C) uses pins with SDA0 and SCL0 functions. 
 
-The driver twi0.c and twi0.h depends on avr-libc and avr-gcc. It uses an ASYNC ISR but does block (busy wait) while reading or writing during which it will do clock stretching. 
+The peripheral control software twi0_bsd.c depends on avr-libc and avr-gcc. It provides interrupt-driven asynchronous I2C functions that can operate without blocking. It can also work with an interleaving slave receive buffer for SMBus block transactions that appear to eliminate problems involving clock stretching (e.g., for R-Pi Zero). This application uses the I2C0 hardeare.
 
-Since this application only uses the I2C0 as a master clock stretching does not matter, but if an application needs an I2C slave (e.g., on twi1), then an interleaving buffer is desirable to eliminate clock stretching with which some masters struggle (e.g., R-Pi Zero).
-
-Note: On Gravimetric I2C0 does not have user-accessible pins, it is only connected to the manager at this time. I2C1 is connected to the user access port and may be used as a slave or a master.
+On Gravimetric, I2C0 does not have user-accessible pins; it is connected to the manager. I2C1 is connected to the user access port.
 
 ## Firmware Upload 
 
@@ -85,22 +83,22 @@ Scan of I2C bus shows all 7 bit devices found. I have a PCA9554 at 0x38 and an 2
 
 ``` 
 /1/iscan?
-{"scan":[{"addr":"0x29"},{"addr":"0x38"},{"addr":"0x50"}]}
+{"scan":[{"addr":"0x29"}]}
 ```
 
-Note: the address does not include the Read/Write bit. 
+Note: the address is right-shifted so that it does not include the Read/Write bit. 
 
 
 ## /0/iaddr 0..127
 
-Set the I2C address 
+Set an I2C address for the masster to access. 
 
 ``` 
-/1/iaddr 56
-{"address":"0x38"}
+/1/iaddr 41
+{"master_address":"0x29"}
 ```
 
-Note: Set it with the decimel value, it will return the hex value. This value is used durring read and write, it will also reset the xtBuffer.
+Note: Set it with the decimal value, it will return the hex value. The address is used to write or read and will clear the transmit Buffer.
 
 
 ## /0/ibuff 0..255\[,0..255\[,0..255\[,0..255\[,0..255\]\]\]\]
@@ -108,18 +106,18 @@ Note: Set it with the decimel value, it will return the hex value. This value is
 Add up to five bytes to I2C transmit buffer. JSON reply is the full buffer. 
 
 ``` 
-/1/ibuff 3,0
-{"txBuffer":["data":"0x3","data":"0x0"]}
+/1/ibuff 2,0
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 ``` 
 
 
 ## /0/ibuff?
 
-Show buffer data.
+Show transmit buffer data that will be given to I2C master.
 
 ``` 
 /1/ibuff?
-{"txBuffer":["data":"0x3","data":"0x0"]}
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 ``` 
 
 ## /0/iwrite
@@ -127,28 +125,49 @@ Show buffer data.
 Attempt to become master and write the txBuffer bytes to I2C address (PCA9554). The txBuffer will clear if write was a success.
 
 ``` 
-/1/iaddr 56
-{"address":"0x38"}
-/1/ibuff 3,0
-{"txBuffer":["data":"0x3","data":"0x0"]}
+/1/iaddr 41
+{"master_address":"0x29"}
+/1/ibuff?
+{"txBuffer[0]":[]}
+/1/ibuff 2,0
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 /1/iwrite
-{"returnCode":"success"}
+{"txBuffer":"wrt_success"}
 ``` 
 
 ## /0/iread? \[1..32\]
 
-If txBuffer has values, attempt to become master and write the byte(s) in buffer (e.g. command byte) to I2C address (example is for a PCA9554) without a stop condition. The txBuffer will clear if write was a success. Then send a repeated Start condition, followed by address and obtain readings into rxBuffer.
+If txBuffer is empty, attempt to become master and obtain readings into rxBuffer.
 
 ``` 
-/1/iaddr 56
-{"address":"0x38"}
-/1/ibuff 3
-{"txBuffer":["data":"0x3"}
-/1/iread? 1
-{"rxBuffer":[{"data":"0xFF"}]}
+/1/iaddr 41
+{"master_address":"0x29"}
+/1/ibuff?
+{"txBuffer[0]":[]}
+/1/ibuff 2,0
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
+/1/iwrite
+{"txBuffer":"wrt_success"}
+/1/ibuff?
+{"txBuffer[0]":[]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
 ``` 
 
-Note the PCA9554 has been power cycled in this example, so the reading is the default from register 3.
+Command 2 from master is a request for the bootload or point-to-point address.
+
+If txBuffer has values, attempt to become master and write the byte(s) in buffer (e.g., a command byte) to I2C address without a stop condition. The txBuffer will clear if write was a success. Then send a repeated Start condition, followed by address and obtain readings into rxBuffer.
+
+``` 
+/1/iaddr 41
+{"master_address":"0x29"}
+/1/ibuff 2,0
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
+/1/iread? 2
+{"txBuffer":"wrt_success","rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
+``` 
+
+This way of doing the repeated start allows testing SMBus block commands, which need a command byte sent before a repeated start and finally reading the data block.
 
 
 # PCA9554 Example
