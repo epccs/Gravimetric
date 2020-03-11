@@ -39,7 +39,7 @@ void ProcessCmd()
 { 
     if ( (strcmp_P( command, PSTR("/id?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        Id("I2C0debug^1");
+        Id("I2C0debug^2");
     }
     if ( (strcmp_P( command, PSTR("/iscan?")) == 0) && (arg_count == 0) )
     {

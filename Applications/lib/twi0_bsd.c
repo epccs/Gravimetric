@@ -18,6 +18,12 @@ The TWCR register has a 'special' flag TWINT in hardware that clears after writi
 Writing 1 to TWINT casues the hardware flag to be cleared, and reading it will show 0 
 until the hardware operation has completed and set it to 1 again. These 'special' flags 
 behave differently for write than they do for read.
+
+Multi-Master can lock up when blocking functions are used. Also the master will get a NACK 
+if it tries to acceess a slave on the same state machine. Note: an m4809 has two ISR driven
+state machines, one for the master and another for the slave but it is not clear to me if
+they can share the same IO hardware wihtout locking up. The AVR128DA famly has alternat 
+IO hardware, the master ISR can be on one set of hardware while the slave ISR is on the other.
 */
 
 #include <stdbool.h>
@@ -455,7 +461,7 @@ TWI0_WRT_STAT_t twi0_masterAsyncWrite_status(void)
         return 5; // can not happen
 }
 
-// TWI write busy-wait transaction.
+// TWI write busy-wait transaction, do not use with multi-master.
 // 0 .. success
 // *1 .. length to long for buffer
 //      * the busy status is replaced by buffer error 
@@ -487,59 +493,63 @@ uint8_t twi0_masterBlockingWrite(uint8_t slave_address, uint8_t* write_data, uin
 }
 
 // TWI Asynchronous Read Transaction.
-// Output   0 .. data fit in buffer, check status for success
-//          1 .. length to long for buffer
-uint8_t twi0_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uint8_t send_stop)
+// 0 .. data fit in buffer, check twi0_masterAsyncRead_bytesRead for when it is done
+// 1 .. data will not fit in the buffer, request ignored
+// 2 .. todo: TWI state machine not ready for use
+TWI0_RD_t twi0_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uint8_t send_stop)
 {
     if(bytes_to_read > TWI0_BUFFER_LENGTH)
     {
-        return 1;
+        return TWI0_RD_TO_MUCH_DATA;
     }
     else
     {
-        while(TWI_STATE_READY != twi_MastSlav_RxTx_state)
+        if (TWI_STATE_READY != twi_MastSlav_RxTx_state)
         {
-            continue;
-        }
-        twi_MastSlav_RxTx_state = TWI_STATE_MASTER_RECEIVER;
-        if (send_stop)
-        {
-            twi_protocall |= TWI_PROTOCALL_STOP;
+            return TWI0_RD_NOT_READY;
         }
         else
         {
-            twi_protocall &= ~TWI_PROTOCALL_STOP;
-        }
-        twi_error = TWI_ERROR_NONE;
-
-        masterBufferIndex = 0;
-
-        // set NACK when the _next_ to last byte received. 
-        masterBufferLength = bytes_to_read-1; 
-
-        // build SLA+R, slave device address + r bit
-        twi_slave_read_write = slave_address << 1;
-        twi_slave_read_write += TW_READ;
-
-
-        // Check if ISR has done the I2C START
-        if (twi_protocall & TWI_PROTOCALL_REPEATEDSTART)
-        {
-            uint8_t local_twi_protocall = twi_protocall;
-            local_twi_protocall &= ~TWI_PROTOCALL_REPEATEDSTART;
-            twi_protocall = local_twi_protocall;
-            do 
+            twi_MastSlav_RxTx_state = TWI_STATE_MASTER_RECEIVER;
+            if (send_stop)
             {
-                TWDR0 = twi_slave_read_write;
-            } while(TWCR0 & (1<<TWWC));
-            TWCR0 = (1<<TWINT) | (1<<TWEA) | (1<<TWEN) | (1<<TWIE);	// enable INTs, but not START
+                twi_protocall |= TWI_PROTOCALL_STOP;
+            }
+            else
+            {
+                twi_protocall &= ~TWI_PROTOCALL_STOP;
+            }
+            twi_error = TWI_ERROR_NONE;
+
+            masterBufferIndex = 0;
+
+            // set NACK when the _next_ to last byte received. 
+            masterBufferLength = bytes_to_read-1; 
+
+            // build SLA+R, slave device address + r bit
+            twi_slave_read_write = slave_address << 1;
+            twi_slave_read_write += TW_READ;
+
+
+            // Check if ISR has done the I2C START
+            if (twi_protocall & TWI_PROTOCALL_REPEATEDSTART)
+            {
+                uint8_t local_twi_protocall = twi_protocall;
+                local_twi_protocall &= ~TWI_PROTOCALL_REPEATEDSTART;
+                twi_protocall = local_twi_protocall;
+                do 
+                {
+                    TWDR0 = twi_slave_read_write;
+                } while(TWCR0 & (1<<TWWC));
+                TWCR0 = (1<<TWINT) | (1<<TWEA) | (1<<TWEN) | (1<<TWIE);	// enable INTs, but not START
+            }
+            else
+            {
+                // send start condition
+                TWCR0 = (1<<TWEN) | (1<<TWIE) | (1<<TWEA) | (1<<TWINT) | (1<<TWSTA);
+            }
+            return TWI0_RD_TRANSACTION_STARTED;
         }
-        else
-        {
-            // send start condition
-            TWCR0 = (1<<TWEN) | (1<<TWIE) | (1<<TWEA) | (1<<TWINT) | (1<<TWSTA);
-        }
-        return 0;
     }
 }
 
@@ -568,15 +578,23 @@ uint8_t twi0_masterAsyncRead_bytesRead(uint8_t *read_data)
     return bytes_read;
 }
 
-// TWI read busy-wait transaction.
+// TWI read busy-wait transaction, do not use with multi-master.
+// 0 returns if requeste for data will not fit in buffer
+// 1..32 returns the number of bytes
 uint8_t twi0_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, uint8_t send_stop)
 {
-    if (twi0_masterAsyncRead(slave_address, bytes_to_read, send_stop))
+    TWI0_RD_t twi_state_machine = twi0_masterAsyncRead(slave_address, bytes_to_read, send_stop);
+    if (twi_state_machine == TWI0_RD_TO_MUCH_DATA)
     {
-        return 0; // to much data and it was ignored
+        return 0; // data will not fit in the buffer, request ignored
     }
     else
     {
+        // TWI state machine not ready, so wait
+        while(twi_state_machine == TWI0_RD_NOT_READY)
+        {
+            twi_state_machine = twi0_masterAsyncRead(slave_address, bytes_to_read, send_stop);
+        }
         // wait for read operation to complete (a non-zero is the bytes read, zero is busy)
         uint8_t bytes_read = 0;
         while(!bytes_read)

@@ -31,13 +31,20 @@ typedef enum TWI0_WRT_STAT_enum {
     TWI0_WRT_STAT_ILLEGAL // illegal start or stop condition
 } TWI0_WRT_STAT_t;
 
+// TWI master read attempted.
+typedef enum TWI0_RD_enum {
+    TWI0_RD_TRANSACTION_STARTED, // Transaction started
+    TWI0_RD_TO_MUCH_DATA, // to much data
+    TWI0_RD_NOT_READY // TWI state machine not ready for use
+} TWI0_RD_t;
+
 void twi0_init(uint32_t bitrate, TWI0_PINS_t pull_up);
 
 TWI0_WRT_t twi0_masterAsyncWrite(uint8_t slave_address, uint8_t *write_data, uint8_t bytes_to_write, uint8_t send_stop);
 TWI0_WRT_STAT_t twi0_masterAsyncWrite_status(void);
 uint8_t twi0_masterBlockingWrite(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, uint8_t send_stop);
 
-uint8_t twi0_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uint8_t send_stop);
+TWI0_RD_t twi0_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uint8_t send_stop);
 uint8_t twi0_masterAsyncRead_bytesRead(uint8_t *read_data);
 uint8_t twi0_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, uint8_t send_stop);
 

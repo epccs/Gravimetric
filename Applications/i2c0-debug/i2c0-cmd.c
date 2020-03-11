@@ -279,11 +279,34 @@ void I2c0_read(void)
 
     else if (command_done == 20)
     {
-        // read I2C, it will use a repeated start if a write was sent.
         printf_P(PSTR("\"rxBuffer\":["));
         uint8_t sendStop = 1; 
         uint8_t quantity = (uint8_t) atoi(arg[0]); // arg[0] has been checked to be in range 1..32
-        uint8_t read = twi0_masterBlockingRead(master_address, rxBufferAcceptFromMaster, quantity, sendStop);
+        TWI0_RD_t twi_attempt = twi0_masterAsyncRead(master_address, quantity, sendStop);
+        if (twi_attempt == TWI0_RD_TRANSACTION_STARTED)
+        {
+            command_done = 21;
+            return; // back to loop
+        }
+        else if(twi_attempt == TWI0_RD_TO_MUCH_DATA)
+        {
+            printf_P(PSTR("{\"error\":\"rd_data_to_much\""));
+            command_done = 30;
+        }
+        else if(twi_attempt == TWI0_RD_NOT_READY)
+        {
+            // need to add a timeout timer 
+            return; // i2c is not ready so back to loop
+        }
+    }
+
+    else if (command_done == 21)
+    {
+        uint8_t read = twi0_masterAsyncRead_bytesRead(rxBufferAcceptFromMaster); 
+        if (read == 0)
+        {
+            return; // twi read operation not complete, so back to loop
+        }
         rxBufferAcceptFromMaster_lenght = read;
         JsonIndex = 0;
         command_done = 22;

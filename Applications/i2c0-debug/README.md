@@ -74,7 +74,7 @@ identify
 
 ``` 
 /1/id?
-{"id":{"name":"I2C0debug^1","desc":"Gravimetric (17341^0) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+{"id":{"name":"I2C0debug^2","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
 ## /0/iscan?
