@@ -122,7 +122,7 @@ Show transmit buffer data that will be given to I2C master.
 
 ## /0/iwrite
 
-Attempt to become master and write the txBuffer bytes to I2C address (PCA9554). The txBuffer will clear if write was a success.
+Attempt to become master and write the txBuffer bytes to I2C address. The txBuffer will clear if write was a success.
 
 ``` 
 /1/iaddr 41
@@ -168,6 +168,34 @@ If txBuffer has values, attempt to become master and write the byte(s) in buffer
 ``` 
 
 This way of doing the repeated start allows testing SMBus block commands, which need a command byte sent before a repeated start and finally reading the data block.
+
+
+## /0/imon? \[7..119\]
+
+Monitor a slave address. The receive callback (from master write) fills a print buffer and a local buffer for an echo of the data back during a transmit callback (to master read). Loading the print buffer will be skipped when the UART is writing.
+
+``` 
+/1/imon? 28
+{"monitor_0x1C":[{"data":"0x2"},{"data":"0x0"}]}
+{"monitor_0x1C":[{"data":"0x0"},{"data":"0x0"}]}
+``` 
+
+The monitor events are from another board with i2c where I used a master to write to this slave.
+
+```
+/0/iscan?
+{"scan":[{"addr":"0x1C"},{"addr":"0x29"}]}
+/0/iaddr 28
+{"address":"0x1C"}
+/0/ibuff 2,0
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
+/0/iread? 2
+{"rxBuffer":[{"data":"0x2"},{"data":"0x0"}]}
+/0/ibuff 0,0
+{"txBuffer[2]":[{"data":"0x0"},{"data":"0x0"}]}
+/0/iread? 2
+{"rxBuffer":[{"data":"0x0"},{"data":"0x0"}]}
+``` 
 
 
 # PCA9554 Example

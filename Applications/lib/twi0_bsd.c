@@ -78,7 +78,7 @@ void transmit_default(void)
 typedef void (*PointerToTransmit)(void);
 
 // used to initalize the slave Receive functions in case they are not used.
-void receive_default(uint8_t *data, int length)
+void receive_default(uint8_t *data, uint8_t length)
 {
     // In a real callback, the data to send needs to be copied to a local buffer.
     // 
@@ -93,7 +93,7 @@ void receive_default(uint8_t *data, int length)
     return;
 }
 
-typedef void (*PointerToReceive)(uint8_t*, int);
+typedef void (*PointerToReceive)(uint8_t*, uint8_t);
 
 static PointerToTransmit twi0_onSlaveTx = transmit_default;
 static PointerToReceive twi0_onSlaveRx = receive_default;
@@ -495,7 +495,7 @@ uint8_t twi0_masterBlockingWrite(uint8_t slave_address, uint8_t* write_data, uin
 // TWI Asynchronous Read Transaction.
 // 0 .. data fit in buffer, check twi0_masterAsyncRead_bytesRead for when it is done
 // 1 .. data will not fit in the buffer, request ignored
-// 2 .. todo: TWI state machine not ready for use
+// 2 .. TWI state machine not ready for use
 TWI0_RD_t twi0_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uint8_t send_stop)
 {
     if(bytes_to_read > TWI0_BUFFER_LENGTH)
@@ -605,7 +605,30 @@ uint8_t twi0_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8
     }
 }
 
-//  fill slaveTxBuffer using callback
+// set valid slave address (0x8..0x77) 
+// return address if set
+uint8_t twi0_slaveAddress(uint8_t slave)
+{
+    if( (slave>=0x8) && (slave<=0x77))
+    {
+        // TWAR0 is Slave Address Register TWA[6..0] in bits 7..1 TWGCE in bit 0
+        //       TWGCE bit is for General Call Recognition
+        TWAR0 = slave << 1; 
+        return slave;
+    }
+    else
+    {
+        TWAR0 = 0; 
+        twi0_onSlaveTx = transmit_default;
+        twi0_onSlaveRx = receive_default;
+        return 0;
+    }
+}
+
+// fill slaveTxBuffer using callback returns
+// 0: OK
+// 1: bytes_to_send is to much for buffer, so request ignored
+// 2: TWI state machine is not in slave mode, so request ignored
 uint8_t twi0_fillSlaveTxBuffer(const uint8_t* slave_data, uint8_t bytes_to_send)
 {
     if(TWI0_BUFFER_LENGTH < bytes_to_send)
@@ -627,14 +650,30 @@ uint8_t twi0_fillSlaveTxBuffer(const uint8_t* slave_data, uint8_t bytes_to_send)
     return 0;
 }
 
-// record callback to use durring a slave read operation
-void twi0_registerSlaveRxCallback( void (*function)(uint8_t*, int) )
+// record callback to use durring a slave read operation 
+// a NULL pointer will use the default callback
+void twi0_registerSlaveRxCallback( void (*function)(uint8_t*, uint8_t) )
 {
-    twi0_onSlaveRx = function;
+    if (function == ((void *)0) )
+    {
+        twi0_onSlaveRx = receive_default;
+    }
+    else
+    {
+        twi0_onSlaveRx = function;
+    }
 }
 
 // record callback to use before a slave write operation
+// a NULL pointer will use the default callback
 void twi0_registerSlaveTxCallback( void (*function)(void) )
 {
-    twi0_onSlaveTx = function;
+    if (function == ((void *)0) )
+    {
+        twi0_onSlaveTx = transmit_default;
+    }
+    else
+    {
+        twi0_onSlaveTx = function;
+    }
 }

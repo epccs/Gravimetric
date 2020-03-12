@@ -48,8 +48,9 @@ TWI0_RD_t twi0_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uin
 uint8_t twi0_masterAsyncRead_bytesRead(uint8_t *read_data);
 uint8_t twi0_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, uint8_t send_stop);
 
+uint8_t twi0_slaveAddress(uint8_t slave);
 uint8_t twi0_fillSlaveTxBuffer(const uint8_t* slave_data, uint8_t bytes_to_send);
-void twi0_registerSlaveRxCallback( void (*function)(uint8_t*, int) );
+void twi0_registerSlaveRxCallback( void (*function)(uint8_t*, uint8_t) );
 void twi0_registerSlaveTxCallback( void (*function)(void) );
 
 #endif // twi0_h

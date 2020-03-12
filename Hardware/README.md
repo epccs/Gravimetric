@@ -76,6 +76,8 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             Todo: Design, Layout (#=done), BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
             Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low.
+            Add note on schem near *manager* ISP port "remove alternat power befor programing with ISP"
+            Add test points on I2C0 nodes.
 
         ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, 
             WIP: Testing,

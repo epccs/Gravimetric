@@ -29,6 +29,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../Uart/id.h"
 #include "i2c0-scan.h"
 #include "i2c0-cmd.h"
+#include "i2c0-monitor.h"
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -64,6 +65,10 @@ void ProcessCmd()
     if ( (strcmp_P( command, PSTR("/iread?")) == 0) && (arg_count == 1) )
     {
         I2c0_read();
+    }
+    if ( (strcmp_P( command, PSTR("/imon?")) == 0) && (arg_count == 1) )
+    {
+        I2c0_monitor();
     }
 }
 
@@ -143,7 +148,11 @@ int main(void)
         if ( command_done && uart0_available() )
         {
             // dump the transmit buffer to limit a collision 
-            uart0_empty(); 
+            uart0_empty();
+
+            // turn off the slave monitor
+            twi0_slaveAddress(0);
+
             initCommandBuffer();
         }
         

@@ -11,12 +11,12 @@
 
 
 extern void initCommandBuffer(void);
-extern void StartEchoWhenAddressed(char);
-extern void AssembleCommand(int);
-extern uint8_t findArgument(uint8_t);
+extern void StartEchoWhenAddressed(char address);
+extern void AssembleCommand(int input);
+extern uint8_t findArgument(uint8_t at_command_buf_offset);
 extern uint8_t findCommand(void);
-extern unsigned long is_arg_in_ul_range (uint8_t, unsigned long, unsigned long);
-extern uint8_t is_arg_in_uint8_range (uint8_t, uint8_t, uint8_t);
+extern unsigned long is_arg_in_ul_range (uint8_t arg_num, unsigned long min, unsigned long max);
+extern uint8_t is_arg_in_uint8_range (uint8_t arg_num, uint8_t min, uint8_t max);
 
 extern uint8_t command_done;
 extern uint8_t echo_on;

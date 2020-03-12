@@ -4,6 +4,7 @@
 TARGET = I2c-debug
 LIBDIR = ../lib
 OBJECTS = main.o \
+	i2c0-monitor.o \
 	i2c0-scan.o \
 	i2c0-cmd.o \
 	../Uart/id.o \

@@ -284,7 +284,8 @@ unsigned long is_arg_in_ul_range (uint8_t arg_num, unsigned long min, unsigned l
     return ul;
 }
 
-uint8_t is_arg_in_uint8_range (uint8_t arg_num, uint8_t min, uint8_t max)
+// return arg[arg_num] value if in range
+uint8_t is_arg_in_uint8_range(uint8_t arg_num, uint8_t min, uint8_t max)
 {
     // check that arg[arg_num] is a digit 
     if ( ( !( isdigit(arg[arg_num][0]) ) ) )
