@@ -23,7 +23,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/io_enum_bsd.h"
 #include "id.h"
@@ -53,8 +53,8 @@ void setup(void)
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
     
-    /* Initialize I2C, with the internal pull-up*/
-    twi0_init(TWI_PULLUP);
+    /* Initialize I2C to manager*/
+    twi0_init(100000UL, TWI0_PINS_PULLUP);
 
     /* Clear and setup the command buffer, (probably not needed at this point) */
     initCommandBuffer();

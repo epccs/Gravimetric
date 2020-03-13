@@ -12,8 +12,6 @@ DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
 WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, 
 ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Note some library files are LGPL.
-
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
 */ 
 
@@ -23,7 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <avr/io.h>
 #include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "../lib/twi1.h"
 #include "../lib/adc.h"
 #include "../lib/adc_bsd.h"
@@ -122,8 +120,8 @@ void setup(void)
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
 
-    /* Initialize I2C, with the internal pull-up*/
-    twi0_init(TWI_PULLUP);
+    /* Initialize I2C*/
+    twi0_init(100000UL, TWI0_PINS_PULLUP);
     twi1_init(TWI_PULLUP);
 
     // Enable global interrupts to start TIMER0 and UART
@@ -192,10 +190,9 @@ void i2c_shutdown(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t wait = 1;
     uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x05,0x01};
-    uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop); 
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
     if (twi_returnCode != 0)
     {
         passing = 0; 
@@ -204,7 +201,7 @@ void i2c_shutdown(void)
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
     sendStop = 1;
-    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
     if ( bytes_read != length )
     {
         passing = 0; 
@@ -225,10 +222,9 @@ void i2c_shutdown_detect(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t wait = 1;
     uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x04, 0xFF}; //comand 0x04 will return the value 0x01 (0xff is a byte for the ISR to replace)
-    uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop);
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
     if (twi_returnCode != 0)
     {
         passing = 0; 
@@ -236,7 +232,7 @@ void i2c_shutdown_detect(void)
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
     sendStop = 1;
-    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
     if ( bytes_read != length )
     {
         passing = 0; 
@@ -257,10 +253,9 @@ void i2c_testmode_start(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t wait = 1;
     uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x30, 0x01}; // preserve the trancever control bits
-    uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop);
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
     if (twi_returnCode != 0)
     {
         passing = 0; 
@@ -268,7 +263,7 @@ void i2c_testmode_start(void)
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
     sendStop = 1;
-    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
     if ( bytes_read != length )
     {
         passing = 0; 
@@ -290,10 +285,9 @@ void i2c_testmode_end(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t wait = 1;
     uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x31, 0x01}; // recover trancever control bits and report values in data[1] byte
-    uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop);
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
     if ( test_mode_clean )
     {
         printf_P(PSTR("I2C0 Start Test Mode cmd was clean {48, 1}\r\n"));
@@ -306,7 +300,7 @@ void i2c_testmode_end(void)
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
     sendStop = 1;
-    uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
     if ( bytes_read != length )
     {
         passing = 0; 
@@ -330,11 +324,10 @@ void i2c_testmode_test_xcvrbits(uint8_t xcvrbits)
     {
         uint8_t i2c_address = 0x29;
         uint8_t length = 2;
-        uint8_t wait = 1;
         uint8_t sendStop = 0; // use a repeated start after write
         uint8_t txBuffer[2] = {0x32, 0x01};
 
-        uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop);
+        uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
         if (twi_returnCode != 0)
         {
             passing = 0;
@@ -343,7 +336,7 @@ void i2c_testmode_test_xcvrbits(uint8_t xcvrbits)
         }
         uint8_t rxBuffer[2] = {0x00,0x00};
         sendStop = 1;
-        uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
         if ( bytes_read != length )
         {
             passing = 0; 
@@ -372,12 +365,11 @@ void i2c_testmode_set_xcvrbits(uint8_t xcvrbits)
     {
         uint8_t i2c_address = 0x29;
         uint8_t length = 2;
-        uint8_t wait = 1;
         uint8_t sendStop = 0; // use a repeated start after write
         uint8_t txBuffer[2];
         txBuffer[0] = 0x33;
         txBuffer[1] = xcvrbits;
-        uint8_t twi_returnCode = twi0_writeTo(i2c_address, txBuffer, length, wait, sendStop);
+        uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
         if (twi_returnCode != 0)
         {
             passing = 0;
@@ -386,7 +378,7 @@ void i2c_testmode_set_xcvrbits(uint8_t xcvrbits)
         }
         uint8_t rxBuffer[2] = {0x00,0x00};
         sendStop = 1;
-        uint8_t bytes_read = twi0_readFrom(i2c_address, rxBuffer, length, sendStop);
+        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
         if ( bytes_read != length )
         {
             passing = 0; 

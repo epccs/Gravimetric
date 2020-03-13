@@ -14,14 +14,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
 
-how to use the buffer
-
-    int reading;
-    ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
-    {
-        // this moves two byes one at a time, so the ISR could change it durring the move
-        reading = adc[channel];
-    }
 */
 
 #include <util/atomic.h>

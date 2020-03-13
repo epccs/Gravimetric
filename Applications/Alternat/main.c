@@ -25,7 +25,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/parse.h"
 #include "../lib/timers_bsd.h"
 #include "../lib/adc_bsd.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
@@ -92,8 +92,8 @@ void setup(void)
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
     
-    /* Initialize I2C. note: I2C scan will stop without a pull-up on the bus */
-    twi0_init(TWI_PULLUP);
+    /* Initialize I2C */
+    twi0_init(100000UL, TWI0_PINS_PULLUP);
 
     /* Clear and setup the command buffer, (probably not needed at this point) */
     initCommandBuffer();
