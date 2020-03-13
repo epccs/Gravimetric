@@ -19,22 +19,22 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <ctype.h>
 #include <avr/pgmspace.h>
 #include "../lib/parse.h"
-#include "../lib/twi0_bsd.h"
-#include "i2c0-cmd.h"
+#include "../lib/twi1_bsd.h"
+#include "i2c1-cmd.h"
 
 static uint8_t master_address = 0; // I2C addresses master will access
 
-static uint8_t txBufferPassedToMaster[TWI0_BUFFER_LENGTH];   // transmit buffer that will be passed to I2C master
+static uint8_t txBufferPassedToMaster[TWI1_BUFFER_LENGTH];   // transmit buffer that will be passed to I2C master
 static uint8_t txBufferPassedToMaster_index = 0;
 
-static uint8_t rxBufferAcceptFromMaster[TWI0_BUFFER_LENGTH]; // receive buffer that will be accepted from I2C master
+static uint8_t rxBufferAcceptFromMaster[TWI1_BUFFER_LENGTH]; // receive buffer that will be accepted from I2C master
 static uint8_t rxBufferAcceptFromMaster_lenght = 0;
 
 static uint8_t JsonIndex;
 
 
 // set I2C bus addresses master will access and clear the txBufferPassedToMaster
-void I2c0_address(void)
+void I2c1_address(void)
 {
     if (command_done == 10)
     {
@@ -60,7 +60,7 @@ void I2c0_address(void)
 
 
 // buffer bytes into txBufferPassedToMaster
-void I2c0_txBuffer(void)
+void I2c1_txBuffer(void)
 {
     
     if (command_done == 10)
@@ -74,7 +74,7 @@ void I2c0_txBuffer(void)
                 initCommandBuffer();
                 return;
             }
-            if ( txBufferPassedToMaster_index >= TWI0_BUFFER_LENGTH)
+            if ( txBufferPassedToMaster_index >= TWI1_BUFFER_LENGTH)
             {
                 printf_P(PSTR("{\"err\":\"I2CBufOVF\"}\r\n"));
                 txBufferPassedToMaster_index = 0;
@@ -121,25 +121,25 @@ void I2c0_txBuffer(void)
 }
 
 /* write the I2C txBufferPassedToMaster */
-void I2c0_write(void)
+void I2c1_write(void)
 {
     if (command_done == 10)
     {
         uint8_t sendStop = 1; 
         uint8_t txBufferLength = txBufferPassedToMaster_index;
-        TWI0_WRT_t twi_attempt = twi0_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, sendStop); 
-        if (twi_attempt == TWI0_WRT_TRANSACTION_STARTED)
+        TWI1_WRT_t twi_attempt = twi1_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, sendStop); 
+        if (twi_attempt == TWI1_WRT_TRANSACTION_STARTED)
         {
             command_done = 11;
             return; // back to loop
         }
-        else if(twi_attempt == TWI0_WRT_TO_MUCH_DATA)
+        else if(twi_attempt == TWI1_WRT_TO_MUCH_DATA)
         {
             printf_P(PSTR("{\"error\":\"wrt_data_to_much\""));
             command_done = 20;
             return;
         }
-        else if(twi_attempt == TWI0_WRT_NOT_READY)
+        else if(twi_attempt == TWI1_WRT_NOT_READY)
         {
             // could use a timer to print a . every sec
             return; // i2c is not ready so back to loop
@@ -148,32 +148,32 @@ void I2c0_write(void)
 
     else if (command_done == 11)
     {
-        TWI0_WRT_STAT_t status = twi0_masterAsyncWrite_status(); 
-        if (status == TWI0_WRT_STAT_BUSY)
+        TWI1_WRT_STAT_t status = twi1_masterAsyncWrite_status(); 
+        if (status == TWI1_WRT_STAT_BUSY)
         {
             return; // twi write operation not complete, so back to loop
         }
 
         // address send, NACK received
-        if (status == TWI0_WRT_STAT_ADDR_NACK)
+        if (status == TWI1_WRT_STAT_ADDR_NACK)
         {
             printf_P(PSTR("{\"error\":\"wrt_addr_nack\""));
         }
 
         // data send, NACK received
-        if (status == TWI0_WRT_STAT_DATA_NACK)
+        if (status == TWI1_WRT_STAT_DATA_NACK)
         {
             printf_P(PSTR("{\"error\":\"wrt_data_nack\""));
         }
 
         // illegal start or stop condition
-        if (status == TWI0_WRT_STAT_ILLEGAL)
+        if (status == TWI1_WRT_STAT_ILLEGAL)
         {
             // is a master trying to take the bus?
             printf_P(PSTR("{\"error\":\"wrt_illegal\""));
         }
 
-        if ( (status == TWI0_WRT_STAT_SUCCESS) )
+        if ( (status == TWI1_WRT_STAT_SUCCESS) )
         {
             printf_P(PSTR("{\"txBuffer\":\"wrt_success\""));
             txBufferPassedToMaster_index = 0;
@@ -198,25 +198,25 @@ void I2c0_write(void)
 // without a stop condition. Then have the ISR set the Start condition (e.g., a repeated Start)
 // and then do an I2C read operation. 
 // If txBufferPassedToMaster is empty skip the write. 
-void I2c0_read(void)
+void I2c1_read(void)
 {
     if (command_done == 10)
     {
         // check that argument[0] range 1..32
-        if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 1) || (atoi(arg[0]) > TWI0_BUFFER_LENGTH) )
+        if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 1) || (atoi(arg[0]) > TWI1_BUFFER_LENGTH) )
         {
-            printf_P(PSTR("{\"err\":\"BufferMax %d\"}\r\n"),TWI0_BUFFER_LENGTH);
+            printf_P(PSTR("{\"err\":\"BufferMax %d\"}\r\n"),TWI1_BUFFER_LENGTH);
             initCommandBuffer();
             return;
         }
         
         // send command byte(s) without a Stop (causing a repeated Start durring read)
-        TWI0_WRT_t twi_attempt;
+        TWI1_WRT_t twi_attempt;
         if (txBufferPassedToMaster_index) 
         {
             uint8_t sendStop = 0; 
             uint8_t txBufferLength = txBufferPassedToMaster_index;
-            twi_attempt = twi0_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, sendStop);
+            twi_attempt = twi1_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, sendStop);
         }
         else
         {
@@ -224,19 +224,19 @@ void I2c0_read(void)
             uint8_t length = 0;
             uint8_t sendStop = 0;
             // attempt TWI asynchronous write without data to verify valid address, since read will not
-            twi_attempt = twi0_masterAsyncWrite(master_address, &data, length, sendStop);
+            twi_attempt = twi1_masterAsyncWrite(master_address, &data, length, sendStop); 
         }
-        if (twi_attempt == TWI0_WRT_TRANSACTION_STARTED)
+        if (twi_attempt == TWI1_WRT_TRANSACTION_STARTED)
         {
             command_done = 11;
             return; // back to loop
         }
-        else if(twi_attempt == TWI0_WRT_TO_MUCH_DATA)
+        else if(twi_attempt == TWI1_WRT_TO_MUCH_DATA)
         {
             printf_P(PSTR("{\"error\":\"wrt_data_to_much\""));
             command_done = 30;
         }
-        else if(twi_attempt == TWI0_WRT_NOT_READY)
+        else if(twi_attempt == TWI1_WRT_NOT_READY)
         {
             // need to add a timeout timer 
             return; // i2c is not ready so back to loop
@@ -245,35 +245,35 @@ void I2c0_read(void)
 
     else if (command_done == 11)
     {
-        TWI0_WRT_STAT_t status = twi0_masterAsyncWrite_status(); 
-        if (status == TWI0_WRT_STAT_BUSY)
+        TWI1_WRT_STAT_t status = twi1_masterAsyncWrite_status(); 
+        if (status == TWI1_WRT_STAT_BUSY)
         {
             return; // twi write operation not complete, so back to loop
         }
 
         // address send, NACK received
-        if (status == TWI0_WRT_STAT_ADDR_NACK)
+        if (status == TWI1_WRT_STAT_ADDR_NACK)
         {
             printf_P(PSTR("{\"error\":\"wrt_addr_nack\""));
             command_done = 30;
         }
 
         // data send, NACK received
-        if (status == TWI0_WRT_STAT_DATA_NACK)
+        if (status == TWI1_WRT_STAT_DATA_NACK)
         {
             printf_P(PSTR("{\"error\":\"wrt_data_nack\""));
             command_done = 30;
         }
 
         // illegal start or stop condition
-        if (status == TWI0_WRT_STAT_ILLEGAL)
+        if (status == TWI1_WRT_STAT_ILLEGAL)
         {
             // is a master trying to take the bus?
             printf_P(PSTR("{\"error\":\"wrt_illegal\""));
             command_done = 30;
         }
 
-        if ( (status == TWI0_WRT_STAT_SUCCESS) )
+        if ( (status == TWI1_WRT_STAT_SUCCESS) )
         {
             printf_P(PSTR("{\"txBuffer\":\"wrt_success\","));
             txBufferPassedToMaster_index = 0;
@@ -285,18 +285,18 @@ void I2c0_read(void)
     {
         uint8_t sendStop = 1; 
         uint8_t quantity = (uint8_t) atoi(arg[0]); // arg[0] has been checked to be in range 1..32
-        TWI0_RD_t twi_attempt = twi0_masterAsyncRead(master_address, quantity, sendStop);
-        if (twi_attempt == TWI0_RD_TRANSACTION_STARTED)
+        TWI1_RD_t twi_attempt = twi1_masterAsyncRead(master_address, quantity, sendStop);
+        if (twi_attempt == TWI1_RD_TRANSACTION_STARTED)
         {
             command_done = 21;
             return; // back to loop
         }
-        else if(twi_attempt == TWI0_RD_TO_MUCH_DATA)
+        else if(twi_attempt == TWI1_RD_TO_MUCH_DATA)
         {
-            printf_P(PSTR("{\"error\":\"rd_data_to_much\""));
+            printf_P(PSTR("\"error\":\"rd_data_to_much\""));
             command_done = 30;
         }
-        else if(twi_attempt == TWI0_RD_NOT_READY)
+        else if(twi_attempt == TWI1_RD_NOT_READY)
         {
             // need to add a timeout timer 
             return; // i2c is not ready so back to loop
@@ -305,7 +305,7 @@ void I2c0_read(void)
 
     else if (command_done == 21)
     {
-        uint8_t read = twi0_masterAsyncRead_bytesRead(rxBufferAcceptFromMaster); 
+        uint8_t read = twi1_masterAsyncRead_bytesRead(rxBufferAcceptFromMaster); 
         if (read == 0)
         {
             // read does not NACK, so a zero byte write was done befor

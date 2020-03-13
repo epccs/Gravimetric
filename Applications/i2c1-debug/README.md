@@ -1,12 +1,12 @@
-# I2C0-Debug 
+# I2C1-Debug 
 
 ## Overview
 
-2-wire Serial Interface (TWI, a.k.a. I2C) uses pins with SDA0 and SCL0 functions. 
+2-wire Serial Interface (TWI, a.k.a. I2C) uses pins with SDA1 and SCL1 functions. 
 
 The peripheral control software twi0_bsd.c depends on avr-libc and avr-gcc. It provides interrupt-driven asynchronous I2C functions that can operate without blocking. It can also work with an interleaving slave receive buffer for SMBus block transactions that appear to eliminate problems involving clock stretching (e.g., for R-Pi Zero). This application uses the I2C0 hardeare.
 
-On Gravimetric, I2C0 does not have user-accessible pins; it is connected to the manager. I2C1 is connected to the user access port.
+On Gravimetric, I2C1 is connected to the user access port.
 
 ## Firmware Upload 
 
@@ -41,7 +41,7 @@ Now the serial port connection (see BOOTLOAD_PORT in Makefile) can reset the MCU
 ``` 
 sudo apt-get install make git picocom gcc-avr binutils-avr gdb-avr avr-libc avrdude
 git clone https://github.com/epccs/Gravimetric/
-cd /Gravimetric/Applications/i2c0-debug
+cd /Gravimetric/Applications/i2c1-debug
 make
 make bootload
 ...
@@ -74,16 +74,16 @@ identify
 
 ``` 
 /1/id?
-{"id":{"name":"I2C0debug^2","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+{"id":{"name":"I2C1debug^2","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
 ## /0/iscan?
 
-Scan of I2C bus shows all 7 bit devices found.
+Scan of I2C bus shows all 7 bit devices found (nothing is on the bus).
 
 ``` 
 /1/iscan?
-{"scan":[{"addr":"0x29"}]}
+{"scan":[]}
 ```
 
 Note: the address is right-shifted so that it does not include the Read/Write bit. 
@@ -132,8 +132,10 @@ Attempt to become master and write the txBuffer bytes to I2C address. The txBuff
 /1/ibuff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 /1/iwrite
-{"txBuffer":"wrt_success"}
+{"error":"wrt_addr_nack"}
 ``` 
+
+Welp what did you expect? Nothing is on the bus.
 
 ## /0/iread? \[1..32\]
 
@@ -147,14 +149,12 @@ If txBuffer is empty, attempt to become master write zero bytes to chekc for NAC
 /1/ibuff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 /1/iwrite
-{"txBuffer":"wrt_success"}
+{"error":"wrt_addr_nack"}
 /1/ibuff?
 {"txBuffer[0]":[]}
 /1/iread? 2
-{"txBuffer":"wrt_success","rxBuffer":[{"data":"0x0"},{"data":"0xFF"}]}
+{"error":"wrt_addr_nack"}
 ``` 
-
-Command 2 from master is a request for the bootload or point-to-point address.
 
 If txBuffer has values, attempt to become master and write the byte(s) in buffer (e.g., a command byte) to I2C address without a stop condition. The txBuffer will clear if write was a success. Then send a repeated Start condition, followed by address and obtain readings into rxBuffer.
 
@@ -164,7 +164,7 @@ If txBuffer has values, attempt to become master and write the byte(s) in buffer
 /1/ibuff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 /1/iread? 2
-{"txBuffer":"wrt_success","rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
+{"error":"wrt_addr_nack"}
 ``` 
 
 This way of doing the repeated start allows testing SMBus block commands, which need a command byte sent before a repeated start and finally reading the data block.

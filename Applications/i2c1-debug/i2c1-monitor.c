@@ -21,22 +21,22 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <avr/pgmspace.h>
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
-#include "../lib/twi0_bsd.h"
-#include "i2c0-monitor.h"
+#include "../lib/twi1_bsd.h"
+#include "i2c1-monitor.h"
 
 static uint8_t slave_addr;
 
-static uint8_t localBuffer[TWI0_BUFFER_LENGTH];
+static uint8_t localBuffer[TWI1_BUFFER_LENGTH];
 static uint8_t localBufferLength;
 
-static uint8_t printBuffer[TWI0_BUFFER_LENGTH];
+static uint8_t printBuffer[TWI1_BUFFER_LENGTH];
 static uint8_t printBufferLength;
 static uint8_t printBufferIndex;
 
 // echo what was received
-void twi0_transmit_callback(void)
+void twi1_transmit_callback(void)
 {
-    /*uint8_t return_code = */ twi0_fillSlaveTxBuffer(localBuffer, localBufferLength);
+    /*uint8_t return_code = */ twi1_fillSlaveTxBuffer(localBuffer, localBufferLength);
     
     /* todo: add status_byt to main so I can use it to blink the LED fast or for reporting
     if (return_code != 0)
@@ -48,7 +48,7 @@ void twi0_transmit_callback(void)
 // Place the received data in local buffer so it can echo back.
 // If monitor is running, printing done, and UART is available 
 // fill the print buffer and reset the index for printing
-void twi0_receive_callback(uint8_t *data, uint8_t length)
+void twi1_receive_callback(uint8_t *data, uint8_t length)
 {
     localBufferLength = length;
     for(int i = 0; i < length; ++i)
@@ -70,7 +70,7 @@ void twi0_receive_callback(uint8_t *data, uint8_t length)
 /****** PUBLIC **************/
 
 // Monitor a I2C slave address.
-void I2c0_monitor(void)
+void I2c1_monitor(void)
 {
     if (command_done == 10)
     {
@@ -83,9 +83,9 @@ void I2c0_monitor(void)
             return;
         }
 
-        twi0_registerSlaveRxCallback(twi0_receive_callback);
-        twi0_registerSlaveTxCallback(twi0_transmit_callback);
-        twi0_slaveAddress(slave_addr); // ISR is enabled so register callback first
+        twi1_registerSlaveRxCallback(twi1_receive_callback);
+        twi1_registerSlaveTxCallback(twi1_transmit_callback);
+        twi1_slaveAddress(slave_addr); // ISR is enabled so register callback first
 
         command_done = 11;
     }
