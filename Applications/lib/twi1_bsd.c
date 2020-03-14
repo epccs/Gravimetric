@@ -58,9 +58,12 @@ static volatile TWI_PROTOCALL_t twi_protocall;
 
 typedef enum TWI_ERROR_enum {
     TWI_ERROR_ILLEGAL = TW_BUS_ERROR, // illegal start or stop condition
-    TWI_ERROR_SLAVE_ADDR_NACK = TW_MT_SLA_NACK, // SLA+W transmitted, NACK received 
-    TWI_ERROR_DATA_NACK = TW_MT_DATA_NACK, // data transmitted, NACK received
-    TWI_ERROR_ARBITRATION_LOST = TW_MT_ARB_LOST, // arbitration lost in SLA+W or data
+    TWI_ERROR_MT_SLAVE_ADDR_NACK = TW_MT_SLA_NACK, // Master Transmiter SLA+W transmitted, NACK received 
+    TWI_ERROR_MT_DATA_NACK = TW_MT_DATA_NACK, // Master Transmiter data transmitted, NACK received
+    TWI_ERROR_ARBITRATION_LOST = TW_MT_ARB_LOST, // Master Transmiter arbitration lost in SLA+W or data
+    TWI_ERROR_MS_SLAVE_ADDR_NACK = TW_MR_SLA_NACK, // Master Receiver SLA+W transmitted, NACK received 
+    TWI_ERROR_MS_DATA_NACK = TW_MR_DATA_NACK, // Master Receiver data received, NACK returned ()
+    // TW_MR_ARB_LOST is done with TW_MT_ARB_LOST
     TWI_ERROR_NONE = 0xFF // No errors
 } TWI_ERROR_t;
 
@@ -189,30 +192,31 @@ ISR(TWI1_vect)
             }
             break;
 
-        // SLA+W transmitted, NACK received
+        // Master Transmitter SLA+W transmitted, NACK received
         case TW_MT_SLA_NACK:
-            twi_error = TWI_ERROR_SLAVE_ADDR_NACK; 
+            twi_error = TWI_ERROR_MT_SLAVE_ADDR_NACK;
             twi1_stop_condition();
             break;
 
-        // data transmitted, NACK received
+        // Master Transmitter data transmitted, NACK received
         case TW_MT_DATA_NACK:
-            twi_error = TWI_ERROR_DATA_NACK;
+            twi_error = TWI_ERROR_MT_DATA_NACK;
             twi1_stop_condition();
             break;
 
-        // arbitration lost in SLA+W or data
+        // Master Transmitter/Reciver arbitration lost in SLA+W or data
         case TW_MT_ARB_LOST: // same as TW_MR_ARB_LOST
             twi_error = TWI_ERROR_ARBITRATION_LOST;
             twi1_ready_bus();
             break;
 
-        // Slave SLA+R transmitted, NACK received
+        // Master Reciver Slave SLA+R transmitted, NACK received
         case TW_MR_SLA_NACK:
+            twi_error = TWI_ERROR_MS_SLAVE_ADDR_NACK;
             twi1_stop_condition();
             break;
 
-        // Master data received, ACK returned
+        // Master Reciver data received, ACK returned
         case TW_MR_DATA_ACK:
             masterBuffer[masterBufferIndex++] = TWDR1;
         case TW_MR_SLA_ACK:  // SLA+R transmitted, ACK received
@@ -226,9 +230,11 @@ ISR(TWI1_vect)
             }
             break;
         
-        // Master data received, NACK returned
+        // Master Reciver data received, NACK returned
         case TW_MR_DATA_NACK:
             masterBuffer[masterBufferIndex++] = TWDR1;
+            if (masterBufferIndex < masterBufferLength) // master returns nack to slave
+                twi_error = TWI_ERROR_MS_DATA_NACK; // but master has done the nack to soon 
             if (twi_protocall & TWI_PROTOCALL_STOP)
                 twi1_stop_condition();
             else 
@@ -451,9 +457,9 @@ TWI1_WRT_STAT_t twi1_masterAsyncWrite_status(void)
         return TWI1_WRT_STAT_BUSY;
     else if (TWI_ERROR_NONE == twi_error)
         return TWI1_WRT_STAT_SUCCESS;
-    else if (TWI_ERROR_SLAVE_ADDR_NACK == twi_error) 
+    else if (TWI_ERROR_MT_SLAVE_ADDR_NACK == twi_error) 
         return TWI1_WRT_STAT_ADDR_NACK;
-    else if (TWI_ERROR_DATA_NACK == twi_error) 
+    else if (TWI_ERROR_MT_DATA_NACK == twi_error) 
         return TWI1_WRT_STAT_DATA_NACK;
     else if (TWI_ERROR_ILLEGAL == twi_error) 
         return TWI1_WRT_STAT_ILLEGAL;
@@ -553,12 +559,29 @@ TWI1_RD_t twi1_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, uin
     }
 }
 
-// TWI master read transaction status.
-// Output   0 .. twi busy, read operation not complete
-//      1..32 .. number of bytes read
-uint8_t twi1_masterAsyncRead_bytesRead(uint8_t *read_data)
+// TWI master Asynchronous Read Transaction status.
+TWI1_RD_STAT_t twi1_masterAsyncRead_status(void)
 {
-    if (twi_MastSlav_RxTx_state == TWI_STATE_MASTER_RECEIVER)
+    if (TWI_STATE_MASTER_RECEIVER == twi_MastSlav_RxTx_state)
+        return TWI1_RD_STAT_BUSY;
+    else if (TWI_ERROR_NONE == twi_error)
+        return TWI1_RD_STAT_SUCCESS;
+    else if (TWI_ERROR_MS_SLAVE_ADDR_NACK == twi_error) 
+        return TWI1_RD_STAT_ADDR_NACK;
+    else if (TWI_ERROR_MS_DATA_NACK == twi_error) 
+        return TWI1_RD_STAT_DATA_NACK;
+    else if (TWI_ERROR_ILLEGAL == twi_error) 
+        return TWI1_RD_STAT_ILLEGAL;
+    else 
+        return 5; // can not happen
+}
+
+// TWI master Asynchronous Read Transaction get bytes.
+// Output   0 .. twi busy, read operation not complete or has error (check status)
+//      1..32 .. number of bytes read
+uint8_t twi1_masterAsyncRead_getBytes(uint8_t *read_data)
+{
+    if ( (twi_MastSlav_RxTx_state == TWI_STATE_MASTER_RECEIVER) && (TWI_ERROR_NONE != twi_error) )
     {
         return 0;
     }
@@ -595,12 +618,20 @@ uint8_t twi1_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8
         {
             twi_state_machine = twi1_masterAsyncRead(slave_address, bytes_to_read, send_stop);
         }
-        // wait for read operation to complete (a non-zero is the bytes read, zero is busy)
-        uint8_t bytes_read = 0;
-        while(!bytes_read)
+
+        // wait for read status to not show busy
+        TWI1_RD_STAT_t status = TWI1_RD_STAT_BUSY;
+        while(status == TWI1_RD_STAT_BUSY)
         {
-            bytes_read = twi1_masterAsyncRead_bytesRead(read_data);
+            status = twi1_masterAsyncRead_status();
         }
+
+        // read can fail but this don't care.
+        if ( (status == TWI1_RD_STAT_ADDR_NACK) || (status == TWI1_RD_STAT_DATA_NACK) || (status == TWI1_RD_STAT_ILLEGAL) )
+            return 0;
+
+        // read operation complete so get data
+        uint8_t bytes_read = twi1_masterAsyncRead_getBytes(read_data);
         return bytes_read;
     }
 }

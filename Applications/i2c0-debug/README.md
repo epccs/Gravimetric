@@ -137,7 +137,7 @@ Attempt to become master and write the txBuffer bytes to I2C address. The txBuff
 
 ## /0/iread? \[1..32\]
 
-If txBuffer is empty, attempt to become master write zero bytes to chekc for NACK and then obtain readings into rxBuffer.
+If txBuffer is empty, attempt to become master then obtain readings into rxBuffer.
 
 ``` 
 /1/iaddr 41
@@ -151,7 +151,11 @@ If txBuffer is empty, attempt to become master write zero bytes to chekc for NAC
 /1/ibuff?
 {"txBuffer[0]":[]}
 /1/iread? 2
-{"txBuffer":"wrt_success","rxBuffer":[{"data":"0x0"},{"data":"0xFF"}]}
+{"rxBuffer":"rd_success","rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
+/1/iaddr 28
+{"master_address":"0x1C"}
+/1/iread? 2
+{"error":"rd_addr_nack"}
 ``` 
 
 Command 2 from master is a request for the bootload or point-to-point address.
@@ -164,7 +168,7 @@ If txBuffer has values, attempt to become master and write the byte(s) in buffer
 /1/ibuff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 /1/iread? 2
-{"txBuffer":"wrt_success","rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
 ``` 
 
 This way of doing the repeated start allows testing SMBus block commands, which need a command byte sent before a repeated start and finally reading the data block.

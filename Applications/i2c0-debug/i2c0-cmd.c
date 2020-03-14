@@ -220,11 +220,9 @@ void I2c0_read(void)
         }
         else
         {
-            uint8_t data = 0;
-            uint8_t length = 0;
-            uint8_t sendStop = 0;
-            // attempt TWI asynchronous write without data to verify valid address, since read will not
-            twi_attempt = twi0_masterAsyncWrite(master_address, &data, length, sendStop);
+            printf_P(PSTR("{"));
+            command_done = 20;
+            return; // back to loop
         }
         if (twi_attempt == TWI0_WRT_TRANSACTION_STARTED)
         {
@@ -293,7 +291,7 @@ void I2c0_read(void)
         }
         else if(twi_attempt == TWI0_RD_TO_MUCH_DATA)
         {
-            printf_P(PSTR("{\"error\":\"rd_data_to_much\""));
+            printf_P(PSTR("\"error\":\"rd_data_to_much\""));
             command_done = 30;
         }
         else if(twi_attempt == TWI0_RD_NOT_READY)
@@ -305,20 +303,50 @@ void I2c0_read(void)
 
     else if (command_done == 21)
     {
-        uint8_t read = twi0_masterAsyncRead_bytesRead(rxBufferAcceptFromMaster); 
-        if (read == 0)
+        TWI0_RD_STAT_t status = twi0_masterAsyncRead_status(); 
+        if (status == TWI0_RD_STAT_BUSY)
         {
-            // read does not NACK, so a zero byte write was done befor
-            // it has a repeated start but that may be a problem for some parts.
             return; // twi read operation not complete, so back to loop
         }
-        printf_P(PSTR("\"rxBuffer\":["));
-        rxBufferAcceptFromMaster_lenght = read;
-        JsonIndex = 0;
-        command_done = 22;
+
+        // address send, NACK received
+        if (status == TWI0_RD_STAT_ADDR_NACK)
+        {
+            printf_P(PSTR("\"error\":\"rd_addr_nack\""));
+            command_done = 30;
+        }
+
+        // data receive, NACK sent (to soon)
+        if (status == TWI0_RD_STAT_DATA_NACK)
+        {
+            printf_P(PSTR("\"error\":\"rd_data_nack\""));
+            command_done = 30;
+        }
+
+        // illegal start or stop condition
+        if (status == TWI0_RD_STAT_ILLEGAL)
+        {
+            // is a master trying to take the bus?
+            printf_P(PSTR("\"error\":\"rd_illegal\""));
+            command_done = 30;
+        }
+
+        if ( (status == TWI0_RD_STAT_SUCCESS) )
+        {
+            printf_P(PSTR("\"rxBuffer\":\"rd_success\","));
+            command_done = 22;
+        }
     }
 
     else if (command_done == 22)
+    {
+        rxBufferAcceptFromMaster_lenght = twi0_masterAsyncRead_getBytes(rxBufferAcceptFromMaster); 
+        printf_P(PSTR("\"rxBuffer\":["));
+        JsonIndex = 0;
+        command_done = 23;
+    }
+
+    else if (command_done == 23)
     {
         if (JsonIndex > 0)
         {

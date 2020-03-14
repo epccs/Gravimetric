@@ -151,9 +151,13 @@ If txBuffer is empty, attempt to become master write zero bytes to chekc for NAC
 /1/iwrite
 {"error":"wrt_addr_nack"}
 /1/ibuff?
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
+/1/iaddr 41
+{"master_address":"0x29"}
+/1/ibuff?
 {"txBuffer[0]":[]}
 /1/iread? 2
-{"error":"wrt_addr_nack"}
+{"error":"rd_addr_nack"}
 ``` 
 
 If txBuffer has values, attempt to become master and write the byte(s) in buffer (e.g., a command byte) to I2C address without a stop condition. The txBuffer will clear if write was a success. Then send a repeated Start condition, followed by address and obtain readings into rxBuffer.
