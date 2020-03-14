@@ -22,7 +22,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/twi0_bsd.h"
-#include "../lib/twi1.h"
+#include "../lib/twi1_bsd.h"
 #include "../lib/adc.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
@@ -122,7 +122,7 @@ void setup(void)
 
     /* Initialize I2C*/
     twi0_init(100000UL, TWI0_PINS_PULLUP);
-    twi1_init(TWI_PULLUP);
+    twi1_init(100000UL, TWI0_PINS_PULLUP);
 
     // Enable global interrupts to start TIMER0 and UART
     sei(); 
@@ -147,10 +147,9 @@ void smbus_address(void)
 {
     uint8_t smbus_address = 0x2A;
     uint8_t length = 2;
-    uint8_t wait = 1;
     uint8_t sendStop = 1;
     uint8_t txBuffer[2] = {0x00,0x00}; //comand 0x00 should Read the mulit-drop bus addr;
-    uint8_t twi1_returnCode = twi1_writeTo(smbus_address, txBuffer, length, wait, sendStop); 
+    uint8_t twi1_returnCode = twi1_masterBlockingWrite(smbus_address, txBuffer, length, sendStop); 
     if (twi1_returnCode != 0)
     {
         passing = 0; 
@@ -161,7 +160,7 @@ void smbus_address(void)
     uint8_t cmd_length = 1; // one byte command is sent befor read with the read_i2c_block_data
     sendStop = 0; // a repeated start happens after the command byte is sent
     txBuffer[0] = 0x00; //comand 0x00 matches the above write command
-    twi1_returnCode = twi1_writeTo(smbus_address, txBuffer, cmd_length, wait, sendStop); 
+    twi1_returnCode = twi1_masterBlockingWrite(smbus_address, txBuffer, cmd_length, sendStop); 
     if (twi1_returnCode != 0)
     {
         passing = 0; 
@@ -169,7 +168,7 @@ void smbus_address(void)
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
     sendStop = 1;
-    uint8_t bytes_read = twi1_readFrom(smbus_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi1_masterBlockingRead(smbus_address, rxBuffer, length, sendStop);
     if ( bytes_read != length )
     {
         passing = 0; 

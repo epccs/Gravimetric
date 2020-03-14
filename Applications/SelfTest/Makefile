@@ -7,7 +7,7 @@ OBJECTS = main.o \
 	../Adc/references.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/twi0_bsd.o \
-	$(LIBDIR)/twi1.o \
+	$(LIBDIR)/twi1_bsd.o \
 	$(LIBDIR)/rpu_mgr.o \
 	$(LIBDIR)/adc.o \
 	$(LIBDIR)/adc_bsd.o \
