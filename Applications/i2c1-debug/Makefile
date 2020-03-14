@@ -7,6 +7,9 @@ OBJECTS = main.o \
 	i2c1-monitor.o \
 	i2c1-scan.o \
 	i2c1-cmd.o \
+	../i2c0-debug/i2c0-monitor.o \
+	../i2c0-debug/i2c0-scan.o \
+	../i2c0-debug/i2c0-cmd.o \
 	../Uart/id.o \
 	$(LIBDIR)/timers_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \

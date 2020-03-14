@@ -28,6 +28,9 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/rpu_mgr.h"
 #include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
+#include "../i2c0-debug/i2c0-scan.h"
+#include "../i2c0-debug/i2c0-cmd.h"
+#include "../i2c0-debug/i2c0-monitor.h"
 #include "i2c1-scan.h"
 #include "i2c1-cmd.h"
 #include "i2c1-monitor.h"
@@ -45,29 +48,57 @@ void ProcessCmd()
     }
     if ( (strcmp_P( command, PSTR("/iscan?")) == 0) && (arg_count == 0) )
     {
-        I2c1_scan();
+        I2c0_scan();
     }
     if ( (strcmp_P( command, PSTR("/iaddr")) == 0) && (arg_count == 1) )
     {
-        I2c1_address();
+        I2c0_address();
     }
     if ( (strcmp_P( command, PSTR("/ibuff")) == 0) )
     {
-        I2c1_txBuffer();
+        I2c0_txBuffer();
     }
     if ( (strcmp_P( command, PSTR("/ibuff?")) == 0) && (arg_count == 0) )
     {
-        I2c1_txBuffer();
+        I2c0_txBuffer();
     }
     if ( (strcmp_P( command, PSTR("/iwrite")) == 0) && (arg_count == 0) )
     {
-        I2c1_write();
+        I2c0_write();
     }
     if ( (strcmp_P( command, PSTR("/iread?")) == 0) && (arg_count == 1) )
     {
-        I2c1_read();
+        I2c0_read();
     }
     if ( (strcmp_P( command, PSTR("/imon?")) == 0) && (arg_count == 1) )
+    {
+        I2c0_monitor();
+    }
+    if ( (strcmp_P( command, PSTR("/i1scan?")) == 0) && (arg_count == 0) )
+    {
+        I2c1_scan();
+    }
+    if ( (strcmp_P( command, PSTR("/i1addr")) == 0) && (arg_count == 1) )
+    {
+        I2c1_address();
+    }
+    if ( (strcmp_P( command, PSTR("/i1buff")) == 0) )
+    {
+        I2c1_txBuffer();
+    }
+    if ( (strcmp_P( command, PSTR("/i1buff?")) == 0) && (arg_count == 0) )
+    {
+        I2c1_txBuffer();
+    }
+    if ( (strcmp_P( command, PSTR("/i1write")) == 0) && (arg_count == 0) )
+    {
+        I2c1_write();
+    }
+    if ( (strcmp_P( command, PSTR("/i1read?")) == 0) && (arg_count == 1) )
+    {
+        I2c1_read();
+    }
+    if ( (strcmp_P( command, PSTR("/i1mon?")) == 0) && (arg_count == 1) )
     {
         I2c1_monitor();
     }

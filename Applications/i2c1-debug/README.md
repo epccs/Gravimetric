@@ -77,114 +77,114 @@ identify
 {"id":{"name":"I2C1debug^2","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
-## /0/iscan?
+## /0/i1scan?
 
 Scan of I2C bus shows all 7 bit devices found (nothing is on the bus).
 
 ``` 
-/1/iscan?
+/1/i1scan?
 {"scan":[]}
 ```
 
 Note: the address is right-shifted so that it does not include the Read/Write bit. 
 
 
-## /0/iaddr 0..127
+## /0/i1addr 0..127
 
 Set an I2C address for the masster to access. 
 
 ``` 
-/1/iaddr 41
+/1/i1addr 41
 {"master_address":"0x29"}
 ```
 
 Note: Set it with the decimal value, it will return the hex value. The address is used to write or read and will clear the transmit Buffer.
 
 
-## /0/ibuff 0..255\[,0..255\[,0..255\[,0..255\[,0..255\]\]\]\]
+## /0/i1buff 0..255\[,0..255\[,0..255\[,0..255\[,0..255\]\]\]\]
 
 Add up to five bytes to I2C transmit buffer. JSON reply is the full buffer. 
 
 ``` 
-/1/ibuff 2,0
+/1/i1buff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 ``` 
 
 
-## /0/ibuff?
+## /0/i1buff?
 
 Show transmit buffer data that will be given to I2C master.
 
 ``` 
-/1/ibuff?
+/1/i1buff?
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
 ``` 
 
-## /0/iwrite
+## /0/i1write
 
 Attempt to become master and write the txBuffer bytes to I2C address. The txBuffer will clear if write was a success.
 
 ``` 
-/1/iaddr 41
+/1/i1addr 41
 {"master_address":"0x29"}
-/1/ibuff?
+/1/i1buff?
 {"txBuffer[0]":[]}
-/1/ibuff 2,0
+/1/i1buff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
-/1/iwrite
+/1/i1write
 {"error":"wrt_addr_nack"}
 ``` 
 
 Welp what did you expect? Nothing is on the bus.
 
-## /0/iread? \[1..32\]
+## /0/i1read? \[1..32\]
 
 If txBuffer is empty, attempt to become master write zero bytes to chekc for NACK and then obtain readings into rxBuffer.
 
 ``` 
-/1/iaddr 41
+/1/i1addr 41
 {"master_address":"0x29"}
-/1/ibuff?
+/1/i1buff?
 {"txBuffer[0]":[]}
-/1/ibuff 2,0
+/1/i1buff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
-/1/iwrite
+/1/i1write
 {"error":"wrt_addr_nack"}
-/1/ibuff?
+/1/i1buff?
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
-/1/iaddr 41
+/1/i1addr 41
 {"master_address":"0x29"}
-/1/ibuff?
+/1/i1buff?
 {"txBuffer[0]":[]}
-/1/iread? 2
+/1/i1read? 2
 {"error":"rd_addr_nack"}
 ``` 
 
 If txBuffer has values, attempt to become master and write the byte(s) in buffer (e.g., a command byte) to I2C address without a stop condition. The txBuffer will clear if write was a success. Then send a repeated Start condition, followed by address and obtain readings into rxBuffer.
 
 ``` 
-/1/iaddr 41
+/1/i1addr 41
 {"master_address":"0x29"}
-/1/ibuff 2,0
+/1/i1buff 2,0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0x0"}]}
-/1/iread? 2
+/1/i1read? 2
 {"error":"wrt_addr_nack"}
 ``` 
 
 This way of doing the repeated start allows testing SMBus block commands, which need a command byte sent before a repeated start and finally reading the data block.
 
 
-## /0/imon? \[7..119\]
+## /0/i1mon? \[7..119\]
 
 Monitor a slave address. The receive callback (from master write) fills a print buffer and a local buffer for an echo of the data back during a transmit callback (to master read). Loading the print buffer will be skipped when the UART is writing.
 
 ``` 
-/1/imon? 28
+/1/i1mon? 28
 {"monitor_0x1C":[{"data":"0x2"},{"data":"0x0"}]}
 {"monitor_0x1C":[{"data":"0x0"},{"data":"0x0"}]}
 ``` 
 
-The monitor events are from another board with i2c where I used a master to write to this slave.
+The monitor events are from another board with i2c0-debug where I used a master to write to this slave.
 
 ```
 /0/iscan?
@@ -200,6 +200,10 @@ The monitor events are from another board with i2c where I used a master to writ
 /0/iread? 2
 {"rxBuffer":[{"data":"0x0"},{"data":"0x0"}]}
 ``` 
+
+## [i2c0-debug](../i2c0-debug#commands)
+
+i2c0-debug is included with this build
 
 
 # PCA9554 Example

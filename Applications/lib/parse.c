@@ -204,16 +204,26 @@ uint8_t findArgument(uint8_t at_command_buf_offset)
 // find end of command and place a null termination so it can be used as a string
 uint8_t findCommand(void) 
 {
-    uint8_t lastAlpha =2;
+    uint8_t lastAlpha =2; 
+    // if command_buf has "/1/i1scan?", 
+    // then command_buf[0] is '/' and command_buf[1] is '1', they are used for addressing
     
     // the command always starts after the addrss at position 2
     command = command_buf + lastAlpha;
     
     // Only an isspace or null may terminate a valid command.
-    // The command is made of chars of isalpa, '/', or '?'.
+    // The commands first command_buf[2] is '/', then isalpha, followed by isalnum or '?'.
     while( !( isspace(command_buf[lastAlpha]) || (command_buf[lastAlpha] == '\0') ) && lastAlpha < (COMMAND_BUFFER_SIZE-1) ) 
     {
-        if ( isalpha(command_buf[lastAlpha]) || (command_buf[lastAlpha] == '/') || (command_buf[lastAlpha] == '?') ) 
+        if ( (lastAlpha == 2) && (command_buf[lastAlpha] == '/') ) // index 0 is '/'
+        {
+            lastAlpha++;
+        }
+        else if ( (lastAlpha == 3) && isalpha(command_buf[lastAlpha]) ) // index 1 must be isalpha
+        {
+            lastAlpha++;
+        }
+        else if ( (lastAlpha > 3) && ( isalnum(command_buf[lastAlpha]) || (command_buf[lastAlpha] == '?') ) ) 
         {
             lastAlpha++;
         }
