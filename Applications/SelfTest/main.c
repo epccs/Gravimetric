@@ -23,7 +23,6 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/uart0_bsd.h"
 #include "../lib/twi0_bsd.h"
 #include "../lib/twi1_bsd.h"
-#include "../lib/adc.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
 #include "../lib/io_enum_bsd.h"
@@ -452,13 +451,13 @@ void test(void)
     }
 
     //current sources are off, measure ADC0..ADC3 
-    float adc0_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc0_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     printf_P(PSTR("ADC0 at ICP3&4 TERM /W all CS off: %1.3f V\r\n"), adc0_v);
-    float adc1_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_v = adcSingle(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     printf_P(PSTR("ADC1 at ICP1 TERM /w all CS off: %1.3f V\r\n"), adc1_v);
-    float adc2_v = analogRead(ADC2)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc2_v = adcSingle(ADC2)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     printf_P(PSTR("ADC2 at ICP3&4 TERM /W all CS off: %1.3f V\r\n"), adc2_v);
-    float adc3_v = analogRead(ADC3)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc3_v = adcSingle(ADC3)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     printf_P(PSTR("ADC3 at ICP3&4 TERM /W all CS off: %1.3f V\r\n"), adc3_v);
     if ( (adc0_v > 0.01)  || (adc1_v > 0.01) || (adc2_v > 0.01) || (adc3_v > 0.01))
     { 
@@ -480,7 +479,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has CS_ICP1 on it
-    float adc1_cs_icp1_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs_icp1_v = adcSingle(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc1_cs_icp1_i = adc1_cs_icp1_v / ICP1_TERM;
     printf_P(PSTR("CS_ICP1 on ICP1 TERM: %1.3f A\r\n"), adc1_cs_icp1_i);
     if (adc1_cs_icp1_i < 0.012) 
@@ -508,7 +507,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has MCU_IO_CS4_EN on it
-    float adc1_cs4_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs4_v = adcSingle(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc1_cs4_i = adc1_cs4_v / ICP1_TERM;
     printf_P(PSTR("CS4 on ICP1 TERM: %1.3f A\r\n"), adc1_cs4_i);
     if (adc1_cs4_i < 0.018) 
@@ -528,7 +527,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has CS_FAST on it
-    float adc1_cs_fast_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs_fast_v = adcSingle(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc1_cs_fast_i = adc1_cs_fast_v / ICP1_TERM;
     printf_P(PSTR("CS_FAST on ICP1 TERM: %1.3f A\r\n"), adc1_cs_fast_i);
     if (adc1_cs_fast_i < 0.018) 
@@ -615,7 +614,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
 
     // ICP3_TERM has R1 in parrallel (50Ohm) 
-    float adc0_cs_icp3_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc0_cs_icp3_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc0_cs_icp3_i = adc0_cs_icp3_v / ICP3_TERM;
     printf_P(PSTR("CS_ICP3 on ICP3AND4 TERM: %1.3f A\r\n"), adc0_cs_icp3_i);
     if (adc0_cs_icp3_i < 0.012) 
@@ -640,7 +639,7 @@ void test(void)
     //Swap ADC referances and find the band-gap voltage
     init_ADC_single_conversion(INTERNAL_1V1); 
     _delay_ms(100); // busy-wait delay
-    int adc0_used_for_ref_intern_1v1_uV = analogRead(ADC0);
+    int adc0_used_for_ref_intern_1v1_uV = adcSingle(ADC0);
     printf_P(PSTR("   ADC0 reading used to calculate ref_intern_1v1_uV: %d int\r\n"), adc0_used_for_ref_intern_1v1_uV);
     float _ref_intern_1v1_uV = 1.0E6*1024.0 * ((adc0_cs_icp3_i * ICP3_TERM) / adc0_used_for_ref_intern_1v1_uV);
     uint32_t temp_ref_intern_1v1_uV = (uint32_t)_ref_intern_1v1_uV;
@@ -692,7 +691,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
 
     // ICP1_TERM has CS_DIVERSION on it
-    float adc1_cs_diversion_v = analogRead(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc1_cs_diversion_v = adcSingle(ADC1)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc1_cs_diversion_i = adc1_cs_diversion_v / ICP1_TERM;
     printf_P(PSTR("CS_DIVERSION on ICP1 TERM: %1.3f A\r\n"), adc1_cs_diversion_i);
     if (adc1_cs_diversion_i < 0.018) 
@@ -735,7 +734,7 @@ void test(void)
     }
     
     // ICP4_TERM with CS_ICP4 is measured with ADC3
-    float adc3_cs_icp4_v = analogRead(ADC3)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc3_cs_icp4_v = adcSingle(ADC3)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc3_cs_icp4_i = adc3_cs_icp4_v / ICP4_TERM;
 
     // ICP4 pin is inverted logic, and should a low when 17 mA is on the ICP4_TERM Termination
@@ -826,7 +825,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
 
     // CS0 drives ICP3 and ICP4 termination which should make a 50 Ohm drop
-    float adc0_cs0_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc0_cs0_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc0_cs0_i = adc0_cs0_v / ICP3_TERM;
     printf_P(PSTR("CS0 on ICP3_TERM: %1.3f A\r\n"), adc0_cs0_i);
     if (adc0_cs0_i < 0.018) 
@@ -846,7 +845,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
     
     // CS1  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
-    float adc0_cs1_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc0_cs1_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc0_cs1_i = adc0_cs1_v / ICP3_TERM;
     printf_P(PSTR("CS1 on ICP3_TERM: %1.3f A\r\n"), adc0_cs1_i);
     if (adc0_cs1_i < 0.018) 
@@ -866,7 +865,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
     
     // CS2  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
-    float adc0_cs2_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc0_cs2_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc0_cs2_i = adc0_cs2_v / ICP3_TERM;
     printf_P(PSTR("CS2 on ICP3_TERM: %1.3f A\r\n"), adc0_cs2_i);
     if (adc0_cs2_i < 0.018) 
@@ -886,7 +885,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
     
     // CS3  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
-    float adc0_cs3_v = analogRead(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
+    float adc0_cs3_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
     float adc0_cs3_i = adc0_cs3_v / ICP3_TERM;
     printf_P(PSTR("CS3 on ICP3_TERM: %1.3f A\r\n"), adc0_cs3_i);
     if (adc0_cs3_i < 0.018) 

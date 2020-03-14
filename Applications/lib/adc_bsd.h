@@ -67,6 +67,7 @@ extern volatile uint8_t adc_isr_status;
 #   error your mcu is not supported
 #endif
 extern void init_ADC_single_conversion(uint8_t reference);
+extern int adcSingle(uint8_t channel);
 
 #define FREE_RUNNING 1
 #define BURST_MODE 0

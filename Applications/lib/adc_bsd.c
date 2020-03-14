@@ -58,7 +58,8 @@ ISR(ADC_vect){
 }
 
 
-// select a referance (EXTERNAL_AVCC, INTERNAL_1V1) and initialize ADC
+// init ADC. Select a referance (EXTERNAL_AVCC, INTERNAL_1V1) and initialize ADC 
+// also used to init for auto conversion
 void init_ADC_single_conversion(uint8_t reference)
 {
     // The user must select the reference they want to initialization the ADC with, 
@@ -157,4 +158,17 @@ int adcAtomic(ADC_CH_t channel)
     } 
     else return 0;
 
+}
+
+// ADC single channel conversion (blocking)
+int adcSingle(uint8_t channel)
+{
+    uint8_t local_ADMUX = ADMUX & ~(1<<MUX3) & ~(1<<MUX2) & ~(1<<MUX1) & ~(1<<MUX0);
+    local_ADMUX = (local_ADMUX & ~(ADREFSMASK));
+    local_ADMUX = local_ADMUX | analog_reference;
+    ADMUX = local_ADMUX | (channel & 0x07);
+    ADCSRA |= (1 <<ADSC);
+    while (ADCSRA & (1 <<ADSC));  // wait for ADSC to clear (conversion done)
+    int local = ADC;
+    return local;
 }
