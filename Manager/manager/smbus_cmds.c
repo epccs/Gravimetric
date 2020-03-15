@@ -33,7 +33,7 @@ SOFTWARE.
 #include <stdbool.h>
 #include <avr/io.h>
 #include <util/delay.h>
-#include "../lib/twi1.h"
+#include "../lib/twi1_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "rpubus_manager_state.h"
 #include "i2c_cmds.h"
@@ -52,7 +52,7 @@ int smbus_has_numBytes_to_handle;
 // called when SMBus slave has received data
 // minimize clock streatching for R-Pi. 
 // use smbus_has_numBytes_to_handle as smbus flag to run handle routine outside ISR
-void receive_smbus_event(uint8_t* inBytes, int numBytes)
+void receive_smbus_event(uint8_t* inBytes, uint8_t numBytes)
 {
     inBytes_to_handle = inBytes;
     smbus_has_numBytes_to_handle = numBytes;
@@ -140,6 +140,6 @@ void handle_smbus_receive(void)
 void transmit_smbus_event(void) 
 {
     // For SMBus echo the old data from the previous I2C receive event
-    twi1_transmit(smbus_oldBuffer, smbus_oldBufferLength);
+    twi1_fillSlaveTxBuffer(smbus_oldBuffer, smbus_oldBufferLength);
     transmit_data_ready = 0;
 }

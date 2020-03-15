@@ -20,8 +20,8 @@ OBJECTS = rpubus_manager_state.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/timers_bsd.o \
-	$(LIBDIR)/twi0.o \
-	$(LIBDIR)/twi1.o
+	$(LIBDIR)/twi0_bsd.o \
+	$(LIBDIR)/twi1_bsd.o
 
 # Chip and project-specific global definitions
 MCU   =  atmega328pb

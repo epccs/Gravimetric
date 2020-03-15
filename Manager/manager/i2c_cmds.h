@@ -9,7 +9,7 @@
 extern uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 extern uint8_t i2c0BufferLength;
 
-extern void receive_i2c_event(uint8_t*, int);
+extern void receive_i2c_event(uint8_t*, uint8_t);
 extern void transmit_i2c_event(void);
 
 // Prototypes for point 2 multipoint commands

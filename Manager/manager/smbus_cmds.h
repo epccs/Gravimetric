@@ -11,7 +11,7 @@ extern uint8_t transmit_data_ready;
 extern uint8_t* inBytes_to_handle;
 extern int smbus_has_numBytes_to_handle;
 
-extern void receive_smbus_event(uint8_t*, int);
+extern void receive_smbus_event(uint8_t*, uint8_t);
 extern void transmit_smbus_event(void);
 extern void handle_smbus_receive(void);
 

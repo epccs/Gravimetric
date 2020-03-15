@@ -5,5 +5,8 @@
         "/usr/lib/gcc/avr/5.4.0/include/**",
         "{$workspaceFolder}/**"
     ],
-    "C_Cpp.intelliSenseEngine": "Default"
+    "C_Cpp.intelliSenseEngine": "Default",
+    "files.associations": {
+        "twi1_bsd.h": "c"
+    }
 }

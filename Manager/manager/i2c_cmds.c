@@ -34,7 +34,7 @@ SOFTWARE.
 #include <string.h>
 #include <avr/io.h>
 #include "../lib/timers_bsd.h"
-#include "../lib/twi0.h"
+#include "../lib/twi0_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/io_enum_bsd.h"
@@ -54,7 +54,7 @@ uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
 uint8_t i2c0BufferLength = 0;
 
 // called when I2C data is received. 
-void receive_i2c_event(uint8_t* inBytes, int numBytes) 
+void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes) 
 {
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
@@ -107,7 +107,7 @@ void receive_i2c_event(uint8_t* inBytes, int numBytes)
 void transmit_i2c_event(void) 
 {
     // respond with an echo of the last message sent
-    uint8_t return_code = twi0_transmit(i2c0Buffer, i2c0BufferLength);
+    uint8_t return_code = twi0_fillSlaveTxBuffer(i2c0Buffer, i2c0BufferLength);
     if (return_code != 0)
         status_byt &= (1<<DTR_I2C_TRANSMIT_FAIL);
 }

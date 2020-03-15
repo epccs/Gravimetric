@@ -21,12 +21,14 @@ Hardware files include a schematic, bill of materials, and various notes for tes
 
 [Layout]: https://github.com/epccs/Eagle/
 
+Licenses have mostly changed from LGPL to BSD, but some work remains.
+
 
 ## Example
 
-Is this comparable to a PLC? Probably not, in general, it should be impossible to cause a PLC to crash its software, but that does not stop it from causing severe damage. Executing binary files is a whole different game; the program can both crash and do severe damage. The upshot is the application is only limited by what the microcontroller can do (the training wheels are off, so use this at your own risk).
+Is this comparable to a PLC? Probably not, in general, a PLC should run a set of well tested binary instructions that are ideally impossible to crash, but that does not stop it from causing severe damage to what it controls. Executing binary instructions is different; the binary executable can misconfigure the electronics as well as all the bad things a PLC can. The upshot of using machine code is the application is less limited by what was built into the PLC firmware, but make no mistake the training wheels are off, so use this sort of hardware at your own risk.
 
-This board has a serial bus that allows multiple boards to be connected to a Single Board Computer (SBC). The 40 pin header is for a Raspberry Pi, but other SBC's also work (I do not test them). I use a Pi Zero (and Zero W which has WiFi). The RJ45 connectors are for the multi-drop serial bus (not ethernet) and allow the SBC to access the other boards. 
+UART zero on the application MCU is used for a multi-drop serial bus that links multiple units to the serial hardware on one or more Single Board Computers (SBC). The link does not have a network footprint but does allow firmware uploads and general-purpose serial communication. The 40 pin header is for a Raspberry Pi, but other SBC's also work (I do not test them). The RJ45 connectors are for the multi-drop serial bus (not ethernet) and allow the SBC to access the other boards. 
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "Gravimetric MultiDrop")
 
@@ -35,9 +37,9 @@ Diverting a calibration fluid onto a scale during a precisely measured time whil
 
 ## AVR toolchain
 
-This board uses the AVR toolchain. I use the one from Debian on Ubuntu,  Raspbian, Windows with WSL, Mac and other Operating Systems. With the toolchain installed, the AVR application can compile locally. I am not supplying the development tools; they are a community effort. 
+This board uses the AVR toolchain. I use the one from Microchip on Debian, Ubuntu,  Raspbian, Windows with WSL. With the toolchain installed, the AVR application can compile localy. 
 
-The core files for this board are in the /lib folder. Each example application has its files and a Makefile in a separate folder. The toolchain is available as packages. 
+The frequently used files for this board are in the /lib folder. Each example application has its files and a Makefile in a separate folder. The toolchain is also available as packages. 
 
 ```
 sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
