@@ -21,6 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/uart0_bsd.h"
 #include "../lib/io_enum_bsd.h"
 #include "../lib/timers_bsd.h"
+#include "../lib/twi1_bsd.h"
 
 #define BLINK_DELAY 1000UL
 static unsigned long blink_started_at;
@@ -37,6 +38,9 @@ void setup(void)
 
     //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
     initTimers(); 
+
+    /* Initialize I2C*/
+    twi1_init(100000UL, TWI1_PINS_PULLUP);
 
     sei(); // Enable global interrupts to start TIMER0
     

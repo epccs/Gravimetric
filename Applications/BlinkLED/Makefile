@@ -4,6 +4,7 @@
 TARGET = blinkLED
 LIBDIR = ../lib
 OBJECTS = main.o \
+	$(LIBDIR)/twi1_bsd.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/timers_bsd.o 
 

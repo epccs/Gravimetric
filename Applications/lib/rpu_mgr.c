@@ -76,10 +76,9 @@ void i2c_ping(void)
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t data = 0;
     uint8_t length = 0;
-    uint8_t sendStop = 1;
     for (uint8_t i =0;1; i++) // try a few times, it is slower starting after power up.
     {
-        twi_errorCode = twi0_masterBlockingWrite(i2c_address, &data, length, sendStop); 
+        twi_errorCode = twi0_masterBlockingWrite(i2c_address, &data, length, TWI0_PROTOCALL_STOP); 
         if (twi_errorCode == 0) break; // error free code
         if (i>5) return; // give up after 5 trys
     }
@@ -96,8 +95,7 @@ uint8_t i2c_set_Rpu_shutdown(void)
     // the manager to pull down its pin used to signal host to shutdown
     uint8_t txBuffer[SHUTDOWN_CMD_SIZE] = SHUTDOWN_CMD; 
     uint8_t length = SHUTDOWN_CMD_SIZE;
-    uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0;
@@ -105,8 +103,7 @@ uint8_t i2c_set_Rpu_shutdown(void)
     
     // above writes data to manager, this reads data from manager which sends back the same length that was sent
     uint8_t rxBuffer[SHUTDOWN_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
@@ -136,8 +133,7 @@ uint8_t i2c_detect_Rpu_shutdown(void)
     // note: the host can request shutdown via SMBus and this will retain clues for the application.
     uint8_t txBuffer[SHUTDOWN_DETECT_CMD_SIZE] = SHUTDOWN_DETECT_CMD; //detect host shutdown comand 0x04, data place holder 0xFF;
     uint8_t length = SHUTDOWN_DETECT_CMD_SIZE;
-    uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0; // failed
@@ -145,8 +141,7 @@ uint8_t i2c_detect_Rpu_shutdown(void)
     
     // above writes data to slave, this reads data from slave
     uint8_t rxBuffer[SHUTDOWN_DETECT_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
@@ -168,16 +163,14 @@ char i2c_get_Rpu_address(void)
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;    
     uint8_t txBuffer[ADDRESS_CMD_SIZE] = ADDRESS_CMD;
     uint8_t length = ADDRESS_CMD_SIZE;
-    uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0; // failed
     }
 
     uint8_t rxBuffer[ADDRESS_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
@@ -211,8 +204,7 @@ uint8_t i2c_read_status(void)
 
     uint8_t txBuffer[STATUS_READ_CMD_SIZE] = STATUS_READ_CMD; //detect host shutdown comand 0x04, data place holder 0xFF;
     uint8_t length = STATUS_READ_CMD_SIZE;
-    uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0x02; // set twi fail bit, even though it is not from manager
@@ -220,8 +212,7 @@ uint8_t i2c_read_status(void)
     
     // above writes data to slave, this reads data from slave
     uint8_t rxBuffer[STATUS_READ_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
@@ -247,10 +238,9 @@ uint8_t i2c_uint8_access_cmd(uint8_t command, uint8_t update_with)
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[UINT8_CMD_SIZE] = UINT8_CMD;
     uint8_t length = UINT8_CMD_SIZE;
-    uint8_t sendStop = 0;  //this will cause a I2C repeated Start durring read
     txBuffer[0] = command; // replace the command byte
     txBuffer[1] = update_with;
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0; // failed
@@ -258,8 +248,7 @@ uint8_t i2c_uint8_access_cmd(uint8_t command, uint8_t update_with)
     
     // above writes data to slave, this reads data from slave
     uint8_t rxBuffer[UINT8_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
@@ -282,21 +271,19 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with)
     }
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
     uint8_t length = ULONGINT_CMD_SIZE;
-    uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[ULONGINT_CMD_SIZE] = ULONGINT_CMD;
     txBuffer[0] = command; // replace the command byte
     txBuffer[3] = (uint8_t)((update_with & 0xFF000000UL)>>24);
     txBuffer[3] = (uint8_t)((update_with & 0xFF0000UL)>>16);
     txBuffer[3] = (uint8_t)((update_with & 0xFF00UL)>>8);
     txBuffer[4] = (uint8_t)(update_with & 0xFFUL);
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0;
     }
     uint8_t rxBuffer[ULONGINT_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
@@ -329,19 +316,17 @@ int i2c_int_access_cmd(uint8_t command, int update_with)
     }
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
     uint8_t length = INT_CMD_SIZE;
-    uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[INT_CMD_SIZE] = INT_CMD; 
     txBuffer[0] = command; // replace the command byte
     txBuffer[1] = (uint8_t)((update_with & 0xFF00)>>8);
     txBuffer[2] = (uint8_t)(update_with & 0xFF);
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0;
     }
     uint8_t rxBuffer[INT_CMD_SIZE];
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;

@@ -125,9 +125,8 @@ void I2c1_write(void)
 {
     if (command_done == 10)
     {
-        uint8_t sendStop = 1; 
         uint8_t txBufferLength = txBufferPassedToMaster_index;
-        TWI1_WRT_t twi_attempt = twi1_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, sendStop); 
+        TWI1_WRT_t twi_attempt = twi1_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, TWI1_PROTOCALL_STOP); 
         if (twi_attempt == TWI1_WRT_TRANSACTION_STARTED)
         {
             command_done = 11;
@@ -214,9 +213,8 @@ void I2c1_read(void)
         TWI1_WRT_t twi_attempt;
         if (txBufferPassedToMaster_index) 
         {
-            uint8_t sendStop = 0; 
             uint8_t txBufferLength = txBufferPassedToMaster_index;
-            twi_attempt = twi1_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, sendStop);
+            twi_attempt = twi1_masterAsyncWrite(master_address, txBufferPassedToMaster, txBufferLength, TWI1_PROTOCALL_REPEATEDSTART);
         }
         else
         {
@@ -281,9 +279,8 @@ void I2c1_read(void)
 
     else if (command_done == 20)
     {
-        uint8_t sendStop = 1; 
         uint8_t quantity = (uint8_t) atoi(arg[0]); // arg[0] has been checked to be in range 1..32
-        TWI1_RD_t twi_attempt = twi1_masterAsyncRead(master_address, quantity, sendStop);
+        TWI1_RD_t twi_attempt = twi1_masterAsyncRead(master_address, quantity, TWI1_PROTOCALL_STOP);
         if (twi_attempt == TWI1_RD_TRANSACTION_STARTED)
         {
             command_done = 21;

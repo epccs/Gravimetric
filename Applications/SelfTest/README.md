@@ -4,6 +4,8 @@
 
 Use bootload port to view test, since "Remote" firmware on remote managers does not recover after test mode.
 
+I2C0 test commands do not work after test finish (so one run after a power cycle).
+
 
 ## Overview
 

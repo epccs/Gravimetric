@@ -43,9 +43,8 @@ void I2c1_scan(void)
     {
         uint8_t data = 0;
         uint8_t length = 0;
-        uint8_t sendStop = 1;
         // attempt TWI asynchronous write.
-        TWI1_WRT_t twi_attempt = twi1_masterAsyncWrite(address, &data, length, sendStop); 
+        TWI1_WRT_t twi_attempt = twi1_masterAsyncWrite(address, &data, length, TWI1_PROTOCALL_STOP); 
         if (twi_attempt == TWI1_WRT_TRANSACTION_STARTED)
         {
             command_done = 12;

@@ -31,11 +31,11 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #define BLINK_DELAY 1000UL
 
 // Save the Value of the References for ADC converter 
-// measure AVCC and put it hear in uV 
-#define REF_EXTERN_AVCC 4978470UL
+// measure AVCC and put it hear in uV
+#define REF_EXTERN_AVCC 4959800UL
 
 // ICP3 has 100 Ohm and R1 in parallel
-#define ICP3_TERM 50.0
+#define ICP3PARL100_TERM 50.0
 #define ICP4_TERM 100.0
 #define ICP1_TERM 100.0
 
@@ -80,10 +80,6 @@ void setup_pins_off(void)
     ioWrite(MCU_IO_RX2,LOGIC_LEVEL_LOW);
     ioDir(MCU_IO_TX2,DIRECTION_INPUT);
     ioWrite(MCU_IO_TX2,LOGIC_LEVEL_LOW);
-    ioDir(MCU_IO_SDA1,DIRECTION_INPUT);
-    ioWrite(MCU_IO_SDA1,LOGIC_LEVEL_LOW);
-    ioDir(MCU_IO_SCL1,DIRECTION_INPUT);
-    ioWrite(MCU_IO_SCL1,LOGIC_LEVEL_LOW);
     ioDir(MCU_IO_ADC0,DIRECTION_INPUT);
     ioDir(MCU_IO_ADC1,DIRECTION_INPUT);
     ioDir(MCU_IO_ADC2,DIRECTION_INPUT);
@@ -121,7 +117,7 @@ void setup(void)
 
     /* Initialize I2C*/
     twi0_init(100000UL, TWI0_PINS_PULLUP);
-    twi1_init(100000UL, TWI0_PINS_PULLUP);
+    twi1_init(100000UL, TWI1_PINS_PULLUP);
 
     // Enable global interrupts to start TIMER0 and UART
     sei(); 
@@ -146,28 +142,28 @@ void smbus_address(void)
 {
     uint8_t smbus_address = 0x2A;
     uint8_t length = 2;
-    uint8_t sendStop = 1;
     uint8_t txBuffer[2] = {0x00,0x00}; //comand 0x00 should Read the mulit-drop bus addr;
-    uint8_t twi1_returnCode = twi1_masterBlockingWrite(smbus_address, txBuffer, length, sendStop); 
+    uint8_t twi1_returnCode = twi1_masterBlockingWrite(smbus_address, txBuffer, length, TWI1_PROTOCALL_STOP); 
     if (twi1_returnCode != 0)
     {
         passing = 0; 
         printf_P(PSTR(">>> SMBus write failed, twi1_returnCode: %d\r\n"), twi1_returnCode);
+        return;
     }
     
     // read_i2c_block_data sends a command byte and then a repeated start followed by reading the data 
     uint8_t cmd_length = 1; // one byte command is sent befor read with the read_i2c_block_data
-    sendStop = 0; // a repeated start happens after the command byte is sent
     txBuffer[0] = 0x00; //comand 0x00 matches the above write command
-    twi1_returnCode = twi1_masterBlockingWrite(smbus_address, txBuffer, cmd_length, sendStop); 
+    twi1_returnCode = twi1_masterBlockingWrite(smbus_address, txBuffer, cmd_length, TWI1_PROTOCALL_REPEATEDSTART); 
     if (twi1_returnCode != 0)
     {
         passing = 0; 
-        printf_P(PSTR(">>> SMBus read cmd fail, twi1_returnCode: %d\r\n"), twi1_returnCode);
+        printf_P(PSTR(">>> SMBus read fail to send cmd byte, twi1_returnCode: %d\r\n"), twi1_returnCode);
+        // bus is set for repeated start so it is locked until a Stop is done.
+        twi1_masterBlockingWrite(smbus_address, txBuffer, 0, TWI1_PROTOCALL_STOP); 
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
-    sendStop = 1;
-    uint8_t bytes_read = twi1_masterBlockingRead(smbus_address, rxBuffer, length, sendStop);
+    uint8_t bytes_read = twi1_masterBlockingRead(smbus_address, rxBuffer, length, TWI1_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         passing = 0; 
@@ -184,13 +180,38 @@ void smbus_address(void)
     }
 }
 
+void print_twi0_read_status(TWI0_RD_STAT_t i2c_status)
+{
+    printf_P(PSTR(">>> I2C0 read failed status is "));
+    if (i2c_status == TWI0_RD_STAT_ADDR_NACK)
+    {
+        printf_P(PSTR("ADDR_NACK"));
+    }
+    else if (i2c_status == TWI0_RD_STAT_DATA_NACK)
+    {
+        printf_P(PSTR("DATA_NACK"));
+    }
+    else if (i2c_status == TWI0_RD_STAT_ILLEGAL)
+    {
+        printf_P(PSTR("ILLEGAL"));
+    }
+    else if (i2c_status == TWI0_RD_STAT_BUSY)
+    {
+        printf_P(PSTR("BUSY"));
+    }
+    else // (i2c_status == TWI0_RD_STAT_SUCCESS)
+    {
+        printf_P(PSTR("SUCCESS"));
+    }
+    printf_P(PSTR("\r\n"));
+}
+
 void i2c_shutdown(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x05,0x01};
-    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop); 
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_returnCode != 0)
     {
         passing = 0; 
@@ -198,12 +219,12 @@ void i2c_shutdown(void)
         return;
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
-    if ( bytes_read != length )
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+    if ( bytes_read == 0 )
     {
         passing = 0; 
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), (length-bytes_read) );
+        print_twi0_read_status(twi0_masterAsyncRead_status());
+        return;
     }
     if ( (txBuffer[0] == rxBuffer[0]) && (txBuffer[1] == rxBuffer[1]) )
     {
@@ -220,21 +241,20 @@ void i2c_shutdown_detect(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x04, 0xFF}; //comand 0x04 will return the value 0x01 (0xff is a byte for the ISR to replace)
-    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART);
     if (twi_returnCode != 0)
     {
         passing = 0; 
         printf_P(PSTR(">>> I2C0 cmd 4 write fail, twi_returnCode: %d\r\n"), twi_returnCode);
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
-    if ( bytes_read != length )
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+    if ( bytes_read == 0 )
     {
         passing = 0; 
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), (length-bytes_read) );
+        print_twi0_read_status(twi0_masterAsyncRead_status());
+        return;
     }
     if ( (txBuffer[0] == rxBuffer[0]) && (0x1 == rxBuffer[1]) )
     {
@@ -251,21 +271,20 @@ void i2c_testmode_start(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x30, 0x01}; // preserve the trancever control bits
-    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART);
     if (twi_returnCode != 0)
     {
         passing = 0; 
         printf_P(PSTR(">>> I2C0 cmd 48 write fail, twi_returnCode: %d\r\n"), twi_returnCode);
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
-    if ( bytes_read != length )
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+    if ( bytes_read == 0 )
     {
         passing = 0; 
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), (length-bytes_read) );
+        print_twi0_read_status(twi0_masterAsyncRead_status());
+        return;
     }
     if ( (txBuffer[0] == rxBuffer[0]) && (txBuffer[1]  == rxBuffer[1]) )
     {
@@ -283,9 +302,8 @@ void i2c_testmode_end(void)
 {
     uint8_t i2c_address = 0x29;
     uint8_t length = 2;
-    uint8_t sendStop = 0; // use a repeated start after write
     uint8_t txBuffer[2] = {0x31, 0x01}; // recover trancever control bits and report values in data[1] byte
-    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
+    uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART);
     if ( test_mode_clean )
     {
         printf_P(PSTR("I2C0 Start Test Mode cmd was clean {48, 1}\r\n"));
@@ -297,12 +315,12 @@ void i2c_testmode_end(void)
         printf_P(PSTR(">>> I2C0 cmd 49 write fail, twi_returnCode: %d\r\n"), twi_returnCode);
     }
     uint8_t rxBuffer[2] = {0x00,0x00};
-    sendStop = 1;
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
-    if ( bytes_read != length )
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+    if ( bytes_read == 0 )
     {
         passing = 0; 
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), (length-bytes_read) );
+        print_twi0_read_status(twi0_masterAsyncRead_status());
+        return;
     }
     if ( (txBuffer[0] == rxBuffer[0]) && (0xD5 == rxBuffer[1]) )
     {
@@ -322,10 +340,9 @@ void i2c_testmode_test_xcvrbits(uint8_t xcvrbits)
     {
         uint8_t i2c_address = 0x29;
         uint8_t length = 2;
-        uint8_t sendStop = 0; // use a repeated start after write
         uint8_t txBuffer[2] = {0x32, 0x01};
 
-        uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
+        uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART);
         if (twi_returnCode != 0)
         {
             passing = 0;
@@ -333,13 +350,12 @@ void i2c_testmode_test_xcvrbits(uint8_t xcvrbits)
             delayed_data[4] =  twi_returnCode;
         }
         uint8_t rxBuffer[2] = {0x00,0x00};
-        sendStop = 1;
-        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
-        if ( bytes_read != length )
+        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+        if ( bytes_read == 0 )
         {
             passing = 0; 
             delayed_outputs |= (1<<5); // >>> I2C read missing %d bytes \r\n
-            delayed_data[5] =  length-bytes_read;
+            delayed_data[5] =  twi0_masterAsyncRead_status();
         }
         if ( (txBuffer[0] == rxBuffer[0]) && (xcvrbits == rxBuffer[1]) )
         { //0xe2 is 0b11100010
@@ -363,11 +379,10 @@ void i2c_testmode_set_xcvrbits(uint8_t xcvrbits)
     {
         uint8_t i2c_address = 0x29;
         uint8_t length = 2;
-        uint8_t sendStop = 0; // use a repeated start after write
         uint8_t txBuffer[2];
         txBuffer[0] = 0x33;
         txBuffer[1] = xcvrbits;
-        uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, sendStop);
+        uint8_t twi_returnCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART);
         if (twi_returnCode != 0)
         {
             passing = 0;
@@ -375,13 +390,12 @@ void i2c_testmode_set_xcvrbits(uint8_t xcvrbits)
             delayed_data[0] =  twi_returnCode;
         }
         uint8_t rxBuffer[2] = {0x00,0x00};
-        sendStop = 1;
-        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, sendStop);
+        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
         if ( bytes_read != length )
         {
             passing = 0; 
             delayed_outputs |= (1<<1); // >>> I2C read missing %d bytes \r\n
-            delayed_data[1] =  length-bytes_read;
+            delayed_data[1] =  twi0_masterAsyncRead_status();
         }
         if ( (txBuffer[0] == rxBuffer[0]) && (xcvrbits == rxBuffer[1]) )
         { //0xe2 is 0b11100010
@@ -543,22 +557,34 @@ void test(void)
     ioWrite(MCU_IO_CS_FAST,LOGIC_LEVEL_LOW);
 
     // ICP3 pin is inverted from the plug interface, its Termination should have zero mA. 
-    printf_P(PSTR("ICP3 input should be HIGH with 0mA loop current: %d \r\n"), ioRead(MCU_IO_ICP3_MOSI));
+    printf_P(PSTR("ICP3 input with 0mA current: %d \r\n"), ioRead(MCU_IO_ICP3_MOSI));
     if (!ioRead(MCU_IO_ICP3_MOSI)) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> ICP3 should be high.\r\n"));
     }
 
-    // enable CS_ICP3 which will cause ICP3 to go low and enable CS_DIVERSION that sends current to ICP1 input
+    // nSS must be HIGH for CS_ICP3 control to work. 
+    printf_P(PSTR("nSS has pull up: %d \r\n"), ioRead(MCU_IO_nSS));
+    if (!ioRead(MCU_IO_nSS)) 
+    { 
+        passing = 0; 
+        printf_P(PSTR(">>> CS_ICP3 will not enable with nSS active LOW.\r\n"));
+    }
+
+    // enable CS_ICP3 and CS3 to cause ICP3 to go low and enable CS_DIVERSION so that current can flow in ICP1 input
     unsigned long ICP3_one_shot_started_at = milliseconds();
     unsigned long ICP3_one_shot_time = 0;
-    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_HIGH);
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_HIGH); // 17mA
+    ioWrite(MCU_IO_CS3_EN,LOGIC_LEVEL_HIGH);  // + 22mA flowing in 100 Ohm || with ICP3 input
     unsigned long ICP3_one_shot_delay = 0;
-    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_LOW);
+    uint8_t ICP3_during_one_shot = 0;
+    ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_LOW);  // just long enough to triger the one-shot.
+    ioWrite(MCU_IO_CS3_EN,LOGIC_LEVEL_LOW);
     uint8_t wait_for_ICP1_low = 0;
     uint8_t wait_for_ICP1_high = 0;
     uint8_t timeout = 0;
+    ICP3_during_one_shot = ioRead(MCU_IO_ICP3_MOSI); // if this is not low then oneshot has not triggered 
     while(!wait_for_ICP1_low && !timeout)
     {
         if ( elapsed(&ICP3_one_shot_started_at) > 100) 
@@ -607,16 +633,17 @@ void test(void)
     }
     else
     {
-        passing = 0; 
+        passing = 0;
+        printf_P(PSTR("ICP3 durring one shot: %d \r\n"), ICP3_during_one_shot); // should be LOW
         printf_P(PSTR(">>> ICP3 one-shot runs CS_DIVERSION but that curr was not sent to ICP1.\r\n"));
     }
     ioWrite(MCU_IO_CS_ICP3,LOGIC_LEVEL_HIGH);
     _delay_ms(100); // busy-wait delay
 
-    // ICP3_TERM has R1 in parrallel (50Ohm) 
+    // ICP3PARL100_TERM has R1 in parrallel (50Ohm) 
     float adc0_cs_icp3_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs_icp3_i = adc0_cs_icp3_v / ICP3_TERM;
-    printf_P(PSTR("CS_ICP3 on ICP3AND4 TERM: %1.3f A\r\n"), adc0_cs_icp3_i);
+    float adc0_cs_icp3_i = adc0_cs_icp3_v / ICP3PARL100_TERM;
+    printf_P(PSTR("CS_ICP3 on ICP3||100Ohm TERM: %1.3f A\r\n"), adc0_cs_icp3_i);
     if (adc0_cs_icp3_i < 0.012) 
     { 
         passing = 0; 
@@ -641,7 +668,7 @@ void test(void)
     _delay_ms(100); // busy-wait delay
     int adc0_used_for_ref_intern_1v1_uV = adcSingle(ADC0);
     printf_P(PSTR("   ADC0 reading used to calculate ref_intern_1v1_uV: %d int\r\n"), adc0_used_for_ref_intern_1v1_uV);
-    float _ref_intern_1v1_uV = 1.0E6*1024.0 * ((adc0_cs_icp3_i * ICP3_TERM) / adc0_used_for_ref_intern_1v1_uV);
+    float _ref_intern_1v1_uV = 1.0E6*1024.0 * ((adc0_cs_icp3_i * ICP3PARL100_TERM) / adc0_used_for_ref_intern_1v1_uV);
     uint32_t temp_ref_intern_1v1_uV = (uint32_t)_ref_intern_1v1_uV;
     printf_P(PSTR("   calculated ref_intern_1v1_uV: %lu uV\r\n"), temp_ref_intern_1v1_uV);
     uint32_t temp_ref_extern_avcc_uV = ref_extern_avcc_uV;
@@ -826,8 +853,8 @@ void test(void)
 
     // CS0 drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs0_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs0_i = adc0_cs0_v / ICP3_TERM;
-    printf_P(PSTR("CS0 on ICP3_TERM: %1.3f A\r\n"), adc0_cs0_i);
+    float adc0_cs0_i = adc0_cs0_v / ICP3PARL100_TERM;
+    printf_P(PSTR("CS0 on ICP3||100: %1.3f A\r\n"), adc0_cs0_i);
     if (adc0_cs0_i < 0.018) 
     { 
         passing = 0; 
@@ -846,8 +873,8 @@ void test(void)
     
     // CS1  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs1_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs1_i = adc0_cs1_v / ICP3_TERM;
-    printf_P(PSTR("CS1 on ICP3_TERM: %1.3f A\r\n"), adc0_cs1_i);
+    float adc0_cs1_i = adc0_cs1_v / ICP3PARL100_TERM;
+    printf_P(PSTR("CS1 on ICP3||100: %1.3f A\r\n"), adc0_cs1_i);
     if (adc0_cs1_i < 0.018) 
     { 
         passing = 0; 
@@ -866,8 +893,8 @@ void test(void)
     
     // CS2  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs2_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs2_i = adc0_cs2_v / ICP3_TERM;
-    printf_P(PSTR("CS2 on ICP3_TERM: %1.3f A\r\n"), adc0_cs2_i);
+    float adc0_cs2_i = adc0_cs2_v / ICP3PARL100_TERM;
+    printf_P(PSTR("CS2 on ICP3||100: %1.3f A\r\n"), adc0_cs2_i);
     if (adc0_cs2_i < 0.018) 
     { 
         passing = 0; 
@@ -886,8 +913,8 @@ void test(void)
     
     // CS3  drives ICP3 and ICP4 termination which should make a 50 Ohm drop
     float adc0_cs3_v = adcSingle(ADC0)*((ref_extern_avcc_uV/1.0E6)/1024.0);
-    float adc0_cs3_i = adc0_cs3_v / ICP3_TERM;
-    printf_P(PSTR("CS3 on ICP3_TERM: %1.3f A\r\n"), adc0_cs3_i);
+    float adc0_cs3_i = adc0_cs3_v / ICP3PARL100_TERM;
+    printf_P(PSTR("CS3 on ICP3||100: %1.3f A\r\n"), adc0_cs3_i);
     if (adc0_cs3_i < 0.018) 
     { 
         passing = 0; 
@@ -1062,7 +1089,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<5))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[5]);
+        print_twi0_read_status(delayed_data[5]);
     }
     if (delayed_outputs & (1<<6))
     {
@@ -1109,7 +1136,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<1))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[1]);
+        print_twi0_read_status(delayed_data[1]);
     }
     if (delayed_outputs & (1<<2))
     {
@@ -1125,7 +1152,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<5))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[5]);
+        print_twi0_read_status(delayed_data[5]);
     }
     if (delayed_outputs & (1<<6))
     {
@@ -1169,7 +1196,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<1))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[1]);
+        print_twi0_read_status(delayed_data[1]);
     }
     if (delayed_outputs & (1<<2))
     {
@@ -1185,7 +1212,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<5))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[5]);
+        print_twi0_read_status(delayed_data[5]);
     }
     if (delayed_outputs & (1<<6))
     {
@@ -1242,7 +1269,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<1))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[1]);
+        print_twi0_read_status(delayed_data[1]);
     }
     if (delayed_outputs & (1<<2))
     {
@@ -1258,7 +1285,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<5))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[5]);
+        print_twi0_read_status(delayed_data[5]);
     }
     if (delayed_outputs & (1<<6))
     {
@@ -1317,7 +1344,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<1))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[1]);
+        print_twi0_read_status(delayed_data[1]);
     }
     if (delayed_outputs & (1<<2))
     {
@@ -1333,7 +1360,7 @@ void test(void)
     }
     if (delayed_outputs & (1<<5))
     {
-        printf_P(PSTR(">>> I2C0 read missing %d bytes \r\n"), delayed_data[5]);
+        print_twi0_read_status(delayed_data[5]);
     }
     if (delayed_outputs & (1<<6))
     {
@@ -1349,7 +1376,7 @@ void test(void)
         passing = 0; 
         printf_P(PSTR(">>> DTR load curr is to high.\r\n"));
     }
-    if (load_dtr_i < 0.025) 
+    if (load_dtr_i < 0.005) 
     { 
         passing = 0; 
         printf_P(PSTR(">>> DTR load curr is to low.\r\n"));

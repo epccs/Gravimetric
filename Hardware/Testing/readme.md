@@ -55,9 +55,9 @@ Apply a current limited (20mA) supply set with 7V to the PWR and 0V connector J7
 NOTE for referance the zener voltage on Q5 is 7.75V at 30V.
 
 ```
-{ "LEDON_V":[10.6,10.6,],
-  "PWR@7V_mA":[0.125,0.07,],
-  "PWR@30V_mA":[1.5,1.7,] }
+{ "LEDON_V":[10.6,10.6,10.7,],
+  "PWR@7V_mA":[0.125,0.07,0.061,],
+  "PWR@30V_mA":[1.5,1.7,1.1,] }
 ```
 
 
@@ -66,7 +66,7 @@ NOTE for referance the zener voltage on Q5 is 7.75V at 30V.
 Apply a 30mA current limited 5V source to +5V (J1). Check that the input current is for two blank MCU (e.g., manager and application). Turn off the power.
 
 ```
-{ "I_IN_BLANKMCU_mA":[4.7,6.2,]}
+{ "I_IN_BLANKMCU_mA":[4.7,6.2,6.4,]}
 ```
 
 Note: Internal clock/8 (=1MHz) and IO pins are floating (thus the current will change).
@@ -91,14 +91,14 @@ Connect a 5V supply with CC mode set at 50mA to +5V (J1). Connect the ISP tool t
 
 ```
 cd ~/Gravimetric/Manager/manager
-make
+make all
 make isp
 ```
 
 Verify that the uploader finished without errors and measure the input current to verify it is running with the crystal.
 
 ```
-{ "I_IN_MGR_FLAGS_SET_mA":[19.4,opps,]}
+{ "I_IN_MGR_FLAGS_SET_mA":[19.4,opps,19.6,]}
 
 Next upload the bootloader on the application controller port (J12).
 
@@ -111,7 +111,7 @@ make isp
 Measure the input current, wait for the power to be settled. Turn off the power.
 
 ```
-{ "I_IN_MGR_AND_APP_FLAGS_SET_mA":[33.5,34.2,]}
+{ "I_IN_MGR_AND_APP_FLAGS_SET_mA":[33.5,34.2,33.8,]}
 ```
 
 Add U3 to the board now.
@@ -122,7 +122,7 @@ Add U3 to the board now.
 With U3 installed measure its output voltage and input current with the supply set at 12.8V and a 30mA current limit.
 
 ```
-{ "+5V_V":[4.9595,4.9747,]}
+{ "+5V_V":[4.9595,4.9747,4.9598,]}
 ```
 
 
@@ -134,7 +134,7 @@ With a serial port setup for serial bootloading (see BOOT_PORT in Makefile) and 
 
 ``` 
 cd ~/Gravimetric/Applications/SelfTest
-make
+make all
 make bootload
 ...
 avrdude done.  Thank you.
