@@ -78,8 +78,8 @@ void setup(void)
     ioDir(MCU_IO_CS0_EN, DIRECTION_OUTPUT);
     ioWrite(MCU_IO_CS0_EN, LOGIC_LEVEL_HIGH);
     
-    // Initialize Timers, ADC, and clear bootloader, Arduino does these with init() in wiring.c
-    initTimers(); //Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
+  // Timer0 Fast PWM mode, Timer1 & Timer2 Phase Correct PWM mode.
+    initTimers(); 
     uart0_init(0,0); // bootloader may have the UART enabled, a zero baudrate will disconnect it.
     
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/

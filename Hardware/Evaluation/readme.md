@@ -7,12 +7,34 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 UART sneaky mode
 1. ^0 Start One Shot
 1. ^0 Stop One Shot
 1. ^0 Alternat Power Modified
 1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^1 UART sneaky mode
+
+Use picocom to connect to an application controller without enabling the host lockout status bit (see manager's I2C command 7).
+
+``` 
+# are my in the dialout group
+[sudo apt install members]
+members dialout
+# no I am not
+sudo usermod -a -G dialout rsutherland
+# logout for the change to take
+picocom -b 38400 /dev/ttyAMA0
+...
+Terminal ready
+/1/id?
+{"id":{"name":"I2C1debug^2","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+``` 
+
+The sneaky mode is a mistake that I use too much to fix. When state information is received on the DTR pair, the sneaky mode is done.
 
 
 ## ^0 Start One Shot

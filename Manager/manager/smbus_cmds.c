@@ -78,15 +78,18 @@ void handle_smbus_receive(void)
         
         uint8_t i;
 
-        // read_i2c_block_data has a single command byte in its data set
-        // it will write i2c address, the command* byte, and then cause a repeated start
-        // followed by the i2c address (again) and then reading** the data
-        // * clock stretching occures during the receive (so handle was done to move this code outside the ISR)
-        // ** and the transmit events
+        // write_i2c_block_data has a command byte followed by data
+        // e.g., start+>addr+>command+>data+stop
+        // read_i2c_block_data has a single command byte that is sent befor reading
+        // e.g., start+>addr+>command+repeated-start+>addr+<data+stop
+        // the slave receive event has saved a pointer to the interleaving buffer with the receive >data 
+        
+        // a read operation has one byte, and it is the command
         if( (numBytes == 1)  )
         {
+            // check the command in previous write operation matchs this read operation
             // transmit event is set up to work from an old buffer, the data it needs is in the current buffer. 
-            if ( (inBytes_to_handle[0] == smbusBuffer[0]) && (!transmit_data_ready) )
+            if ( (inBytes_to_handle[0] == smbusBuffer[0]) ) // To not allow consecutive writes add " && (!transmit_data_ready)"
             {
                 for(i = 0; i < smbusBufferLength; ++i)
                 {
@@ -96,8 +99,10 @@ void handle_smbus_receive(void)
                 smbus_oldBufferLength = smbusBufferLength;
                 transmit_data_ready = 1;
             }
-            return; // done. Even if command does not match.
+            return; // done. Even if command did not match.
         }
+
+        // a write operation has a command plus >data, and can follow each other
         for(i = 0; i < numBytes; ++i)
         {
             smbusBuffer[i] = inBytes_to_handle[i];    
