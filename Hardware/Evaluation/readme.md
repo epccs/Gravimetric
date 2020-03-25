@@ -7,6 +7,8 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 SPI 2MHz Checked With Raspberry Pi Zero
+1. ^1 UART with nRTS
 1. ^1 UART sneaky mode
 1. ^0 Start One Shot
 1. ^0 Stop One Shot
@@ -14,6 +16,101 @@ This shows the setup and method used for evaluation of Gravimetric.
 1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^1 SPI 2MHz Checked With Raspberry Pi Zero
+
+First bootload application controller with [SpiSlv].
+
+[SpiSlv]:https://github.com/epccs/Gravimetric/tree/master/Applications/SpiSlv
+
+To do that I need to clear the status lockout bit so the R-Pi Zero can use the multi-drop as a host (see "^1 UART with nRTS" bellow). 
+
+``` 
+# are my in the spi group
+[sudo apt install members]
+members spi
+# no I am not
+sudo usermod -a -G spi rsutherland
+# logout for the change to take
+# Next change the working directory to where SpiSlv is and then build and upload
+cd Gravimetric/Applications/SpiSlv
+make all
+make bootload
+...
+avrdude done.  Thank you.
+
+# 
+gcc -o spidev_test spidev_test.c
+chmod ugo+x ./spidev_test
+# trun on the RPU SPI port
+picocom -b 38400 /dev/ttyAMA0
+...
+Terminal ready
+/1/id?
+{"id":{"name":"SpiSlv","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
+/1/spi UP
+{"SPI":"UP"}
+# C-a, C-x.
+# test with
+./spidev_test -s 1000 -D /dev/spidev0.0
+./spidev_test -s 10000 -D /dev/spidev0.0
+./spidev_test -s 100000 -D /dev/spidev0.0
+./spidev_test -s 250000 -D /dev/spidev0.0
+./spidev_test -s 500000 -D /dev/spidev0.0
+./spidev_test -s 1000000 -D /dev/spidev0.0
+./spidev_test -s 2000000 -D /dev/spidev0.0
+./spidev_test -s 4000000 -D /dev/spidev0.0
+# 4MHz shows data on this Gravimetric^1 but 2MHz is max I would use.
+```
+
+The test output should look like this
+
+```
+spi mode: 0
+bits per word: 8
+max speed: 4000000 Hz (4000 KHz)
+
+0D FF FF FF FF FF
+FF 40 00 00 00 00
+95 FF FF FF FF FF
+FF FF FF FF FF FF
+FF FF FF FF FF FF
+FF DE AD BE EF BA
+AD F0
+``` 
+
+The maximum speed is 2MegHz.
+
+
+## ^1 UART with nRTS
+
+Use sneaky mode to clear the status lockout bit so the R-Pi Zero can use the multi-drop as a host.
+
+``` 
+# Set '1' (0x31) as the bootload address that will be sent on DTR pair when nRTS enables.
+# Next clear the lockout bit to alow the Pi Zero to use the multi-drop serial as a host.
+picocom -b 38400 /dev/ttyAMA0
+...
+Terminal ready
+/1/iaddr 41
+{"master_address":"0x29"}
+/1/ibuff 3,49
+{"txBuffer[2]":[{"data":"0x3"},{"data":"0x31"}]}
+/1/iread? 2
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x3"},{"data":"0x31"}]}
+/1/ibuff 7,0
+{"txBuffer[2]":[{"data":"0x7"},{"data":"0x0"}]}
+/1/iread? 2
+# ASCII character glitch may show now since the local controller has just reset
+# C-a, C-x.
+
+# next check that the local manager which has multi-drop address '1' is blinking fast
+picocom -b 38400 /dev/ttyAMA0
+...
+Terminal ready
+# C-a, C-x.
+```
 
 
 ## ^1 UART sneaky mode
