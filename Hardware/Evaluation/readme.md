@@ -7,6 +7,7 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 SMBus Block Read/Write Checked With Raspberry Pi Zero
 1. ^1 SPI 2MHz Checked With Raspberry Pi Zero
 1. ^1 UART with nRTS
 1. ^1 UART sneaky mode
@@ -16,6 +17,73 @@ This shows the setup and method used for evaluation of Gravimetric.
 1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^1 SMBus Block Read/Write Checked With Raspberry Pi Zero
+
+Scan the SMBus (I2C1) with Raspberry Pi.
+
+```
+sudo apt-get install i2c-tools python3-smbus
+# are my in the i2c group
+[sudo apt install members]
+members i2c
+# no I am not
+sudo usermod -a -G i2c rsutherland
+# logout for the change to take
+i2cdetect 1
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-1.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] Y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- 2a -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+```
+
+The manager firmware has the host locked out from using the serial connection (sneaky mode will bypass), but with the SMBus it can be enabled. One of the status bits is for host lockout. The SMBus command 7 is used to set that status bit.
+
+
+``` 
+python3
+import smbus
+bus = smbus.SMBus(1)
+# use SMBus command 0 to show the local address 
+#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
+bus.write_i2c_block_data(42, 0, [0])
+#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
+#I2C_COMMAND must match in this case
+chr(bus.read_i2c_block_data(42,0, 2)[1])
+'1'
+# use SMBus command 2 to show the bootload address 
+bus.write_i2c_block_data(42, 2, [0])
+chr(bus.read_i2c_block_data(42,2, 2)[1])
+'0'
+# use SMBus command 3 to change the bootload address (49 is ascii '1')
+bus.write_i2c_block_data(42, 3, [49])
+chr(bus.read_i2c_block_data(42,3, 2)[1])
+'1'
+# use SMBus command 7 to clear the lockout bit in the status bits that was set at power up.
+bus.write_i2c_block_data(42, 7, [0])
+print(bus.read_i2c_block_data(42,7, 2))
+[7, 0]
+exit()
+picocom -b 38400 /dev/ttyAMA0
+...
+Terminal ready
+/1/id?
+# C-a, C-x.
+``` 
+
+Once the host lockout is clear the Raspberry Pi can bootload the address set with command 3 (see [Remote]). The Raspberry Pi will need to use its [RTS] handshack lines for avrdude to work.
+
+[RTS]: https://github.com/epccs/RPUpi/tree/master/RPiRtsCts
 
 
 ## ^1 SPI 2MHz Checked With Raspberry Pi Zero
