@@ -4,8 +4,8 @@
 
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
 1. not used.
-2. read the multi-drop bootload address sent when DTR/RTS toggles.
-3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
+2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
+3. not used.
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
 5. set shutdown switch (pull down ICP1 for SHUTDOWN_TIME to cause the host to halt).
 6. read status bits.
@@ -87,9 +87,11 @@ print(bus.read_i2c_block_data(42, 0, 2))
 Will be repurposed.
 
 
-## Cmd 2 from the application controller /w i2c-debug read the address sent when serial handshake RTS toggless
+## Cmd 2 from the application controller /w i2c-debug access the bootload address (48..122) sent when serial handshake RTS toggless
 
-The application controller can read the serial multi-drop bootload address that is sent when the local host opens its serial port.  
+The application controller can access the serial multi-drop bootload address that is sent when the local host opens its serial port (RTS goes active).
+
+__Note__: this valuse is not saved in eeprom so a power loss will set it back to default ('0').
 
 ``` 
 picocom -b 38400 /dev/ttyAMA0
@@ -99,14 +101,32 @@ picocom -b 38400 /dev/ttyAMA0
 {"txBuffer[2]":[{"data":"0x2"},{"data":"0xFF"}]}
 /1/iread? 2
 {"rxBuffer":[{"data":"0x2"},{"data":"0x30"}]}
+/1/ibuff 2,49
+{"txBuffer[2]":[{"data":"0x2"},{"data":"0x31"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x2"},{"data":"0x31"}]}
 ``` 
+
+The out of range address above was ignored. If the sent bootload address is in the range 48..122 (ASCII '0'..'z') then it will be used.
 
 Address 0x30 is ASCII '0'. The manager with that address will reset its application controller, and the serial multi-drop bus will switch to a point to point connection between the host and the application controller connected to that manager. The point to point serial allows the uploader tool to send a new application image to the bootloader, which places it in the flash execution memory. 
 
+exit picocom with C-a, C-x. 
 
-## Cmd 2 from a Raspberry Pi read the address sent when serial handshake RTS toggles
+Connect with picocom again. 
 
-The local host can read the serial multi-drop bootload address that is sent when the local host opens its serial port.
+``` 
+picocom -b 38400 /dev/ttyAMA0
+``` 
+
+Opening the serial port will toggle the RTS from the host, and the manager will see it and send 0x31 on the DTR pair. The manager(s) that do not have that address should blink there LED slow to indicate lockout, while the manager with address '1' blinks fast to indicate bootloader mode. 
+
+
+## Cmd 2 from a Raspberry Pi access the bootload address (48..122) sent when serial handshake RTS toggles
+
+The local host can access the serial multi-drop bootload address that is sent when the local host opens its serial port.
+
+__Note__: this valuse is not saved in eeprom so a power loss will set it back to default ('0').
 
 ``` 
 python3
@@ -119,61 +139,9 @@ print(bus.read_i2c_block_data(42, 2, 2))
 [2, 48]
 ``` 
 
+The out of range address above was ignored. If the sent bootload address is in the range 48..122 (ASCII '0'..'z') then it will be used.
+
 Address 48 is 0x30 or ASCII '0'. The manager with that address will reset its application controller, and the serial multi-drop bus will switch to a point to point connection between the host and the application controller connected to that manager. The point to point serial allows the uploader tool to send a new application image to the bootloader, which places it in the flash execution memory. 
-
-
-## Cmd 3 from the application controller /w i2c-debug set the address sent when serial handshake RTS toggles
-
-__Note__: this valuse is not saved in eeprom so a power loss will set it back to default ('0').
-
-The application controller can set the serial multi-drop bootload address that is sent when the local host opens its serial port.  When RTS toggles, send bootload address '2' (ASCII 0x32 or 50) on the side channel.
-
-```
-picocom -b 38400 /dev/ttyAMA0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 3,50
-{"txBuffer[2]":[{"data":"0x3"},{"data":"0x32"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x3"},{"data":"0x32"}]}
-``` 
-
-exit picocom with C-a, C-x. 
-
-Connect with picocom again. 
-
-``` 
-picocom -b 38400 /dev/ttyAMA0
-``` 
-
-Opening the serial port will toggle the RTS from the host, and the manager will see it and send 0x32 on the side channel (DTR pair). The manager(s) that do not have that address should blink there LED slow to indicate lockout, while the manager with address '2' blinks fast to indicate bootloader mode. Adjust the lockout timeout LOCKOUT_DELAY with the source firmware.
-
-
-## Cmd 3 from a Raspberry Pi set the address sent when RTS toggles
-
-__Note__: this valuse is not saved in eeprom so a power loss will set it back to default ('0').
-
-I2C1 can be used by the host to set the local bootload address that it will send when a host connects to it. When DTR/RTS toggles send ('2' is 0x32 is 50).
-
-``` 
-python3
-import smbus
-bus = smbus.SMBus(1)
-#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
-#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
-bus.write_i2c_block_data(42, 3, [50])
-print(bus.read_i2c_block_data(42, 3, 2))
-[3, 50]
-exit()
-``` 
-
-exit python and connect with picocom. 
-
-``` 
-picocom -b 38400 /dev/ttyAMA0
-``` 
-
-Opening the serial port will toggle the RTS from the host, and the manager will see it and send 0x32 on the side channel (DTR pair). The manager(s) that do not have that address should blink there LED slow to indicate lockout, while the manager with address '2' blinks fast to indicate bootloader mode. Adjust the lockout timeout LOCKOUT_DELAY with the source firmware.
 
 
 ## Cmd 4 from the application controller /w i2c-debug read if the host shutdown detected.

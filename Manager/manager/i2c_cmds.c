@@ -59,7 +59,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnRdMgrAddr, fnNull, fnRdBootldAddr, fnWtBootldAddr, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
+        {fnRdMgrAddr, fnNull, fnRdBootldAddr, fnNull, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
@@ -172,18 +172,18 @@ void fnRdMgrAddrQuietly(uint8_t* i2cBuffer)
     }
 }
 
-// I2C_COMMAND_TO_READ_ADDRESS_SENT_ON_ACTIVE_DTR
+// I2C command to access (bootload) address sent when HOST_nRTS toggles
 void fnRdBootldAddr(uint8_t* i2cBuffer)
 {
-    // replace data[1] with address sent when HOST_nRTS toggles
-    i2cBuffer[1] = bootloader_address;
-}
+    uint8_t tmp_addr = i2cBuffer[1];
 
-// I2C_COMMAND_TO_SET_ADDRESS_SENT_ON_ACTIVE_DTR
-void fnWtBootldAddr(uint8_t* i2cBuffer)
-{
-    // set the byte that is sent when HOST_nRTS toggles
-    bootloader_address = i2cBuffer[1];
+    // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
+    if ( (tmp_addr>='0') && (tmp_addr<='z') ) 
+    {
+        bootloader_address = tmp_addr;
+    }
+
+    i2cBuffer[1] = bootloader_address;
 }
 
 // I2C_COMMAND_TO_READ_SW_SHUTDOWN_DETECTED

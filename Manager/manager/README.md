@@ -1,5 +1,6 @@
 # To Do
 
+(done) change cmd 2 and 3 to use one cmd 2 to access the bootload address
 change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration.
     e.g., i2c(32,ALT_I)*i2c(38,EXTERNAL_AVCC,float)*i2c(33,ALT_I,float].
 Timed Accumulation overflows to soon.
@@ -111,8 +112,8 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
 1. not used.
-2. read the multi-drop bootload address sent when DTR/RTS toggles.
-3. write the multi-drop bootload address that will be sent when DTR/RTS toggles
+2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
+3. not used.
 4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
 5. set shutdown switch (pull down ICP1 for SHUTDOWN_TIME to cause the host to halt).
 6. read status bits.

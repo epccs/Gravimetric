@@ -17,7 +17,7 @@ extern void fnRdMgrAddr(uint8_t*); // 0 for I2C
 extern void fnRdMgrAddrQuietly(uint8_t*); // 0 for SMBus
 // not used //1
 extern void fnRdBootldAddr(uint8_t*); // 2
-extern void fnWtBootldAddr(uint8_t*); // 3
+// not used  // 3
 extern void fnRdShtdnDtct(uint8_t*); // 4
 extern void fnWtShtdnDtct(uint8_t*); // 5
 extern void fnRdStatus(uint8_t*); // 6

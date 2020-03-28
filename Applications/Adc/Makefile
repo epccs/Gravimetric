@@ -66,6 +66,7 @@ all: $(TARGET).hex $(TARGET).lst ## build the image and its related files
 
 $(TARGET): $(TARGET).hex
 
+# AS7 uses -R (exclusions) rather than -j (inclusions)
 $(TARGET).hex: $(TARGET).elf
 	$(OBJCOPY) -j .text -j .data -O ihex $< $@
 

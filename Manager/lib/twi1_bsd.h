@@ -54,15 +54,23 @@ typedef enum TWI1_PROTOCALL_enum {
     TWI1_PROTOCALL_REPEATEDSTART = 0x02 // lock the bus and wait for more to send
 } TWI1_PROTOCALL_t;
 
+typedef enum TWI1_LOOP_STATE_enum {
+    TWI1_LOOP_STATE_DONE, // TWI read/write is done so do nothing
+    TWI1_LOOP_STATE_ASYNC, // this can fail if data does not fit buffer, and needs to repeat if TWI state machine is not ready
+    TWI1_LOOP_STATE_STATUS // the TWI state machine will give a status when it has finished
+} TWI1_LOOP_STATE_t;
+
 void twi1_init(uint32_t bitrate, TWI1_PINS_t pull_up);
 
 TWI1_WRT_t twi1_masterAsyncWrite(uint8_t slave_address, uint8_t *write_data, uint8_t bytes_to_write, TWI1_PROTOCALL_t send_stop);
 TWI1_WRT_STAT_t twi1_masterAsyncWrite_status(void);
+uint8_t twi1_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, TWI1_PROTOCALL_t send_stop, TWI1_LOOP_STATE_t *loop_state);
 uint8_t twi1_masterBlockingWrite(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, TWI1_PROTOCALL_t send_stop);
 
 TWI1_RD_t twi1_masterAsyncRead(uint8_t slave_address, uint8_t bytes_to_read, TWI1_PROTOCALL_t send_stop);
 TWI1_RD_STAT_t twi1_masterAsyncRead_status(void);
 uint8_t twi1_masterAsyncRead_getBytes(uint8_t *read_data);
+uint8_t twi1_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, TWI1_PROTOCALL_t send_stop, TWI1_LOOP_STATE_t *loop_state);
 uint8_t twi1_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, TWI1_PROTOCALL_t send_stop);
 
 uint8_t twi1_slaveAddress(uint8_t slave);

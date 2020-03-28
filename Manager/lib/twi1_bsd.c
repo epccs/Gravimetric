@@ -340,8 +340,8 @@ void twi1_init(uint32_t bitrate, TWI1_PINS_t pull_up)
         TWCR1 &= ~((1<<TWEN) | (1<<TWIE) | (1<<TWEA));
 
         // deactivate internal pullups for twi.
-        ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_LOW); // PORTC &= ~(1 << PORTC0) disable the pull-up
-        ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_LOW); // PORTC &= ~(1 << PORTC1)
+        ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_LOW); // PORTE &= ~(1 << PORTE6) disable the pull-up
+        ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_LOW); // PORTE &= ~(1 << PORTE5)
     }
     else
     {
@@ -352,14 +352,14 @@ void twi1_init(uint32_t bitrate, TWI1_PINS_t pull_up)
         twi1_MastSlav_RxTx_state = TWI_STATE_READY;
         twi1_protocall = TWI1_PROTOCALL_STOP & ~TWI1_PROTOCALL_REPEATEDSTART;
 
-        ioDir(MCU_IO_SCL1, DIRECTION_INPUT); // DDRC &= ~(1 << DDC0)
-        ioDir(MCU_IO_SDA1, DIRECTION_INPUT); // DDRC &= ~(1 << DDC1)
+        ioDir(MCU_IO_SCL1, DIRECTION_INPUT); // DDRE &= ~(1 << DDE6)
+        ioDir(MCU_IO_SDA1, DIRECTION_INPUT); // DDRE &= ~(1 << DDE5)
 
         // weak pullup pull-up.
         if (pull_up == TWI1_PINS_PULLUP)
         {
-            ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_HIGH); // PORTC |= (1 << PORTC0)
-            ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_HIGH); // PORTC |= (1 << PORTC1)
+            ioWrite(MCU_IO_SCL1, LOGIC_LEVEL_HIGH); // PORTE |= (1 << PORTE6)
+            ioWrite(MCU_IO_SDA1, LOGIC_LEVEL_HIGH); // PORTE |= (1 << PORTE5)
         }
 
         // initialize TWPS[0:1]=0 for a prescaler = 1
@@ -461,35 +461,69 @@ TWI1_WRT_STAT_t twi1_masterAsyncWrite_status(void)
         return 5; // can not happen
 }
 
+
+// TWI write with a state machine so the wait can be done elsewhere
+// loop until loop_state == TWI1_LOOP_STATE_DONE, then return value is 
+// 0 .. success
+// 1 .. length to long for buffer
+// 2 .. address send, NACK received
+// 3 .. data send, NACK received
+// 4 .. illegal start or stop condition
+uint8_t twi1_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, TWI1_PROTOCALL_t send_stop, TWI1_LOOP_STATE_t *loop_state)
+{
+    TWI1_WRT_t twi_state_machine = TWI1_WRT_TRANSACTION_STARTED;
+    TWI1_WRT_STAT_t status = TWI1_WRT_STAT_SUCCESS;
+    switch (*loop_state)
+    {
+        case TWI1_LOOP_STATE_DONE:
+            break; // report success, there was nothing to do
+        case TWI1_LOOP_STATE_ASYNC:
+            twi_state_machine = twi1_masterAsyncWrite(slave_address, write_data, bytes_to_write, send_stop);
+            if (twi_state_machine == TWI1_WRT_TO_MUCH_DATA) 
+            {
+                *loop_state = TWI1_LOOP_STATE_DONE;
+                status = TWI1_WRT_STAT_BUSY; // report TWI1_WRT_STAT_BUSY (1) when TWI1_WRT_TO_MUCH_DATA occures
+                break; // data did not fit in the buffer, request ignored
+            }
+            else if (twi_state_machine == TWI1_WRT_NOT_READY)
+            {
+                break; // but the twi state machine is in use.
+            }
+            else 
+            {
+                *loop_state = TWI1_LOOP_STATE_STATUS;
+                break; // the twi state machine was given data and made ready.
+            }
+        case TWI1_LOOP_STATE_STATUS:
+            status = twi1_masterAsyncWrite_status();
+            if (status == TWI1_WRT_STAT_BUSY)
+            {
+                break; // the twi state machine has the data and we are waiting for it to finish.
+            }
+            else
+            {
+                *loop_state = TWI1_LOOP_STATE_DONE;
+                break; // all done
+            }
+    }
+    return status; // note that TWI1_WRT_STAT_BUSY (1) is reported when TWI1_WRT_TO_MUCH_DATA occures
+}
+
 // TWI write busy-wait transaction, do not use with multi-master.
 // 0 .. success
-// *1 .. length to long for buffer
-//      * the busy status is replaced by buffer error 
+// 1 .. length to long for buffer
 // 2 .. address send, NACK received
 // 3 .. data send, NACK received
 // 4 .. illegal start or stop condition
 uint8_t twi1_masterBlockingWrite(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, TWI1_PROTOCALL_t send_stop)
 {
-    TWI1_WRT_t twi_state_machine = twi1_masterAsyncWrite(slave_address, write_data, bytes_to_write, send_stop);
-    if (twi_state_machine == TWI1_WRT_NOT_READY) 
+    uint8_t twi_wrt_code = 0;
+    TWI1_LOOP_STATE_t loop_state = TWI1_LOOP_STATE_ASYNC; // loop state is in this blocking function rather than in the main loop
+    while (loop_state != TWI1_LOOP_STATE_DONE)
     {
-        return 1; // to much data so it was ignored
+        twi_wrt_code = twi1_masterWrite(slave_address, write_data, bytes_to_write, send_stop, &loop_state);
     }
-    else
-    {
-        // TWI state machine not ready, so wait
-        while(twi_state_machine == TWI1_WRT_NOT_READY)
-        {
-            twi_state_machine = twi1_masterAsyncWrite(slave_address, write_data, bytes_to_write, send_stop);
-        }
-        TWI1_WRT_STAT_t status = TWI1_WRT_STAT_BUSY; // busy
-        // wait for anything except busy
-        while(status == TWI1_WRT_STAT_BUSY)
-        {
-            status = twi1_masterAsyncWrite_status();
-        }
-        return status;
-    }
+    return twi_wrt_code;
 }
 
 // TWI Asynchronous Read Transaction.
@@ -595,39 +629,70 @@ uint8_t twi1_masterAsyncRead_getBytes(uint8_t *read_data)
     return bytes_read;
 }
 
+// TWI read with a state machine so the wait can be done elsewhere
+// loop until loop_state == TWI1_LOOP_STATE_DONE, then return value is 
+// 0 returns when somthing went wrong, was it from TWI1_RD_TO_MUCH_DATA, or check twi1_masterAsyncRead_status
+// 1..32 returns the number of bytes
+uint8_t twi1_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, TWI1_PROTOCALL_t send_stop, TWI1_LOOP_STATE_t *loop_state)
+{
+    TWI1_RD_t twi_state_machine = TWI1_RD_TRANSACTION_STARTED;
+    TWI1_RD_STAT_t status = TWI1_RD_STAT_BUSY;
+    uint8_t bytes_read = 0;
+    switch (*loop_state)
+    {
+        case TWI1_LOOP_STATE_DONE:
+            break; // there was nothing to do
+        case TWI1_LOOP_STATE_ASYNC:
+            twi_state_machine = twi1_masterAsyncRead(slave_address, bytes_to_read, send_stop);
+            if (twi_state_machine == TWI1_RD_TO_MUCH_DATA) 
+            {
+                *loop_state = TWI1_LOOP_STATE_DONE; // done, 
+                break; // read request ignored, data did not fit in the buffer.
+            }
+            else if (twi_state_machine == TWI1_RD_NOT_READY)
+            {
+                break; // but the twi state machine is in use.
+            }
+            else 
+            {
+                *loop_state = TWI1_LOOP_STATE_STATUS;
+                break; // machine was told to read data and made ready.
+            }
+        case TWI1_LOOP_STATE_STATUS:
+            status = twi1_masterAsyncRead_status();
+            if (status == TWI1_RD_STAT_BUSY)
+            {
+                break; // state machine is getting the data and we are waiting for it to finish.
+            }
+            else if ( (status == TWI1_RD_STAT_ADDR_NACK) || (status == TWI1_RD_STAT_DATA_NACK) || (status == TWI1_RD_STAT_ILLEGAL) ) // read faild 
+            {
+                *loop_state = TWI1_LOOP_STATE_DONE; // done,
+                break; // read failed, the status command can be used again to get the error
+            }
+            else
+            {
+                bytes_read = twi1_masterAsyncRead_getBytes(read_data);
+                *loop_state = TWI1_LOOP_STATE_DONE;
+                break; // all done
+            }
+    }
+    return bytes_read;
+}
+
+
+
 // TWI read busy-wait transaction, do not use with multi-master.
 // 0 returns if requeste for data will not fit in buffer
 // 1..32 returns the number of bytes
 uint8_t twi1_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, TWI1_PROTOCALL_t send_stop)
 {
-    TWI1_RD_t twi_state_machine = twi1_masterAsyncRead(slave_address, bytes_to_read, send_stop);
-    if (twi_state_machine == TWI1_RD_TO_MUCH_DATA)
+    uint8_t bytes_read = 0;
+    TWI1_LOOP_STATE_t loop_state = TWI1_LOOP_STATE_ASYNC; // loop state is in this blocking function rather than in the main loop
+    while (loop_state != TWI1_LOOP_STATE_DONE)
     {
-        return 0; // data will not fit in the buffer, request ignored
+        bytes_read = twi1_masterRead(slave_address, read_data, bytes_to_read, send_stop, &loop_state);
     }
-    else
-    {
-        // TWI state machine not ready, so wait
-        while(twi_state_machine == TWI1_RD_NOT_READY)
-        {
-            twi_state_machine = twi1_masterAsyncRead(slave_address, bytes_to_read, send_stop);
-        }
-
-        // wait for read status to not show busy
-        TWI1_RD_STAT_t status = TWI1_RD_STAT_BUSY;
-        while(status == TWI1_RD_STAT_BUSY)
-        {
-            status = twi1_masterAsyncRead_status();
-        }
-
-        // read can fail but this don't care.
-        if ( (status == TWI1_RD_STAT_ADDR_NACK) || (status == TWI1_RD_STAT_DATA_NACK) || (status == TWI1_RD_STAT_ILLEGAL) )
-            return 0;
-
-        // read operation complete so get data
-        uint8_t bytes_read = twi1_masterAsyncRead_getBytes(read_data);
-        return bytes_read;
-    }
+    return bytes_read;
 }
 
 // set valid slave address (0x8..0x77) 
