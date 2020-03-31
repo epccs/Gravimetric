@@ -36,11 +36,6 @@ ISR(ADC_vect){
     {
         adc_channel = 0;
         adc_isr_status = ISR_ADCBURST_DONE; // mark to notify burst is done
-        if (!free_running)
-        {
-            return;
-        }
-
     }
 
 #if defined(ADMUX)
@@ -54,7 +49,15 @@ ISR(ADC_vect){
 #endif
 
     // set ADSC in ADCSRA, ADC Start Conversion
-    ADCSRA |= (1<<ADSC);
+    if (adc_channel != 0)
+    {
+        ADCSRA |= (1<<ADSC);
+    }
+    else if (free_running) 
+    {
+        ADCSRA |= (1<<ADSC);
+        adc_isr_status = ISR_ADCBURST_START;
+    }
 }
 
 

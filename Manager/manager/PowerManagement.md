@@ -22,7 +22,7 @@ picocom -b 38400 /dev/ttyUSB0
 /1/ibuff 32,0,0
 {"txBuffer[3]":[{"data":"0x20"},{"data":"0x0"},{"data":"0x0"}]}
 /1/iread? 3
-*** wrong ***{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x20"},{"data":"0x1"},{"data":"0x66"}]}
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x20"},{"data":"0x0"},{"data":"0x0"}]}
 /1/ibuff 32,0,1
 {"txBuffer[3]":[{"data":"0x20"},{"data":"0x0"},{"data":"0x1"}]}
 /1/iread? 3

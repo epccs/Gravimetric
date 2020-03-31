@@ -40,7 +40,7 @@ SOFTWARE.
 #include "battery_limits.h"
 #include "power_manager.h"
 
-uint8_t enable_alternate_power;
+uint8_t enable_alternate_power; // flag for I2C or SMBus to enable alternate power with status bit 5
 
 unsigned long alt_pwm_started_at; // pwm on time
 unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pwm was done (e.g., approx LA absorption time)

@@ -113,7 +113,7 @@ Analog-to-Digital Converter reading from up to 5 ADMUX channels. The reading rep
 
 ``` 
 /1/analog? 4,5,6,7
-{"ALT_V":"0.00","ALT_I":"0.000","PWR_I":"0.009","PWR_V":"12.79"}
+### broken ###{"ALT_V": 
 /1/analog? 0,1,2,3
 {"ADC0":"0.00","ADC1":"0.03","ADC2":"0.00","ADC3":"0.00"}
 ```

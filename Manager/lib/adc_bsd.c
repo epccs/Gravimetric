@@ -55,21 +55,12 @@ ISR(ADC_vect){
         adc_channel = 6;
     }
     // ch 6 is PWR_I, always read
-    // ch 7 is PWR_V, only read when ALT_EN is low (e.g., at rest/not charging)
-    if ( (adc_channel == 7) && ioRead(MCU_IO_ALT_EN) )
-    {
-        adc_channel = 8; // skip channel 7
-    }
+    // ch 7 is PWR_V, always read
     
     if (adc_channel >= ADC_CHANNELS) 
     {
         adc_channel = 0;
         adc_isr_status = ISR_ADCBURST_DONE; // mark to notify burst is done
-        if (!free_running)
-        {
-            return;
-        }
-
     }
 
 #if defined(ADMUX)
@@ -83,7 +74,15 @@ ISR(ADC_vect){
 #endif
 
     // set ADSC in ADCSRA, ADC Start Conversion
-    ADCSRA |= (1<<ADSC);
+    if (adc_channel != 0)
+    {
+        ADCSRA |= (1<<ADSC);
+    }
+    else if (free_running) 
+    {
+        ADCSRA |= (1<<ADSC);
+        adc_isr_status = ISR_ADCBURST_START;
+    }
 }
 
 

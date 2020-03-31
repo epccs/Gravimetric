@@ -25,13 +25,6 @@ struct ChannelToCal_Map { // https://yarchive.net/comp/linux/typedefs.html
     ADC_ENUM_t cal_map; // map to calibration for ADC channel
 };
 
-const static struct ChannelToCal_Map channelToCalMap[ADC_CHANNELS] = {
-    [ADC_CH_ALT_I] = { .cal_map= ADC_ENUM_ALT_I }, 
-    [ADC_CH_ALT_V] = { .cal_map= ADC_ENUM_ALT_V }, 
-    [ADC_CH_PWR_I] = { .cal_map= ADC_ENUM_PWR_I }, 
-    [ADC_CH_PWR_V] = { .cal_map= ADC_ENUM_PWR_V } 
-};
-
 extern uint8_t IsValidValForCal(ADC_ENUM_t);
 extern uint8_t IsValidValForCalChannel(void);
 extern uint8_t WriteCalToEE(void);
