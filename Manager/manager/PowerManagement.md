@@ -2,8 +2,8 @@
 
 32..47 (Ox20..0x2F | 0b00100000..0b00111111)
 
-32. adc[channel] (uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return adc reading)
-33. calMap[channelMap.cal_map[channel]] (uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) and float (as uint32_t), return channel and calibration)
+32. adc[channel] (uint16_t: send enum (ALT_I, ALT_V,PWR_I,PWR_V), return adc reading)
+33. calMap[enum] (uint8_t+uint32_t: send enum (ALT_I+CALIBRATION_SET) and float (as uint32_t), return channel and calibration)
 34. not used
 35. not used
 36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
@@ -18,15 +18,23 @@ Needs three bytes from I2C. Example shows command followed by the ADC high byte 
 ``` 
 picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 32,0,7
-{"txBuffer[3]":[{"data":"0x20"},{"data":"0x0"},{"data":"0x7"}]}
+{"master_address":"0x29"}
+/1/ibuff 32,0,0
+{"txBuffer[3]":[{"data":"0x20"},{"data":"0x0"},{"data":"0x0"}]}
 /1/iread? 3
-{"rxBuffer":[{"data":"0x20"},{"data":"0x1"},{"data":"0x66"}]}
-/1/ibuff 32,0,6
-{"txBuffer[3]":[{"data":"0x20"},{"data":"0x00"},{"data":"0x06"}]}
+*** wrong ***{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x20"},{"data":"0x1"},{"data":"0x66"}]}
+/1/ibuff 32,0,1
+{"txBuffer[3]":[{"data":"0x20"},{"data":"0x0"},{"data":"0x1"}]}
 /1/iread? 3
-{"rxBuffer":[{"data":"0x20"},{"data":"0x0"},{"data":"0x14"}]}
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x20"},{"data":"0x0"},{"data":"0x0"}]}
+/1/ibuff 32,0,2
+{"txBuffer[3]":[{"data":"0x20"},{"data":"0x00"},{"data":"0x02"}]}
+/1/iread? 3
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x20"},{"data":"0x0"},{"data":"0x7"}]}
+/1/ibuff 32,0,3
+{"txBuffer[3]":[{"data":"0x20"},{"data":"0x0"},{"data":"0x3"}]}
+/1/iread? 3
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x20"},{"data":"0x1"},{"data":"0x66"}]}
 ``` 
 
 ALT_I is measured with Analog channel 0 from a 0.018 Ohm sense resistor that has a pre-amp with gain of 50 connected.

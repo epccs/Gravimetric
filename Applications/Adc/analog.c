@@ -26,6 +26,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/parse.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/rpu_mgr.h"
+#include "../lib/twi0_bsd.h"
 #include "../lib/timers_bsd.h"
 #include "analog.h"
 #include "references.h"
@@ -34,7 +35,11 @@ static unsigned long serial_print_started_at;
 
 static uint8_t adc_arg_index;
 
+static uint8_t adc_ch_from_manager;
 static int temp_adc;
+
+// use a state machine to restore where the twi transaction is at 
+static TWI0_LOOP_STATE_t twi0_loop_state = TWI0_LOOP_STATE_DONE;
 
 /* return adc values */
 void Analog(unsigned long serial_print_delay_milsec)
@@ -44,7 +49,7 @@ void Analog(unsigned long serial_print_delay_milsec)
         // check that arguments are digit in the range 0..7
         for (adc_arg_index=0; adc_arg_index < arg_count; adc_arg_index++) 
         {
-            if ( ( !( isdigit(arg[adc_arg_index][0]) ) ) || (atoi(arg[adc_arg_index]) < ADC0) || (atoi(arg[adc_arg_index]) > ADC_CHANNELS) )
+            if ( ( !( isdigit(arg[adc_arg_index][0]) ) ) || (atoi(arg[adc_arg_index]) < ADC_CH_ADC0) || (atoi(arg[adc_arg_index]) > ADC_CHANNELS) )
             {
                 printf_P(PSTR("{\"err\":\"AdcChOutOfRng\"}\r\n"));
                 initCommandBuffer();
@@ -68,80 +73,95 @@ void Analog(unsigned long serial_print_delay_milsec)
     else if ( (command_done == 11) )
     { // use the channel as an index in the JSON reply
         uint8_t arg_indx_channel =atoi(arg[adc_arg_index]);
-        
-        if ( (arg_indx_channel == ADC0) || (arg_indx_channel == ADC1) || (arg_indx_channel == ADC2) || (arg_indx_channel == ADC3) )
+        adc_ch_from_manager = ADC_CH_MGR_MAX_NOT_A_CH;
+        switch (arg_indx_channel)
         {
-            printf_P(PSTR("\"ADC%s\":"),arg[adc_arg_index]);
-            ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
-            {
-                temp_adc = adc[arg_indx_channel]; // this moves two byes one at a time, so the ISR could change it durring the move
-            }
-            
-        }
+            case ADC_CH_ADC0:
+            case ADC_CH_ADC1:
+            case ADC_CH_ADC2:
+            case ADC_CH_ADC3:
+                printf_P(PSTR("\"ADC%s\":"),arg[adc_arg_index]);
+                command_done = 12;
+                break;
 
-        if (arg_indx_channel == 4) //was ADC4 on ^0, now on manager ADC channel 1
-        {
-            printf_P(PSTR("\"ALT_V\":"));
-            temp_adc = i2c_get_adc_from_manager(ALT_V);
-        }
-        
-        if (arg_indx_channel == 5) //was ADC5 on ^0, now on manager ADC channel 0
-        {
-            printf_P(PSTR("\"ALT_I\":"));
-            temp_adc = i2c_get_adc_from_manager(ALT_I);
-        }
+            case ADC_CH_ADC4: //was ADC4 on ^0, now it is on the manager ADC at channel 1
+                printf_P(PSTR("\"ALT_V\":"));
+                adc_ch_from_manager = ADC_CH_MGR_ALT_V;
+                break;
+            case ADC_CH_ADC5: //was ADC5 on ^0, now it is on the manager ADC at channel 0
+                printf_P(PSTR("\"ALT_I\":"));
+                adc_ch_from_manager = ADC_CH_MGR_ALT_I;
+                break;
+            case ADC_CH_ADC6: //was ADC6 on ^0, now it is on the manager ADC at channel 6
+                printf_P(PSTR("\"PWR_I\":"));
+                adc_ch_from_manager = ADC_CH_MGR_PWR_I;
+                break;
+            case ADC_CH_ADC7: //was ADC7 on ^0, now it is on the manager ADC at channel 7
+                printf_P(PSTR("\"PWR_V\":"));
+                adc_ch_from_manager = ADC_CH_MGR_PWR_V;
+                break;
 
-        if (arg_indx_channel == 6) //was ADC6 on ^0, now on manager ADC channel 6
-        {
-            printf_P(PSTR("\"PWR_I\":"));
-            temp_adc = i2c_get_adc_from_manager(PWR_I);
+            default:
+                break;
         }
         
-        if (arg_indx_channel == 7) //was ADC7 on ^0, now on manager ADC channel 7
+        if (adc_ch_from_manager == ADC_CH_MGR_MAX_NOT_A_CH)
         {
-            printf_P(PSTR("\"PWR_V\":"));
-            temp_adc = i2c_get_adc_from_manager(PWR_V);
+            temp_adc = adcAtomic((ADC_CH_t) arg_indx_channel); // application controller has adc value
+            command_done = 20; 
         }
-        command_done = 12;
+        else
+        {
+            twi0_loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // get the ADC value from manager over twi0
+            command_done = 12;
+        }
     }
     else if ( (command_done == 12) )
     {
-        uint8_t arg_indx_channel =atoi(arg[adc_arg_index]);
+        temp_adc = i2c_get_adc_from_manager(adc_ch_from_manager, &twi0_loop_state);
+        if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
+        {
+            command_done = 20;
+        }
+    }
+
+    else if ( (command_done == 20) )
+    {
+        uint8_t arg_indx_channel = atoi(arg[adc_arg_index]);
 
         // There are values from 0 to 1023 for 1024 slots where each reperesents 1/1024 of the reference. Last slot has issues
         // https://forum.arduino.cc/index.php?topic=303189.0 
         // The BSS138 level shift will block voltages over 4.5V
-        if ( (arg_indx_channel == ADC0) || (arg_indx_channel == ADC1) || (arg_indx_channel == ADC2) || (arg_indx_channel == ADC3))
+        switch (arg_indx_channel)
         {
-            printf_P(PSTR("\"%1.2f\""),(temp_adc*(ref_extern_avcc_uV/1.0E6)/1024.0));
-        }
+            case ADC_CH_ADC0:
+            case ADC_CH_ADC1:
+            case ADC_CH_ADC2:
+            case ADC_CH_ADC3:
+                printf_P(PSTR("\"%1.2f\""),(temp_adc*(ref_extern_avcc_uV/1.0E6)/1024.0));
+                break;
 
-        if (arg_indx_channel == 4) //ADC4 was ALT_V on ^0, but is from manager over i2c now
-        {
-            printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
-        }
+            case ADC_CH_ADC4: //was ADC4 on ^0, now it is on the manager ADC at channel 1
+                printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
+                break;
+            case ADC_CH_ADC5: //was ADC5 on ^0, now it is on the manager ADC at channel 0
+                printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
+                break;
+            case ADC_CH_ADC6: //was ADC6 on ^0, now it is on the manager ADC at channel 6
+                printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0)));
+                break;
+            case ADC_CH_ADC7: //was ADC7 on ^0, now it is on the manager ADC at channel 7
+                printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8)));
+                break;
 
-        // ADC5 was connected to a 50V/V high side current sense.
-        if (arg_indx_channel == 5) //ADC5 was ALT_I on ^0, but is from manager over i2c now
-        {
-            printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
-        }
-
-        // ADC6 was connected to a 50V/V high side current sense.
-        if (arg_indx_channel == 6) //ADC6 was PWR_I on ^0, but is from manager over i2c now
-        {
-            printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0)));
-        }
-
-        if (arg_indx_channel == 7) //ADC7 was PWR_V on ^0, but is from manager over i2c now
-        {
-            printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8)));
+            default:
+                break;
         }
 
         if ( (adc_arg_index+1) >= arg_count) 
         {
             printf_P(PSTR("}\r\n"));
-            command_done = 13;
+            command_done = 21;
         }
         else
         {
@@ -150,7 +170,7 @@ void Analog(unsigned long serial_print_delay_milsec)
             command_done = 11;
         }
     }
-    else if ( (command_done == 13) ) 
+    else if ( (command_done == 21) ) 
     { // delay between JSON printing
         unsigned long kRuntime= elapsed(&serial_print_started_at);
         if ((kRuntime) > (serial_print_delay_milsec))

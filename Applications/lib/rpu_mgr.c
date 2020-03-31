@@ -184,10 +184,10 @@ char i2c_get_Rpu_address(void)
 
 // I2C command 32 takes a channel and returns adc[channel]
 // channels are ALT_I | ALT_V | PWR_I | PWR_V
-int i2c_get_adc_from_manager(uint8_t channel)
+int i2c_get_adc_from_manager(uint8_t channel, TWI0_LOOP_STATE_t *loop_state)
 {
     // use the int access cmd
-    return i2c_int_access_cmd(0x20, (int)channel);
+    return i2c_int_access_cmd(0x20, (int)channel, loop_state);
 }
 
 // The manager has a status byte that has the following bits. 
@@ -302,14 +302,14 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with)
 // 21 .. MORNING_THRESHOLD daynight threshold prameter
 // 22 .. EVENING_THRESHOLD daynight threshold prameter
 // 32 .. takes a channel and returns analogRead(channel), channels are ALT_I | ALT_V | PWR_I | PWR_V
-int i2c_int_access_cmd(uint8_t command, int update_with)
+int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop_state)
 {
     if ( (command != 32) & (((command<18) | (command>22)) | (command==20)) ) 
     {
         twi_errorCode = 6;
         return 0;
     }
-    if ( (command == 32) & ( !((update_with == ALT_I)|(update_with == ALT_V)|(update_with == PWR_I)|(update_with == PWR_V)) ) )
+    if ( (command == 32) & ( !((update_with == ADC_CH_MGR_ALT_I)|(update_with == ADC_CH_MGR_ALT_V)|(update_with == ADC_CH_MGR_PWR_I)|(update_with == ADC_CH_MGR_PWR_V)) ) )
     {
         twi_errorCode = 7;
         return 0;
@@ -320,19 +320,26 @@ int i2c_int_access_cmd(uint8_t command, int update_with)
     txBuffer[0] = command; // replace the command byte
     txBuffer[1] = (uint8_t)((update_with & 0xFF00)>>8);
     txBuffer[2] = (uint8_t)(update_with & 0xFF);
+    uint8_t rxBuffer[INT_CMD_SIZE];
+    uint8_t bytes_read = twi0_masterWriteRead(i2c_address, txBuffer, length, rxBuffer, length, loop_state);
+    /*
     twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {
         return 0;
     }
-    uint8_t rxBuffer[INT_CMD_SIZE];
     uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
     if ( bytes_read != length )
     {
         twi_errorCode = 5;
         return 0;
     }
-    int value = ((int)(rxBuffer[1]))<<8;
-    value +=  (int)rxBuffer[2];
+    */
+    int value = 0;
+    if( (*loop_state == TWI0_LOOP_STATE_DONE) && (bytes_read == length))
+    {
+        int value = ((int)(rxBuffer[1]))<<8;
+        value +=  (int)rxBuffer[2];
+    }
     return value;
 }

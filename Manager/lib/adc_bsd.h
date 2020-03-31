@@ -33,13 +33,25 @@ typedef enum REFERENCE_enum {
     REFERENCE_OPTIONS
 } REFERENCE_t;
 
-typedef enum CAL_CH_enum {
-    CAL_CH_ALT_I, // index of ALT_I calibration in map
-    CAL_CH_ALT_V, // index of ALT_V calibration in map
-    CAL_CH_PWR_I, // index of PWR_I calibration in map
-    CAL_CH_PWR_V, // index of PWR_V calibration in map
-    CAL_CH_END
-} CAL_CH_t;
+typedef enum ADC_ENUM_enum {
+    ADC_ENUM_ALT_I, // index of ALT_I calibration in map
+    ADC_ENUM_ALT_V, // index of ALT_V calibration in map
+    ADC_ENUM_PWR_I, // index of PWR_I calibration in map
+    ADC_ENUM_PWR_V, // index of PWR_V calibration in map
+    ADC_ENUM_END
+} ADC_ENUM_t;
+
+// map channel to calibration: ALT_I, ALT_V,PWR_I,PWR_V defined in ../lib/pins_board.h
+struct Channel_Map { // https://yarchive.net/comp/linux/typedefs.html
+    ADC_ENUM_t channel; // map to ADC channel
+};
+
+const static struct Channel_Map adcMap[ADC_ENUM_END] = {
+    [ADC_ENUM_ALT_I] = { .channel = ADC_CH_ALT_I}, 
+    [ADC_ENUM_ALT_V] = { .channel = ADC_CH_ALT_V}, 
+    [ADC_ENUM_PWR_I] = { .channel = ADC_CH_PWR_I}, 
+    [ADC_ENUM_PWR_V] = { .channel = ADC_CH_PWR_V} 
+};
 
 // ADREFSMASK is used to clear all referance select (REFS) bits befor setting the needed bits
 // EXTERNAL_AVCC: connects the analog reference to AVCC power supply with capacitor on AREF pin. 

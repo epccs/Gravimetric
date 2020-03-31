@@ -383,23 +383,23 @@ void fnDayNightState(uint8_t* i2cBuffer)
 }
 
 /********* POWER MANAGER ***********
-  *  analogRead of ALT_I, ALT_V, PWR_I, PWR_V reading     
-  *  analogTimedAccumulationRead of ALT_I, PWR_I */
+  *  ADC_ENUM_t has ADC_ENUM_ALT_I, ADC_ENUM_ALT_V, ADC_ENUM_PWR_I, ADC_ENUM_PWR_V, ADC_ENUM_END
+  *  and is used to refer to adc channels ADC_CH_ALT_I = 0, ADC_CH_ALT_V = 1, ADC_CH_PWR_I = 6, ADC_CH_PWR_V = 7
+  * */
 
-// I2C command to read the analog channel sent.
-// returns analogRead with high byte after command byte, then low byte next.
+// I2C command to read the ADC_ENUM_t [0..3] value sent.
+// returns the adc value with high byte after command byte, then low byte next.
 // Most AVR have ten analog bits, thus range is: 0..1023
 // returns zero when given an invalid channel
 void fnAnalogRead(uint8_t* i2cBuffer)
 {
-    uint16_t channel = 0;
-    channel += ((uint16_t)i2cBuffer[1])<<8;
-    channel += ((uint16_t)i2cBuffer[2]);
+    uint16_t adc_enum = 0;
+    adc_enum += ((uint16_t)i2cBuffer[1])<<8;
+    adc_enum += ((uint16_t)i2cBuffer[2]);
     uint16_t adc_reading;
-    if ( (channel == ADC_CH_ALT_I) || (channel == ADC_CH_ALT_V) || \
-         (channel == ADC_CH_PWR_I) || (channel == ADC_CH_PWR_V) )
+    if ( (adc_enum < ADC_ENUM_END) )
     {
-        adc_reading = adcAtomic((uint8_t)channel);
+        adc_reading = adcAtomic(adcMap[adc_enum].channel);
     }
     else
     {
@@ -410,22 +410,21 @@ void fnAnalogRead(uint8_t* i2cBuffer)
 }
 
 // I2C command for Calibration of ADC_CH_ALT_I, ADC_CH_ALT_V, ADC_CH_PWR_I, ADC_CH_PWR_V adc channels
-// byte after command is used to select channel
+// select the channel with ADC_ENUM_t value in byte after command
 // swap the next four I2C buffer bytes with the calMap[convert_channel_to_cal_map_index(channel)].calibration float
 // set cal_loaded so main loop will save it to EEPROM if valid or
 // recover EEPROM (or default) value if new was not valid
 void fnCalibrationRead(uint8_t* i2cBuffer)
 {
-    uint8_t is_channel_with_writebit = i2cBuffer[1];
-    uint8_t channel  = is_channel_with_writebit & CAL_CHANNEL_MASK; // removed the writebit
-    if ( (channel == ADC_CH_ALT_I) || (channel == ADC_CH_ALT_V) || \
-         (channel == ADC_CH_PWR_I) || (channel == ADC_CH_PWR_V) )
+    uint8_t is_adc_enum_with_writebit = i2cBuffer[1];
+    uint8_t adc_enum  = is_adc_enum_with_writebit & CAL_CHANNEL_MASK; // removed the writebit
+    if ( (adc_enum < ADC_ENUM_END) )
     {
-        channel_with_writebit = is_channel_with_writebit;
+        adc_enum_with_writebit = is_adc_enum_with_writebit;
 
         // place float in a uint32_t
         uint32_t old;
-        float temp_calibration = calMap[channelMap[channel].cal_map].calibration;
+        float temp_calibration = calMap[adc_enum].calibration;
         memcpy(&old, &temp_calibration, sizeof old);
 
         uint32_t new = 0;
@@ -442,15 +441,15 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
         i2cBuffer[5] =  ( (0x000000FFUL & old) ); 
 
         // new is ready
-        if (is_channel_with_writebit & CAL_CHANNEL_WRITEBIT) // keep new in SRAM if writebit is set
+        if (is_adc_enum_with_writebit & CAL_CHANNEL_WRITEBIT) // keep new in SRAM if writebit is set
         {
             // copy bytes into the memory footprint used for our tempary float
             memcpy(&temp_calibration, &new, sizeof temp_calibration);
-            calMap[channelMap[channel].cal_map].calibration = temp_calibration;
+            calMap[adc_enum].calibration = temp_calibration;
 
-            // CAL_0_TOSAVE << channelMap[channel].cal_map 
+            // CAL_0_TOSAVE << channelToCalMap[channel].cal_map 
             // if cal_map is 1 then CAL_0_TOSAVE << 1 gives CAL_1_TOSAVE 
-            cal_loaded = CAL_0_TOSAVE << channelMap[channel].cal_map; // main loop will save to eeprom or load default value if out of range
+            cal_loaded = CAL_0_TOSAVE << adc_enum; // main loop will save to eeprom or load default value if out of range
         }
     }
     else // bad channel  
