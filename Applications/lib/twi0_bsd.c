@@ -710,24 +710,36 @@ uint8_t twi0_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8
 // each time the loop_state machine is used it needs started with
 // twi0_loop_state = TWI0_LOOP_STATE_ASYNC_WRT;
 // when operations are finished twi0_loop_state == TWI0_LOOP_STATE_DONE 
-// and the return value should have the bytes_read (zero if error occured)
+// and the return value should have the bytes_read in lower 5 bits (0..32)
+// error codes are moved to the upper 3 bits (e.g., twi_wrt_code<<5 or twi0_masterAsyncRead_status()<<5)
 uint8_t twi0_masterWriteRead(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, uint8_t* read_data, uint8_t bytes_to_read, TWI0_LOOP_STATE_t *loop_state)
 {
-    uint8_t twi_wrt_code = twi0_masterWrite(slave_address, write_data, bytes_to_write, TWI0_PROTOCALL_REPEATEDSTART, loop_state);
-    if ( (*loop_state == TWI0_LOOP_STATE_DONE) && (twi_wrt_code == 0) )
+    if ( (*loop_state == TWI0_LOOP_STATE_ASYNC_WRT) || (*loop_state == TWI0_LOOP_STATE_STATUS_WRT) )
     {
-        *loop_state = TWI0_LOOP_STATE_ASYNC_RD;
+        uint8_t twi_wrt_code = twi0_masterWrite(slave_address, write_data, bytes_to_write, TWI0_PROTOCALL_REPEATEDSTART, loop_state);
+        if ( (*loop_state == TWI0_LOOP_STATE_DONE) && (twi_wrt_code == 0) )
+        {
+            *loop_state = TWI0_LOOP_STATE_ASYNC_RD;
+        }
+        else
+        {
+            // twi_wrt_code may have an error in which case loop_state is set as TWI0_LOOP_STATE_DONE
+            // or write is not done and we can check again after a spin through the outside loop
+            return twi_wrt_code<<5; // if twi_wrt_code has an error use twi0_masterAsyncWrite_status to see it
+        }
     }
-    else
-    {
-        // twi_wrt_code may have an error in which case loop_state is set as TWI0_LOOP_STATE_DONE
-        // or write is not done and we can check again after a spin through the outside loop
-        return 0; // if twi_wrt_code has an error use twi0_masterAsyncWrite_status to see it
-    }
+
     uint8_t bytes_read = twi0_masterRead(slave_address, read_data, bytes_to_read, TWI0_PROTOCALL_STOP, loop_state);
     if (*loop_state == TWI0_LOOP_STATE_DONE)
     {
-        return bytes_read; // an error will have zero bytes_read, use twi0_masterAsyncRead_status to see
+        if (bytes_read)
+        {
+            return bytes_read;
+        }
+        else
+        {
+            return twi0_masterAsyncRead_status()<<5;
+        }
     }
     else
     {

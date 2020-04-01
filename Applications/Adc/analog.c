@@ -17,6 +17,8 @@ source and copyright or distribute as you see fit (it is Zero Clause BSD).
 
 https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%22)
 */
+
+#include <stdbool.h>
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
 #include <avr/eeprom.h> 
@@ -28,6 +30,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/rpu_mgr.h"
 #include "../lib/twi0_bsd.h"
 #include "../lib/timers_bsd.h"
+#include "../lib/uart0_bsd.h"
 #include "analog.h"
 #include "references.h"
 
@@ -121,6 +124,12 @@ void Analog(unsigned long serial_print_delay_milsec)
         temp_adc = i2c_get_adc_from_manager(adc_ch_from_manager, &twi0_loop_state);
         if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
         {
+            if (temp_adc < 0)
+            {
+                printf_P(PSTR("\"Err=%d_ch=%d\"}\r\n"),temp_adc,adc_ch_from_manager);
+                initCommandBuffer();
+                return;
+            }
             command_done = 20;
         }
     }

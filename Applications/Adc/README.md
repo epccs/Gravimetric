@@ -109,11 +109,11 @@ identify
 
 ##  /0/analog? 0..7\[,0..7\[,0..7\[,0..7\[,0..7\]\]\]\]    
 
-Analog-to-Digital Converter reading from up to 5 ADMUX channels. The reading repeats every 2 Seconds until the Rx buffer gets a character. Channel 7 is the input voltage (PWR_V), channel 6 is the input current (PWR_I), channel 5 is the alternat input current (ALT_I), channel 4 is the alternat input voltage (ALT_V), channel 3, 2,  1, and 0 inputs can read up to about 4.5V (higher voltages are blocked by a level shift).
+Analog-to-Digital Converter reading from up to 5 ADMUX channels. The reading repeats every 2 Seconds until the Rx buffer gets a character. Channel 7 is the input voltage (PWR_V), channel 6 is the input current (PWR_I), channel 5 is the alternate input current (ALT_I), channel 4 is the alternate input voltage (ALT_V), channel 3, 2,  1, and 0 inputs can read up to about 4.5V (higher voltages are blocked by a level shift). Channel 7 through 4 is from the manager over a private I2C connection. 
 
 ``` 
 /1/analog? 4,5,6,7
-### broken ###{"ALT_V": 
+{"ALT_V":"0.00","ALT_I":"0.000","PWR_I":"0.033","PWR_V":"12.75"}
 /1/analog? 0,1,2,3
 {"ADC0":"0.00","ADC1":"0.03","ADC2":"0.00","ADC3":"0.00"}
 ```
