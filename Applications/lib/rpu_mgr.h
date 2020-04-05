@@ -23,6 +23,7 @@ extern uint8_t i2c_read_status(void);
 extern uint8_t i2c_uint8_access_cmd(uint8_t, uint8_t);
 extern unsigned long i2c_ul_access_cmd(uint8_t, unsigned long);
 extern int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop_state);
+float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, TWI0_LOOP_STATE_t *loop_state);
 
 // values used for i2c_uint8_access_cmd
 #define DAYNIGHT_STATE 23

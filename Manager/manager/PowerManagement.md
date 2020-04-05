@@ -8,7 +8,7 @@
 35. not used
 36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
 37. not used
-38. refMap[select] (uint8_t+uint32_t: send select (0x80:REF_SELECT_WRITEBIT+0:EXTERNAL_AVCC,1:INTERNAL_1V1) and float (as uint32_t), return select and referance)
+38. access analog referance
 39. not used
 
 ## Cmd 32 from the application controller /w i2c-debug running read analog channels
@@ -149,7 +149,7 @@ picocom -b 38400 /dev/ttyUSB0
 The PWR_IT four bytes sum to 15,1337,334 (e.g., 9*(2**24) + 5*(2**16) + 57*(2**8) + 118). PWR_I is measured with analog channel 6 on a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected and a referance of 5V. PWR_IT is accumulated every 10mSec, so use PWR_I correction and divide by 1000*3600/100 to get 6.037mAHr (e.g., (accumulated/1024)*referance/(0.068*50.0)/36000)). Clearly it is running to fast, but it seems to work.
 
 
-## Cmd 38 from the application controller /w i2c-debug running read analog referance.
+## Cmd 38 from the application controller /w i2c-debug running access analog referance.
 
 Needs six bytes from I2C. Example shows command followed by select followed by referance value (float). Use select=0 for EXTERNAL_AVCC, and select=1 for INTERNAL_1V1 (SelfTest needs to be update to save EXTERNAL_AVCC,but INTERNAL_1V1 is not used at this time).
 
@@ -182,3 +182,4 @@ unpack('f', pack('BBBB', 0x71, 0x3D, 0x8A, 0x3F))
 (1.0800000429153442,)
 ```
 
+If bit 7 in select (see REF_SELECT_WRITEBIT in manager) is set the value sent will replace what is in eeprom. 

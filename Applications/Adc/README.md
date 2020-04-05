@@ -6,9 +6,7 @@ Adc is an interactive command line program that demonstrates control of an Analo
 
 A customized library routine is used to operate the AVR's ADC, it has an ISR that is started with the enable_ADC_auto_conversion function to read the channels one after the next in a burst (free running is also an option). In this case, the loop starts the burst at timed intervals. The ADC clock runs at 125kHz and it takes 25 of its clocks to do the analog conversion, thus a burst takes over (ISR overhead) 1.6 milliseconds (e.g. 8*25*(1/125000)) to scan the eight channels. The ADC is turned off after each burst.
 
-The ADMUX register is used when selecting ADC channels. On this board the analog channel matches the digital number used by the [Wiring] functions. Thus the pin with ADC channel 0 (e.g., analogRead(0)) also has Wiring number 0 for digital (e.g. pinMode(0,INPUT), digitalRead(0) ) functions.
-
-[Wiring]: https://arduinohistory.github.io/
+The ADMUX register is used when selecting ADC channels. 
 
 
 # EEPROM Memory map 

@@ -16,6 +16,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 */
 
 #include <stdio.h>
+#include <string.h>
 #include "twi0_bsd.h"
 #include "rpu_mgr.h"
 
@@ -27,6 +28,15 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 // 6 .. bad command
 // 7 .. prevent sending bad data
 uint8_t twi_errorCode;
+
+// largest I2C transaction with manager so far is six bytes.
+#define MAX_CMD_SIZE 8
+
+uint8_t txBuffer_[MAX_CMD_SIZE];
+uint8_t bytes_to_write_; // master wrties bytes to slave (you may want to zero the last byte txBuffer array)
+uint8_t rxBuffer_[MAX_CMD_SIZE];
+uint8_t bytes_to_read_; // master reads bytes from slave (you may want to zero the rxBuffer array)
+uint8_t i2c_address_; // master address this slave
 
 // command 0 is used to read the address from manager
 #define ADDRESS_CMD {0x00,0x00}
@@ -65,6 +75,13 @@ uint8_t twi_errorCode;
 // out of range values are ignored
 #define ULONGINT_CMD {0x34,0x00,0x00,0x00,0x00}
 #define ULONGINT_CMD_SIZE 5
+
+// command 38 can have the manger set and report an
+// float. Cmd 38 is followed by a select byte, use 0 for EXTERNAL_AVCC and 
+// referance 1 for INTERNAL_1V1. Bit 7 of the select byte will save the 
+// sent value. e.g., 0x26 0x81 will save the next four bytes to INTERNAL_1V1
+#define FLOAT_CMD_SLCT {0x26,0x00,0x00,0x00,0x00,0x00}
+#define FLOAT_CMD_SLCT_SIZE 6
 
 #define RPU_BUS_MSTR_CMD_SZ 2
 #define I2C_ADDR_OF_BUS_MGR 0x29
@@ -273,8 +290,8 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with)
     uint8_t length = ULONGINT_CMD_SIZE;
     uint8_t txBuffer[ULONGINT_CMD_SIZE] = ULONGINT_CMD;
     txBuffer[0] = command; // replace the command byte
-    txBuffer[3] = (uint8_t)((update_with & 0xFF000000UL)>>24);
-    txBuffer[3] = (uint8_t)((update_with & 0xFF0000UL)>>16);
+    txBuffer[1] = (uint8_t)((update_with & 0xFF000000UL)>>24);
+    txBuffer[2] = (uint8_t)((update_with & 0xFF0000UL)>>16);
     txBuffer[3] = (uint8_t)((update_with & 0xFF00UL)>>8);
     txBuffer[4] = (uint8_t)(update_with & 0xFFUL);
     twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
@@ -314,41 +331,120 @@ int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop
         twi_errorCode = 7;
         return 0;
     }
-    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR; //0x29
-    uint8_t length = INT_CMD_SIZE;
-    uint8_t txBuffer[INT_CMD_SIZE] = INT_CMD; 
-    txBuffer[0] = command; // replace the command byte
-    txBuffer[1] = (uint8_t)((update_with & 0xFF00)>>8);
-    txBuffer[2] = (uint8_t)(update_with & 0xFF);
-    uint8_t rxBuffer[INT_CMD_SIZE];
-    uint8_t bytes_read = twi0_masterWriteRead(i2c_address, txBuffer, length, rxBuffer, length, loop_state);
-    /* keep as a known working referance for now
-    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
-    if (twi_errorCode)
-    {
-        return 0;
-    }
-    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
-    if ( bytes_read == 0 )
-    {
-        twi_errorCode = twi0_masterAsyncRead_status();
-        return 0;
-    }
-    *loop_state = TWI0_LOOP_STATE_DONE;
-    */
+
     int value = 0;
-    if( (*loop_state == TWI0_LOOP_STATE_DONE) /* && (bytes_read == length) */ )
+    if (*loop_state == TWI0_LOOP_STATE_INIT)
     {
-        // twi0_masterWriteRead error code is in bits 5..7
-        if(bytes_read & 0xE0)
+        i2c_address_ = I2C_ADDR_OF_BUS_MGR; //0x29
+        bytes_to_write_ = INT_CMD_SIZE;
+        txBuffer_[0] = command; // replace the command byte
+        txBuffer_[1] = (uint8_t)((update_with & 0xFF00)>>8);
+        txBuffer_[2] = (uint8_t)(update_with & 0xFF);
+        txBuffer_[3] = 0;
+        bytes_to_read_ = INT_CMD_SIZE;
+        rxBuffer_[0] = 0;
+        rxBuffer_[1] = 0;
+        rxBuffer_[2] = 0;
+        rxBuffer_[3] = 0;
+        *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
+    }
+    else 
+    {
+        uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
+        /* keep as a known working referance for now
+        twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer_, bytes_to_write_, TWI0_PROTOCALL_REPEATEDSTART); 
+        if (twi_errorCode)
         {
-            twi_errorCode = bytes_read>>5;
-            value = (int) (-twi_errorCode); // use a neg value as the error code
+            return 0;
         }
-        else
+        uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer_, bytes_to_read_, TWI0_PROTOCALL_STOP);
+        if ( bytes_read == 0 )
         {
-            value = ((int)(rxBuffer[1]))<<8;
-            value +=  (int)rxBuffer[2];
+            twi_errorCode = twi0_masterAsyncRead_status();
+            return 0;
+        }
+        *loop_state = TWI0_LOOP_STATE_DONE;
+        */
+        if( (*loop_state == TWI0_LOOP_STATE_DONE) )
+        {
+            // twi0_masterWriteRead error code is in bits 5..7
+            if(bytes_read & 0xE0)
+            {
+                twi_errorCode = bytes_read>>5;
+                value = 0; // int does not have NaN
+            }
+            else
+            {
+                value = ((int)(rxBuffer_[1]))<<8;
+                value +=  (int)rxBuffer_[2];
+            }
+        }
+    }
+    return value;
+}
+
+
+// management commands that select a float to update or return e.g. 
+// 38 .. access analog referance
+float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, TWI0_LOOP_STATE_t *loop_state)
+{
+    if ( (command != 38) ) 
+    {
+        twi_errorCode = 6;
+        return 0;
+    }
+
+    // select=0 EXTERNAL_AVCC, and select=1 for INTERNAL_1V1, bit 7 is used to update eeprom
+    if ( (command == 38) && ( (select & 0x7F) >= 2) )  
+    {
+        twi_errorCode = 7;
+        return 0;
+    }
+
+    float value = 0;
+    if (*loop_state == TWI0_LOOP_STATE_INIT)
+    {
+        i2c_address_ = I2C_ADDR_OF_BUS_MGR; //0x29
+        bytes_to_write_ = FLOAT_CMD_SLCT_SIZE;
+        txBuffer_[0] = command; // replace the command byte
+        txBuffer_[1] = select; // replace the select byte
+        uint32_t f_in_u32;
+        memcpy(&f_in_u32, update_with, sizeof f_in_u32); // copy float bytes into u32
+        txBuffer_[2] = (uint8_t)((f_in_u32 & 0xFF000000UL)>>24);
+        txBuffer_[3] = (uint8_t)((f_in_u32 & 0xFF0000UL)>>16);
+        txBuffer_[4] = (uint8_t)((f_in_u32 & 0xFF00UL)>>8);
+        txBuffer_[5] = (uint8_t)(f_in_u32 & 0xFFUL);
+        txBuffer_[6] = 0;
+        bytes_to_read_ = FLOAT_CMD_SLCT_SIZE;
+        rxBuffer_[0] = 0;
+        rxBuffer_[1] = 0;
+        rxBuffer_[2] = 0;
+        rxBuffer_[3] = 0;
+        rxBuffer_[4] = 0;
+        rxBuffer_[5] = 0;
+        rxBuffer_[6] = 0;
+        *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
+    }
+    else
+    {
+        uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
+        if( (*loop_state == TWI0_LOOP_STATE_DONE) )
+        {
+            // twi0_masterWriteRead error code is in bits 5..7
+            if(bytes_read & 0xE0)
+            {
+                twi_errorCode = bytes_read>>5;
+                value = (float)0xFFFFFFFFUL; // return NaN
+            }
+            else
+            {
+                uint32_t f_in_u32;
+                f_in_u32 = ((uint32_t)(rxBuffer_[2]))<<24;
+                f_in_u32 += ((uint32_t)(rxBuffer_[3]))<<16;
+                f_in_u32 += ((uint32_t)(rxBuffer_[4]))<<8;
+                f_in_u32 +=  (uint32_t)rxBuffer_[5];
+                memcpy(&value, &f_in_u32, sizeof value);
+            }
         }
     }
     return value;

@@ -40,6 +40,7 @@ static uint8_t adc_arg_index;
 
 static uint8_t adc_ch_from_manager;
 static int temp_adc;
+static float temp_ref_extern_avcc;
 
 // use a state machine to restore where the twi transaction is at 
 static TWI0_LOOP_STATE_t twi0_loop_state = TWI0_LOOP_STATE_DONE;
@@ -115,7 +116,7 @@ void Analog(unsigned long serial_print_delay_milsec)
         }
         else
         {
-            twi0_loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // get the ADC value from manager over twi0
+            twi0_loop_state = TWI0_LOOP_STATE_INIT; // manager has adc value, set init twi state for next step
             command_done = 12;
         }
     }
@@ -124,12 +125,31 @@ void Analog(unsigned long serial_print_delay_milsec)
         temp_adc = i2c_get_adc_from_manager(adc_ch_from_manager, &twi0_loop_state);
         if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
         {
-            if (temp_adc < 0)
+            if (twi_errorCode)
             {
-                printf_P(PSTR("\"Err=%d_ch=%d\"}\r\n"),temp_adc,adc_ch_from_manager);
+                printf_P(PSTR("\"Err=%d_ch=%d\"}\r\n"), twi_errorCode, adc_ch_from_manager);
                 initCommandBuffer();
                 return;
             }
+            twi0_loop_state = TWI0_LOOP_STATE_INIT; // manager also has referance, set init twi state for next step
+            command_done = 13;
+        }
+    }
+    else if ( (command_done == 13) )
+    {
+        uint8_t command = 38; // access analog referance
+        uint8_t select = 0; // select extern_avcc
+        float update_with = 0.0; // select needs to be 0x80 to to do the update
+        float temp_float = i2c_float_access_cmd(command, select, &update_with, &twi0_loop_state);
+        if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
+        {
+            if (twi_errorCode)
+            {
+                printf_P(PSTR("\"Err=%d_extern_avcc\"}\r\n"),twi_errorCode);
+                initCommandBuffer();
+                return;
+            }
+            temp_ref_extern_avcc = temp_float;
             command_done = 20;
         }
     }
@@ -151,7 +171,8 @@ void Analog(unsigned long serial_print_delay_milsec)
                 break;
 
             case ADC_CH_ADC4: //was ADC4 on ^0, now it is on the manager ADC at channel 1
-                printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
+                // printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
+                printf_P(PSTR("\"%1.2f\""),(temp_ref_extern_avcc));
                 break;
             case ADC_CH_ADC5: //was ADC5 on ^0, now it is on the manager ADC at channel 0
                 printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
