@@ -388,7 +388,7 @@ int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop
 // 38 .. access analog referance
 float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, TWI0_LOOP_STATE_t *loop_state)
 {
-    if ( (command != 38) ) 
+    if ( !( (command == 38) || (command == 33) ) ) 
     {
         twi_errorCode = 6;
         return 0;
@@ -396,6 +396,13 @@ float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, 
 
     // select=0 EXTERNAL_AVCC, and select=1 for INTERNAL_1V1, bit 7 is used to update eeprom
     if ( (command == 38) && ( (select & 0x7F) >= 2) )  
+    {
+        twi_errorCode = 7;
+        return 0;
+    }
+
+    // select = channel 0..3, bit 7 is used to update eeprom
+    if ( (command == 33) && ( (select & 0x7F) >= 4) )  
     {
         twi_errorCode = 7;
         return 0;

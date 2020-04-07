@@ -29,6 +29,25 @@ The internal 1V1 bandgap is not trimmed by the manufacturer, so it needs to be m
 [SelfTest]: https://github.com/epccs/Gravimetric/tree/master/Applications/SelfTest
 
 
+# Manager ADC and Callibration Values
+
+The application controller and manager have a private I2C bus between them.
+
+```
+Callibraion         type        i2c command/select/data         manager defaults 
+alt_i               INT16       32,0,0                          32,(10bits from adc ch 0)
+alt_v               INT16       32,0,1                          32,(10bits from adc ch 1)
+pwr_i               INT16       32,0,2                          32,(10bits from adc ch 6)
+pwr_v               INT16       32,0,3                          32,(10bits from adc ch 7)
+ref_extern_avcc     FLOAT       38,0,0,0,0,0                    38,0,0x40,0xA0,0x0,0x0
+ref_intern_1v1      FLOAT       38,1,0,0,0,0                    38,1,0x3F,0x8A,0x3D,0x71
+alt_i_callibraion   FLOAT       33,0,0,0,0,0                    33,0,0x3A,0x8E,0x38,0xE4
+alt_v_callibraion   FLOAT       33,1,0,0,0,0                    33,1,0x3C,0x30,0x0,0x0
+pwr_i_callibraion   FLOAT       33,2,0x39,0x96,0x96,0x96        33,2,0x39,0x96,0x96,0x96
+pwr_v_callibraion   FLOAT       33,3,0x3B,0xEA,0x88,0x1A        33,3,0x3B,0xEA,0x88,0x1A
+```
+
+
 # Firmware Upload
 
 The manager connected to the host that uploads needs to be advised what bootload address will receive the upload. I do this with some commands on the SMBus interface from a Raspberry Pi single-board computer.
@@ -107,18 +126,18 @@ identify
 
 ##  /0/analog? 0..7\[,0..7\[,0..7\[,0..7\[,0..7\]\]\]\]    
 
-Analog-to-Digital Converter reading from up to 5 ADMUX channels. The reading repeats every 2 Seconds until the Rx buffer gets a character. Channel 7 is the input voltage (PWR_V), channel 6 is the input current (PWR_I), channel 5 is the alternate input current (ALT_I), channel 4 is the alternate input voltage (ALT_V), channel 3, 2,  1, and 0 inputs can read up to about 4.5V (higher voltages are blocked by a level shift). Channel 7 through 4 is from the manager over a private I2C connection. 
+Analog-to-Digital Converter reading from up to 5 channels. The reading repeats every 2 Seconds until the Rx buffer gets a character. Channel 11 is the input voltage (PWR_V), channel 10 is the input current (PWR_I), channel 8 is the alternate input current (ALT_I), channel 9 is the alternate input voltage (ALT_V), channels 0..3 can read up to about 4.5V (higher voltages are blocked by a level shift). Channel 4..7 are from floating test points. Channels 8..11 are from the manager over a private I2C connection. 
 
 ``` 
-/1/analog? 4,5,6,7
-{"ALT_V":"0.00","ALT_I":"0.000","PWR_I":"0.033","PWR_V":"12.75"}
-/1/analog? 0,1,2,3
-{"ADC0":"0.00","ADC1":"0.03","ADC2":"0.00","ADC3":"0.00"}
+/1/analog? 8,9,10,11
+{"ALT_I":"0.00","ALT_V":"0.00","PWR_I":"0.02","PWR_V":"12.81"}
+/1/analog? 0,1,2,3,4
+{"ADC0":"3.75","ADC1":"3.77","ADC2":"3.77","ADC3":"3.77","ADC4":"3.77"}
 ```
 
-Channels 0..3 were connected to the [SelfTest] setup when I ran the above.
+Channels 0..4 were floating when I ran the above.
 
-Channels 4..7 are taken from the manager over the I2C interface (on ^0 of this board they were on these respective channels).
+Channels 8..11 are taken from the manager over the I2C interface.
 
 
 ##  /0/avcc 4500000..5500000

@@ -41,6 +41,7 @@ static uint8_t adc_arg_index;
 static uint8_t adc_ch_from_manager;
 static int temp_adc;
 static float temp_ref_extern_avcc;
+static float temp_ch_calibration_value;
 
 // use a state machine to restore where the twi transaction is at 
 static TWI0_LOOP_STATE_t twi0_loop_state = TWI0_LOOP_STATE_DONE;
@@ -53,7 +54,7 @@ void Analog(unsigned long serial_print_delay_milsec)
         // check that arguments are digit in the range 0..7
         for (adc_arg_index=0; adc_arg_index < arg_count; adc_arg_index++) 
         {
-            if ( ( !( isdigit(arg[adc_arg_index][0]) ) ) || (atoi(arg[adc_arg_index]) < ADC_CH_ADC0) || (atoi(arg[adc_arg_index]) > ADC_CHANNELS) )
+            if ( ( !( isdigit(arg[adc_arg_index][0]) ) ) || (atoi(arg[adc_arg_index]) < ADC_CH_ADC0) || (atoi(arg[adc_arg_index]) > (ADC_CHANNELS+ADC_CH_MGR_MAX_NOT_A_CH)) )
             {
                 printf_P(PSTR("{\"err\":\"AdcChOutOfRng\"}\r\n"));
                 initCommandBuffer();
@@ -84,23 +85,27 @@ void Analog(unsigned long serial_print_delay_milsec)
             case ADC_CH_ADC1:
             case ADC_CH_ADC2:
             case ADC_CH_ADC3:
+            case ADC_CH_ADC4:
+            case ADC_CH_ADC5:
+            case ADC_CH_ADC6:
+            case ADC_CH_ADC7:
                 printf_P(PSTR("\"ADC%s\":"),arg[adc_arg_index]);
                 command_done = 12;
                 break;
 
-            case ADC_CH_ADC4: //was ADC4 on ^0, now it is on the manager ADC at channel 1
-                printf_P(PSTR("\"ALT_V\":"));
-                adc_ch_from_manager = ADC_CH_MGR_ALT_V;
-                break;
-            case ADC_CH_ADC5: //was ADC5 on ^0, now it is on the manager ADC at channel 0
+            case (ADC_CHANNELS + ADC_CH_MGR_ALT_I): //was ADC5 on ^0, now it is on the manager ADC at channel 0
                 printf_P(PSTR("\"ALT_I\":"));
                 adc_ch_from_manager = ADC_CH_MGR_ALT_I;
                 break;
-            case ADC_CH_ADC6: //was ADC6 on ^0, now it is on the manager ADC at channel 6
+            case (ADC_CHANNELS + ADC_CH_MGR_ALT_V): //was ADC4 on ^0, now it is on the manager ADC at channel 1
+                printf_P(PSTR("\"ALT_V\":"));
+                adc_ch_from_manager = ADC_CH_MGR_ALT_V;
+                break;
+            case (ADC_CHANNELS + ADC_CH_MGR_PWR_I): //was ADC6 on ^0, now it is on the manager ADC at channel 6
                 printf_P(PSTR("\"PWR_I\":"));
                 adc_ch_from_manager = ADC_CH_MGR_PWR_I;
                 break;
-            case ADC_CH_ADC7: //was ADC7 on ^0, now it is on the manager ADC at channel 7
+            case (ADC_CHANNELS + ADC_CH_MGR_PWR_V): //was ADC7 on ^0, now it is on the manager ADC at channel 7
                 printf_P(PSTR("\"PWR_V\":"));
                 adc_ch_from_manager = ADC_CH_MGR_PWR_V;
                 break;
@@ -139,7 +144,7 @@ void Analog(unsigned long serial_print_delay_milsec)
     {
         uint8_t command = 38; // access analog referance
         uint8_t select = 0; // select extern_avcc
-        float update_with = 0.0; // select needs to be 0x80 to to do the update
+        float update_with = 0.0; // select needs to be 0x80 to to do a upload (and save)
         float temp_float = i2c_float_access_cmd(command, select, &update_with, &twi0_loop_state);
         if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
         {
@@ -150,10 +155,28 @@ void Analog(unsigned long serial_print_delay_milsec)
                 return;
             }
             temp_ref_extern_avcc = temp_float;
+            twi0_loop_state = TWI0_LOOP_STATE_INIT; // manager also has a callibraion, set init twi state for next step
+            command_done = 14;
+        }
+    }
+    else if ( (command_done == 14) )
+    {
+        uint8_t command = 33; // access channel calibration value
+        uint8_t select = adc_ch_from_manager; // select channel calibration value
+        float update_with = 0.0; // select needs to be 0x80, 0x81, 0x82... to to do an upload (and save)
+        float temp_float = i2c_float_access_cmd(command, select, &update_with, &twi0_loop_state);
+        if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
+        {
+            if (twi_errorCode)
+            {
+                printf_P(PSTR("\"Err=%d_ch_cal\"}\r\n"),twi_errorCode);
+                initCommandBuffer();
+                return;
+            }
+            temp_ch_calibration_value = temp_float;
             command_done = 20;
         }
     }
-
     else if ( (command_done == 20) )
     {
         uint8_t arg_indx_channel = atoi(arg[adc_arg_index]);
@@ -167,21 +190,28 @@ void Analog(unsigned long serial_print_delay_milsec)
             case ADC_CH_ADC1:
             case ADC_CH_ADC2:
             case ADC_CH_ADC3:
+            case ADC_CH_ADC4:
+            case ADC_CH_ADC5:
+            case ADC_CH_ADC6:
+            case ADC_CH_ADC7:
                 printf_P(PSTR("\"%1.2f\""),(temp_adc*(ref_extern_avcc_uV/1.0E6)/1024.0));
                 break;
 
-            case ADC_CH_ADC4: //was ADC4 on ^0, now it is on the manager ADC at channel 1
-                // printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(110.0/10.0)));
-                printf_P(PSTR("\"%1.2f\""),(temp_ref_extern_avcc));
+            case (ADC_CHANNELS + ADC_CH_MGR_ALT_I): //was ADC5 on ^0, now it is on the manager ADC at channel 0
+                // printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
+                printf_P(PSTR("\"%1.2f\""), (temp_adc*temp_ref_extern_avcc*temp_ch_calibration_value) );
                 break;
-            case ADC_CH_ADC5: //was ADC5 on ^0, now it is on the manager ADC at channel 0
-                printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.018*50.0)));
+            case (ADC_CHANNELS + ADC_CH_MGR_ALT_V): //was ADC4 on ^0, now it is on the manager ADC at channel 1
+                // printf_P(PSTR("\"%1.2f\""),(temp_adc*((5.0)*(110.0/10.0)/1024.0));
+                printf_P(PSTR("\"%1.2f\""), (temp_adc*temp_ref_extern_avcc*temp_ch_calibration_value) );
                 break;
-            case ADC_CH_ADC6: //was ADC6 on ^0, now it is on the manager ADC at channel 6
-                printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0)));
+            case (ADC_CHANNELS + ADC_CH_MGR_PWR_I): //was ADC6 on ^0, now it is on the manager ADC at channel 6
+                // printf_P(PSTR("\"%1.3f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)/(0.068*50.0)));
+                printf_P(PSTR("\"%1.2f\""), (temp_adc*temp_ref_extern_avcc*temp_ch_calibration_value) );
                 break;
-            case ADC_CH_ADC7: //was ADC7 on ^0, now it is on the manager ADC at channel 7
-                printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8)));
+            case (ADC_CHANNELS + ADC_CH_MGR_PWR_V): //was ADC7 on ^0, now it is on the manager ADC at channel 7
+                // printf_P(PSTR("\"%1.2f\""),(temp_adc*((ref_extern_avcc_uV/1.0E6)/1024.0)*(115.8/15.8)));
+                printf_P(PSTR("\"%1.2f\""), (temp_adc*temp_ref_extern_avcc*temp_ch_calibration_value) );
                 break;
 
             default:
