@@ -6,20 +6,21 @@
 1. not used.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. not used.
-4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
-5. set shutdown switch (pull down ICP1 for SHUTDOWN_TIME to cause the host to halt).
+4. access shutdown_detect, manager MCU_IO_SHUTDOWN has a weak pull-up and a momentary switch.
+5. not used.
 6. read status bits.
 7. write (or clear) status.
 
 status bits: 
 
-0. DTR readback timeout
-1. twi transmit fail
+0. DTR (management pair) readback timeout
+1. twi slave transmit fail
 2. DTR readback not match
 3. host lockout
 4. alternate power enable (ALT_EN)
 5. SBC power enable (PIPWR_EN), use to restart SBC after a shutdown with command 5
 6. Day-Night state fail (e.g. > 20hr of day or night), clear will restart it.
+7. Update bit, if set change the other bits.
 
 
 ## Cmd 0 from the application controller /w i2c-debug access the serial multi-drop address
@@ -64,7 +65,7 @@ Although the manager immediately knows its new address, the application controll
 ``` 
 
 
-## Cmd 0 from a Raspberry Pi read the serial multi-drop address
+## Cmd 0 from a Raspberry Pi access the serial multi-drop address
 
 The local host can read the local serial multi-drop address from the manager.
 
@@ -87,7 +88,7 @@ print(bus.read_i2c_block_data(42, 0, 2))
 Will be repurposed.
 
 
-## Cmd 2 from the application controller /w i2c-debug access the bootload address (48..122) sent when serial handshake RTS toggless
+## Cmd 2 from the application controller /w i2c-debug access the bootload address (48..122) sent when serial handshake RTS toggless.
 
 The application controller can access the serial multi-drop bootload address that is sent when the local host opens its serial port (RTS goes active).
 
@@ -122,7 +123,7 @@ picocom -b 38400 /dev/ttyAMA0
 Opening the serial port will toggle the RTS from the host, and the manager will see it and send 0x31 on the DTR pair. The manager(s) that do not have that address should blink there LED slow to indicate lockout, while the manager with address '1' blinks fast to indicate bootloader mode. 
 
 
-## Cmd 2 from a Raspberry Pi access the bootload address (48..122) sent when serial handshake RTS toggles
+## Cmd 2 from a Raspberry Pi access the bootload address (48..122) sent when serial handshake RTS toggles.
 
 The local host can access the serial multi-drop bootload address that is sent when the local host opens its serial port.
 
@@ -144,7 +145,7 @@ The out of range address above was ignored. If the sent bootload address is in t
 Address 48 is 0x30 or ASCII '0'. The manager with that address will reset its application controller, and the serial multi-drop bus will switch to a point to point connection between the host and the application controller connected to that manager. The point to point serial allows the uploader tool to send a new application image to the bootloader, which places it in the flash execution memory. 
 
 
-## Cmd 4 from the application controller /w i2c-debug read if the host shutdown detected.
+## Cmd 4 from the application controller /w i2c-debug access host shutdown detected.
 
 The application controller can check if the host got a manual halt command (e.g., if the shutdown button got pressed). Reading will clear the shutdown_detected flag that was used to keep the LED_BUILTIN from blinking.
 
@@ -152,48 +153,51 @@ The application controller can check if the host got a manual halt command (e.g.
 picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
 {"address":"0x29"}
-/1/ibuff 4,255
-{"txBuffer[2]":[{"data":"0x4"},{"data":"0xFF"}]}
+/1/ibuff 4,0
+{"txBuffer[2]":[{"data":"0x4"},{"data":"0x0"}]}
 /1/iread? 2
 {"rxBuffer":[{"data":"0x4"},{"data":"0x1"}]}
-/1/ibuff 4,255
-{"txBuffer[2]":[{"data":"0x4"},{"data":"0xFF"}]}
+/1/ibuff 4,0
+{"txBuffer[2]":[{"data":"0x4"},{"data":"0x0"}]}
 /1/iread? 2
 {"rxBuffer":[{"data":"0x4"},{"data":"0x0"}]}
 ``` 
 
 The above interaction with a remote host was over the multi-drop serial. The second reading shows that shutdown_detected cleared.
 
-
-## Cmd 5 from the application controller /w i2c-debug set host shutdown.
-
-The application controller can have the manager pull down the shutdown as though it was a manual (e.g., the shutdown button got pressed). Use command 4 to read and clear the shutdown_detected flag.
-
 ``` 
-picocom -b 38400 /dev/ttyAMA0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 5,1
-{"txBuffer[2]":[{"data":"0x5"},{"data":"0x1"}]}
+/1/ibuff 4,1
+{"txBuffer[2]":[{"data":"0x4"},{"data":"0x1"}]}
 /1/iread? 2
-{"rxBuffer":[{"data":"0x5"},{"data":"0x1"}]}
+{"rxBuffer":[{"data":"0x4"},{"data":"0x0"}]}
+/1/ibuff 4,0
+{"txBuffer[2]":[{"data":"0x4"},{"data":"0x0"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x4"},{"data":"0x1"}]}
 ``` 
 
-The above interaction with a remote host was over the multi-drop serial.
+The data byte == 1 will cause shutdown and set the detected flag after SHUTDOWN_TIME time has elapsed.
 
 
-## Cmd 6 from a controller /w i2c-debug read status bits
+## Cmd 5 is not used.
 
-The application controller can read the status of the manager. 
+Will be repurposed.
+
+
+## Cmd 6 from a controller /w i2c-debug access status bits
+
+The application controller can access the status of the manager. 
 
 status bits: 
 
-0. DTR readback timeout
-1. twi transmit fail
+0. DTR (management pair) readback timeout
+1. twi slave transmit fail
 2. DTR readback not match
 3. host lockout
 4. alternate power enable (ALT_EN)
-5. SBC power enable (PIPWR_EN)
+5. SBC power enable (PIPWR_EN), use to restart SBC after a shutdown
+6. Day-Night state fail (e.g. > 20hr of day or night), clear will restart it.
+7. Update bit, if set change the other bits.
 
 ``` 
 picocom -b 38400 /dev/ttyAMA0
@@ -206,7 +210,7 @@ picocom -b 38400 /dev/ttyAMA0
 ``` 
 
 
-## Cmd 6 from a Raspberry Pi read status bits
+## Cmd 6 from a Raspberry Pi access status bits
 
 The local host can read status bits.
 
@@ -223,45 +227,10 @@ print(bus.read_i2c_block_data(42, 6, 2))
 
 Bit 3 is set so the host lockout is set until that has been cleared.
 
-
-## Cmd 7 from the application controller /w i2c-debug set status bits.
-
-The application controller can set the status of the manager. 
-
-status bits: 
-
-0. DTR readback timeout
-1. twi transmit fail
-2. DTR readback not match
-3. host lockout
-4. enable alternate power enable (allows manager to use ALT_EN)
-5. enable SBC power (starts up PIPWR_EN)
-
 ``` 
-picocom -b 38400 /dev/ttyAMA0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 7,8
-{"txBuffer[2]":[{"data":"0x7"},{"data":"0x0"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x7"},{"data":"0x0"}]}
-``` 
-
-
-## Cmd 7 from a Raspberry Pi set status bits.
-
-The local host can set or clear status bits (except PIPWR_EN).
-
-
-``` 
-python3
-import smbus
-bus = smbus.SMBus(1)
-#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
-#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
-bus.write_i2c_block_data(42, 7, [0])
-print(bus.read_i2c_block_data(42, 7, 2))
-[7, 0]
+bus.write_i2c_block_data(42, 6, [0x80])
+print(bus.read_i2c_block_data(42, 6, 2))
+[6, 0]
 exit()
 picocom -b 38400 /dev/ttyAMA0
 ...

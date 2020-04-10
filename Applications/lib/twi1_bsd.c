@@ -477,7 +477,7 @@ uint8_t twi1_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t byt
     {
         case TWI1_LOOP_STATE_DONE:
             break; // report success, there was nothing to do
-        case TWI1_LOOP_STATE_ASYNC:
+        case TWI1_LOOP_STATE_ASYNC_WRT:
             twi_state_machine = twi1_masterAsyncWrite(slave_address, write_data, bytes_to_write, send_stop);
             if (twi_state_machine == TWI1_WRT_TO_MUCH_DATA) 
             {
@@ -491,10 +491,10 @@ uint8_t twi1_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t byt
             }
             else 
             {
-                *loop_state = TWI1_LOOP_STATE_STATUS;
+                *loop_state = TWI1_LOOP_STATE_STATUS_WRT;
                 break; // the twi state machine was given data and made ready.
             }
-        case TWI1_LOOP_STATE_STATUS:
+        case TWI1_LOOP_STATE_STATUS_WRT:
             status = twi1_masterAsyncWrite_status();
             if (status == TWI1_WRT_STAT_BUSY)
             {
@@ -504,6 +504,13 @@ uint8_t twi1_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t byt
             {
                 *loop_state = TWI1_LOOP_STATE_DONE;
                 break; // all done
+            }
+        case TWI1_LOOP_STATE_INIT:
+        case TWI1_LOOP_STATE_ASYNC_RD:
+        case TWI1_LOOP_STATE_STATUS_RD:
+            {
+                *loop_state = TWI1_LOOP_STATE_DONE;
+                break; // wrong state was set befor running
             }
     }
     return status; // note that TWI1_WRT_STAT_BUSY (1) is reported when TWI1_WRT_TO_MUCH_DATA occures
@@ -518,7 +525,7 @@ uint8_t twi1_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t byt
 uint8_t twi1_masterBlockingWrite(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, TWI1_PROTOCALL_t send_stop)
 {
     uint8_t twi_wrt_code = 0;
-    TWI1_LOOP_STATE_t loop_state = TWI1_LOOP_STATE_ASYNC; // loop state is in this blocking function rather than in the main loop
+    TWI1_LOOP_STATE_t loop_state = TWI1_LOOP_STATE_ASYNC_WRT; // loop state is in this blocking function rather than in the main loop
     while (loop_state != TWI1_LOOP_STATE_DONE)
     {
         twi_wrt_code = twi1_masterWrite(slave_address, write_data, bytes_to_write, send_stop, &loop_state);
@@ -642,7 +649,7 @@ uint8_t twi1_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes
     {
         case TWI1_LOOP_STATE_DONE:
             break; // there was nothing to do
-        case TWI1_LOOP_STATE_ASYNC:
+        case TWI1_LOOP_STATE_ASYNC_RD:
             twi_state_machine = twi1_masterAsyncRead(slave_address, bytes_to_read, send_stop);
             if (twi_state_machine == TWI1_RD_TO_MUCH_DATA) 
             {
@@ -655,10 +662,10 @@ uint8_t twi1_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes
             }
             else 
             {
-                *loop_state = TWI1_LOOP_STATE_STATUS;
+                *loop_state = TWI1_LOOP_STATE_STATUS_RD;
                 break; // machine was told to read data and made ready.
             }
-        case TWI1_LOOP_STATE_STATUS:
+        case TWI1_LOOP_STATE_STATUS_RD:
             status = twi1_masterAsyncRead_status();
             if (status == TWI1_RD_STAT_BUSY)
             {
@@ -675,6 +682,13 @@ uint8_t twi1_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes
                 *loop_state = TWI1_LOOP_STATE_DONE;
                 break; // all done
             }
+        case TWI1_LOOP_STATE_INIT:
+        case TWI1_LOOP_STATE_ASYNC_WRT:
+        case TWI1_LOOP_STATE_STATUS_WRT:
+            {
+                *loop_state = TWI1_LOOP_STATE_DONE;
+                break; // wrong state was set befor running
+            }
     }
     return bytes_read;
 }
@@ -687,13 +701,59 @@ uint8_t twi1_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes
 uint8_t twi1_masterBlockingRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes_to_read, TWI1_PROTOCALL_t send_stop)
 {
     uint8_t bytes_read = 0;
-    TWI1_LOOP_STATE_t loop_state = TWI1_LOOP_STATE_ASYNC; // loop state is in this blocking function rather than in the main loop
+    TWI1_LOOP_STATE_t loop_state = TWI1_LOOP_STATE_ASYNC_RD; // loop state is in this blocking function rather than in the main loop
     while (loop_state != TWI1_LOOP_STATE_DONE)
     {
         bytes_read = twi1_masterRead(slave_address, read_data, bytes_to_read, send_stop, &loop_state);
     }
     return bytes_read;
 }
+
+// TWI Write and then Read with a state machine so the wait can be done elsewhere
+// befor calling define a variable for the stat machine to use 
+// static TWI1_LOOP_STATE_t twi0_loop_state = TWI1_LOOP_STATE_DONE;
+// each time the loop_state machine is used it needs started with
+// twi0_loop_state = TWI1_LOOP_STATE_ASYNC_WRT;
+// when operations are finished twi0_loop_state == TWI1_LOOP_STATE_DONE 
+// and the return value should have the bytes_read in lower 5 bits (0..32)
+// error codes are moved to the upper 3 bits (e.g., twi_wrt_code<<5 or twi1_masterAsyncRead_status()<<5)
+uint8_t twi1_masterWriteRead(uint8_t slave_address, uint8_t* write_data, uint8_t bytes_to_write, uint8_t* read_data, uint8_t bytes_to_read, TWI1_LOOP_STATE_t *loop_state)
+{
+    if ( (*loop_state == TWI1_LOOP_STATE_ASYNC_WRT) || (*loop_state == TWI1_LOOP_STATE_STATUS_WRT) )
+    {
+        uint8_t twi_wrt_code = twi1_masterWrite(slave_address, write_data, bytes_to_write, TWI1_PROTOCALL_REPEATEDSTART, loop_state);
+        if ( (*loop_state == TWI1_LOOP_STATE_DONE) && (twi_wrt_code == 0) )
+        {
+            *loop_state = TWI1_LOOP_STATE_ASYNC_RD;
+        }
+        else
+        {
+            // twi_wrt_code may have an error in which case loop_state is set as TWI0_LOOP_STATE_DONE
+            // or write is not done and we can check again after a spin through the outside loop
+            return twi_wrt_code<<5; // if twi_wrt_code has an error use twi0_masterAsyncWrite_status to see it
+        }
+    }
+
+    uint8_t bytes_read = twi1_masterRead(slave_address, read_data, bytes_to_read, TWI1_PROTOCALL_STOP, loop_state);
+    if (*loop_state == TWI1_LOOP_STATE_DONE)
+    {
+        if (bytes_read)
+        {
+            return bytes_read;
+        }
+        else
+        {
+            return twi1_masterAsyncRead_status()<<5;
+        }
+    }
+    else
+    {
+        return 0; // not done
+    }
+    
+}
+
+
 
 // set valid slave address (0x8..0x77) 
 // return address if set

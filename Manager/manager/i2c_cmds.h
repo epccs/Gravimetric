@@ -13,15 +13,15 @@ extern void receive_i2c_event(uint8_t*, uint8_t);
 extern void transmit_i2c_event(void);
 
 // Prototypes for point 2 multipoint commands
-extern void fnRdMgrAddr(uint8_t*); // 0 for I2C
-extern void fnRdMgrAddrQuietly(uint8_t*); // 0 for SMBus
+extern void fnMgrAddr(uint8_t*); // 0 for I2C
+extern void fnMgrAddrQuietly(uint8_t*); // 0 for SMBus
 // not used //1
-extern void fnRdBootldAddr(uint8_t*); // 2
+extern void fnBootldAddr(uint8_t*); // 2
 // not used  // 3
-extern void fnRdShtdnDtct(uint8_t*); // 4
-extern void fnWtShtdnDtct(uint8_t*); // 5
-extern void fnRdStatus(uint8_t*); // 6
-extern void fnWtStatus(uint8_t*); // 7
+extern void fnShtdnDtct(uint8_t*); // 4
+// not used  // 5
+extern void fnStatus(uint8_t*); // 6
+// not used // 7
 
 // Prototypes for point 2 point commands
 extern void fnWtArduinMode(uint8_t*); // 16

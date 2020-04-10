@@ -1,8 +1,10 @@
 # To Do
 
 (done) change cmd 2 and 3 to use one cmd 2 to access the bootload address
-change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration.
-    e.g., i2c(32,ALT_I)*i2c(38,EXTERNAL_AVCC,float)*i2c(33,ALT_I,float].
+(done) change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration.
+(done) change cmd 4 and 5 to use one cmd 4 to access shutdown of host
+(done) change cmd 6 and 7 to use one cmd 6 to an access status of manager
+try to do daynight state machine so it acts as a i2c master to send state change and work events once enabled (e.g., multi-master)
 Timed Accumulation overflows to soon.
 Timed Accumulation needs a half LSB added (e.g. an LSB every other accumulation) because the ADC max value represents the selected reference voltage minus one LSB.
 Verify alternate power control with applicaiton
@@ -11,6 +13,7 @@ Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STA
 A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
+
 
 # Manager
 
@@ -114,10 +117,10 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 1. not used.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. not used.
-4. read shutdown switch (the ICP1 pin has a weak pull-up and a momentary switch).
-5. set shutdown switch (pull down ICP1 for SHUTDOWN_TIME to cause the host to halt).
-6. read status bits.
-7. write (or clear) status.
+4. access shutdown_detect, manager MCU_IO_SHUTDOWN has a weak pull-up and a momentary switch.
+5. not used.
+6. read status bits. (todo: access mode)
+7. write (or clear) status. (todo: enable i2c callback as soon as status changes)
 
 [Point To Point] and Management commands (application controller must not read the manager address or it will switch back to multi-point) 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
@@ -130,7 +133,7 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 20. Battery absorption (e.g., pwm) time (uint32_t)
 21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
-23. Day-Night state (uint8_t).
+23. Day-Night i2c callback (4 x uint8_t).
 
 Note: arduino_mode is point to point.
 

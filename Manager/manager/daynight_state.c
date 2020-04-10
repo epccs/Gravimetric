@@ -38,6 +38,7 @@ SOFTWARE.
 #include "../lib/uart0_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/io_enum_bsd.h"
+#include "i2c_callback.h"
 #include "daynight_limits.h"
 #include "daynight_state.h"
 
@@ -51,6 +52,12 @@ uint8_t daynight_state;
 uint8_t daynight_work;
 
 unsigned long dayTmrStarted;
+
+uint8_t daynight_callback_address;
+uint8_t daynight_state_callback_cmd;
+uint8_t day_work_callback_cmd;
+uint8_t night_work_callback_cmd;
+TWI0_LOOP_STATE_t loop_state;
 
 /* check for day-night state durring program looping  
     with low nibble of daynight_state: range 0..7
@@ -88,6 +95,11 @@ void check_daynight(void)
         {
             if(sensor_val > daynight_evening_threshold ) 
             {
+                if (daynight_callback_address && daynight_state_callback_cmd)
+                {
+                    // if loop_state == 
+                    //i2c_callback(daynight_callback_address, daynight_state_callback_cmd, DAYNIGHT_DAY_STATE, &loop_state);
+                }
                 daynight_state = DAYNIGHT_DAY_STATE; 
                 dayTmrStarted = milliseconds();
             } 

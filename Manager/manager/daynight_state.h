@@ -4,6 +4,11 @@
 extern uint8_t daynight_state; 
 extern uint8_t daynight_work;
 extern unsigned long dayTmrStarted;
+extern uint8_t daynight_callback_address;
+extern uint8_t daynight_state_callback_cmd;
+extern uint8_t day_work_callback_cmd;
+extern uint8_t night_work_callback_cmd;
+
 
 extern void check_daynight(void);
 

@@ -9,7 +9,7 @@
 20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
 21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
-23. Day-Night state (uint8_t).
+23. Day-Night state (4 x uint8_t).
 
 Note: morning_debouce and evening_debouce are part of the Day-Night state machine but there I2C commands are found in the test section (for now).
 
@@ -240,19 +240,21 @@ There are two ranges (12V and 24V) for solar panels; data that is outside the va
 The data sent was swapped with the default (40); the second exchange has ignored data that is swapped with the updated value (37).
 
 
-## Cmd 23 from a controller /w i2c-debug to access Day-Night state
+## Cmd 23 from a controller /w i2c-debug to set Day-Night i2c callback (4 x uint8_t).
 
-Send a byte to see what the day-night state is.
+Send four bytes to enable i2c callback for events. Address, daynight_state events, day event, night event. 
+
+Address (0x31) is the i2c slave address that will receive the events. The daynight_state event (0x1) is the command byte used when daynight_state changes. The day (0x2) and night (0x3) event command is called so user functions can run functions.  The i2c slave needs to be implemented for the callbacks to operate, the manager will keep trying to master the i2c bus, but quit after an address NAK. 
 
 ``` 
 # I am using the bootload interface 
 picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
 {"address":"0x29"}
-/1/ibuff 23,0
-{"txBuffer[2]":[{"data":"0x17"},{"data":"0x0"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x17"},{"data":"0x4"}]}
+/1/ibuff 23,43,1,2,3
+{"txBuffer[4]":[{"data":"0x17"},{"data":"0x31"},{"data":"0x1"},{"data":"0x2"},{"data":"0x3"}]}
+/1/iread? 4
+
 ```
 
 States are in the daynight_state.h file.

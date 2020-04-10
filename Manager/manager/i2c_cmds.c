@@ -59,7 +59,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnRdMgrAddr, fnNull, fnRdBootldAddr, fnNull, fnRdShtdnDtct, fnWtShtdnDtct, fnRdStatus, fnWtStatus},
+        {fnMgrAddr, fnNull, fnBootldAddr, fnNull, fnShtdnDtct, fnNull, fnStatus, fnNull},
         {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
@@ -122,7 +122,7 @@ void transmit_i2c_event(void)
 
 // I2C command to access manager address and set RPU_NORMAL_MODE
 // if given a valid address (ASCII 48..122) it will save that rather than setting normal mode.
-void fnRdMgrAddr(uint8_t* i2cBuffer)
+void fnMgrAddr(uint8_t* i2cBuffer)
 {
     uint8_t tmp_addr = i2cBuffer[1];
     i2cBuffer[1] = rpu_address; // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
@@ -160,7 +160,7 @@ void fnRdMgrAddr(uint8_t* i2cBuffer)
 }
 
 //I2C command to access manager address (used with SMBus in place of above)
-void fnRdMgrAddrQuietly(uint8_t* i2cBuffer)
+void fnMgrAddrQuietly(uint8_t* i2cBuffer)
 {
     uint8_t tmp_addr = i2cBuffer[1];
     i2cBuffer[1] = rpu_address; // ASCII values in range 0x30..0x7A. e.g.,'1' is 0x31
@@ -172,8 +172,8 @@ void fnRdMgrAddrQuietly(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to access (bootload) address sent when HOST_nRTS toggles
-void fnRdBootldAddr(uint8_t* i2cBuffer)
+// I2C command to access bootload address sent when HOST_nRTS toggles
+void fnBootldAddr(uint8_t* i2cBuffer)
 {
     uint8_t tmp_addr = i2cBuffer[1];
 
@@ -186,20 +186,18 @@ void fnRdBootldAddr(uint8_t* i2cBuffer)
     i2cBuffer[1] = bootloader_address;
 }
 
-// I2C_COMMAND_TO_READ_SW_SHUTDOWN_DETECTED
-void fnRdShtdnDtct(uint8_t* i2cBuffer)
+// I2C command to access shutdown_detect and start a shutdown (data byte == 1) 
+void fnShtdnDtct(uint8_t* i2cBuffer)
 {
-    // when ICP1 pin is pulled  down the host (e.g. R-Pi Zero) should be set up to hault
+    uint8_t tmp_shutdown = i2cBuffer[1];
+
+    // when ICP1 pin is pulled down the host (e.g. R-Pi Zero) should hault
     i2cBuffer[1] = shutdown_detected;
     // reading clears this flag that was set in check_shutdown() but it is up to the I2C master to do somthing about it.
     shutdown_detected = 0;
-}
 
-// I2C_COMMAND_TO_SET_SW_FOR_SHUTDOWN
-void fnWtShtdnDtct(uint8_t* i2cBuffer)
-{
-    // pull ICP1 pin low to hault the host (e.g. Pi Zero on RPUpi)
-    if (i2cBuffer[1] == 1)
+    // pull MCU_IO_SHUTDOWN low to hault the host
+    if (tmp_shutdown == 1)
     {
         ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
         ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
@@ -209,35 +207,37 @@ void fnWtShtdnDtct(uint8_t* i2cBuffer)
         shutdown_detected = 0; // it is set in check_shutdown()
         shutdown_started_at = milliseconds();
     }
-    // else ignore
 }
 
-// I2C_COMMAND_TO_READ_STATUS
-void fnRdStatus(uint8_t* i2cBuffer)
+// I2C command to access manager STATUS
+void fnStatus(uint8_t* i2cBuffer)
 {
+    uint8_t tmp_status = i2cBuffer[1];
+
     i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
     if (ioRead(MCU_IO_ALT_EN)) 
         i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
     if (ioRead(MCU_IO_PIPWR_EN)) 
         i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
     if (daynight_state==DAYNIGHT_FAIL_STATE) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
+
+    // if update bit 7 is set then change the status bits and related things
+    if (tmp_status & 0x80)
+    {
+        if ( (i2cBuffer[1] & 0x10) ) 
+        {
+            enable_alternate_power = 1;
+            alt_pwm_accum_charge_time = 0; // clear charge time
+        }
+        if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
+        {
+            ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
+        } 
+        if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_START_STATE; // restart
+        status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
+    }
 }
 
-// I2C_COMMAND_TO_SET_STATUS
-void fnWtStatus(uint8_t* i2cBuffer)
-{
-    if ( (i2cBuffer[1] & 0x10) ) 
-    {
-        enable_alternate_power = 1;
-        alt_pwm_accum_charge_time = 0; // clear charge time
-    }
-    if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
-    {
-        ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
-    } 
-    if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_START_STATE; // restart the state machine
-    status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
-}
 
 /********* PIONT TO POINT MODE ***********
   *    arduino_mode LOCKOUT_DELAY and BOOTLOADER_ACTIVE last forever when the host RTS toggles   */
@@ -362,24 +362,14 @@ void fnEveningThreshold(uint8_t* i2cBuffer)
     daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
-// I2C command to read Day-Night state. It is one byte,
-// the low nimmble has daynight_state, the high nimmble has daynight_work
-// bit 4 set from master will clear daynight_work (readback depends on if bit 5 is set)
-// bit 5 set from master will include daynight_work otherwise only daynight_state is in readback.
+// I2C command to set i2c callback address and three commands for daynight_state, day_work, and night_work events.
+// The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 void fnDayNightState(uint8_t* i2cBuffer)
 { 
-    if (i2cBuffer[1] & (1<<4) )
-    {
-        daynight_work = 0;  // clear daynight_work
-    }
-    if (i2cBuffer[1] & (1<<5) ) 
-    {
-        i2cBuffer[1] = daynight_state + daynight_work;  // send back daynight_state + daynignt_work
-    }
-    else
-    {
-        i2cBuffer[1] = daynight_state;  // send back only daynight_state
-    }
+    daynight_callback_address = i2cBuffer[1];
+    daynight_state_callback_cmd = i2cBuffer[2];
+    day_work_callback_cmd = i2cBuffer[3];
+    night_work_callback_cmd = i2cBuffer[4];
 }
 
 /********* POWER MANAGER ***********

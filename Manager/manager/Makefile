@@ -9,6 +9,7 @@ OBJECTRISTRICT = main.o \
 OBJECTS = rpubus_manager_state.o \
 	dtr_transmition.o \
 	i2c_cmds.o \
+	i2c_callback.o \
 	smbus_cmds.o \
 	id_in_ee.o \
 	adc_burst.o \
