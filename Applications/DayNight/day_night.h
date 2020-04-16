@@ -2,8 +2,7 @@
 //#ifndef DayNight_H
 //#define DayNight_H
 
-extern uint8_t manager_status;
-extern uint8_t daynight_state;
+extern volatile uint8_t daynight_state;
 extern int daynight_morning_threshold;
 extern int daynight_evening_threshold;
 extern unsigned long daynight_morning_debounce;
@@ -13,9 +12,9 @@ extern void Day(unsigned long);
 extern void check_daynight_state(void);
 extern void check_manager_status(void);
 
-// note these callbacks have a default that does nothing and then returns
-extern void Day_AttachWork( void (*)(void) );
-extern void Night_AttachWork( void (*)(void) );
+extern void daynight_state_event(uint8_t data);
+extern void day_work_event(uint8_t data);
+extern void night_work_event(uint8_t data);
 
 #define DAYNIGHT_START_STATE 0
 #define DAYNIGHT_DAY_STATE 1

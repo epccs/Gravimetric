@@ -33,6 +33,7 @@ SOFTWARE.
 #include <stdio.h>
 #include <string.h>
 #include "../lib/twi0_bsd.h"
+#include "../lib/io_enum_bsd.h"
 #include "i2c_callback.h"
 
 // 1 .. length to long for buffer 
@@ -47,6 +48,7 @@ uint8_t twi_errorCode;
 // largest I2C transaction with manager so far is six bytes.
 #define MAX_CMD_SIZE 8
 
+uint8_t i2c_address_;
 uint8_t txBuffer_[MAX_CMD_SIZE];
 uint8_t bytes_to_write_; // master wrties bytes to slave (you may want to zero the last byte txBuffer array)
 uint8_t rxBuffer_[MAX_CMD_SIZE];
@@ -78,8 +80,10 @@ void i2c_ping(uint8_t i2c_address, TWI0_LOOP_STATE_t *loop_state)
 // command allows the slave address to be used for multiple data (e.g., events or state machine values)
 void i2c_callback(uint8_t i2c_address, uint8_t command, uint8_t data, TWI0_LOOP_STATE_t *loop_state)
 { 
+    // if not in INTI state ignore 
     if (*loop_state == TWI0_LOOP_STATE_INIT)
     {
+        i2c_address_ = i2c_address;
         bytes_to_write_ = ADDRESS_CMD_SIZE;
         txBuffer_[0] = command; // replace the command byte
         txBuffer_[1] = data; // replace the select byte
@@ -88,9 +92,16 @@ void i2c_callback(uint8_t i2c_address, uint8_t command, uint8_t data, TWI0_LOOP_
         rxBuffer_[0] = 0;
         rxBuffer_[1] = 0;
         rxBuffer_[2] = 0;
+        ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_LOW); // LED ON
         *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
     }
-    else
+}
+
+// wait for TWI to finish
+uint8_t i2c_callback_waiting(TWI0_LOOP_STATE_t *loop_state)
+{ 
+    uint8_t done = 1; 
+    if (*loop_state > TWI0_LOOP_STATE_INIT)
     {
         uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
         if( (*loop_state == TWI0_LOOP_STATE_DONE) )
@@ -100,6 +111,16 @@ void i2c_callback(uint8_t i2c_address, uint8_t command, uint8_t data, TWI0_LOOP_
             {
                 twi_errorCode = bytes_read>>5;
             }
+            ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH); // LED OFF
+            *loop_state = TWI0_LOOP_STATE_RAW;
+            done = 0;
         }
     }
+    else // INIT and DONE should not occure, but just in case make them RAW
+    {
+        *loop_state = TWI0_LOOP_STATE_RAW;
+        done = 0;
+    }
+    
+    return done;
 }

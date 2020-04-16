@@ -55,6 +55,7 @@ typedef enum TWI0_PROTOCALL_enum {
 } TWI0_PROTOCALL_t;
 
 typedef enum TWI0_LOOP_STATE_enum {
+    TWI0_LOOP_STATE_RAW, // TWI has not been used yet, set INIT to start, this state will do nothing
     TWI0_LOOP_STATE_DONE, // TWI read/write is done so do nothing
     TWI0_LOOP_STATE_INIT, // set up static buffers for the next states to use
     TWI0_LOOP_STATE_ASYNC_WRT, // this can fail if data does not fit buffer, and needs to retry if TWI state machine is not ready

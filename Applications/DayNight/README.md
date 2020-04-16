@@ -97,25 +97,27 @@ Report status of the state machine.
 
 ``` 
 /1/day?
-{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"37116"}
-{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"241","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"3057"}
-{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"8038"}
-{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"240","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"13019"}
-{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"242","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"18001"}
+{"state":"0x0","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"21638728"}
+{"state":"0x0","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"21643726"}
+{"state":"0x0","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"21648726"}
+{"state":"0x0","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"21653726"}
+{"state":"0x0","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"21658725"}
+{"state":"0x0","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"21663725"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"2885"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"7885"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"12885"}
+{"state":"0x5","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"17885"}
 Day: Charge the battry
         WaterTheGarden
-{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"243","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"22983"}
-{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"27963"}
-{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"240","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"32945"}
-{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"4436"}
-{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"1","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"23"}
-{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"5005"}
-{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"9985"}
-{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"14967"}
-Night: Block PV caused night current loss
+{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"4884"}
+{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"239","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"9884"}
+{"state":"0x1","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"238","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"14884"}
+{"state":"0x2","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000",Night: Block PV caused night current loss
           TurnOnLED's
-{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"1947"}
-{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"6929"}
+"eve_debounce":"18000","dn_timer":"30"}
+{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"5014"}
+{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"10014"}
+{"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"15014"}
 ```
 
 

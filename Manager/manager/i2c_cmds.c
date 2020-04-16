@@ -86,7 +86,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     group = (i2c0Buffer[0] & 0xF0) >> 4;
      if(group >= GROUP) 
      {
-         i2c0Buffer[0] = 0xFE; // error code for bad group.
+        i2c0Buffer[0] = 0xFE; // error code for bad group.
         return; 
      }
 

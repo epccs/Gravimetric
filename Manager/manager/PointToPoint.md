@@ -252,8 +252,8 @@ picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
 {"address":"0x29"}
 /1/ibuff 23,43,1,2,3
-{"txBuffer[4]":[{"data":"0x17"},{"data":"0x31"},{"data":"0x1"},{"data":"0x2"},{"data":"0x3"}]}
-/1/iread? 4
+{"txBuffer[5]":[{"data":"0x17"},{"data":"0x31"},{"data":"0x1"},{"data":"0x2"},{"data":"0x3"}]}
+/1/iread? 5
 
 ```
 

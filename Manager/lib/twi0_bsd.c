@@ -474,6 +474,7 @@ uint8_t twi0_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t byt
     TWI0_WRT_STAT_t status = TWI0_WRT_STAT_SUCCESS;
     switch (*loop_state)
     {
+        case TWI0_LOOP_STATE_RAW:
         case TWI0_LOOP_STATE_DONE:
             break; // there was nothing to do
         case TWI0_LOOP_STATE_ASYNC_WRT:
@@ -646,6 +647,7 @@ uint8_t twi0_masterRead(uint8_t slave_address, uint8_t* read_data, uint8_t bytes
     uint8_t bytes_read = 0;
     switch (*loop_state)
     {
+        case TWI0_LOOP_STATE_RAW:
         case TWI0_LOOP_STATE_DONE:
             break; // there was nothing to do
         case TWI0_LOOP_STATE_ASYNC_RD:
