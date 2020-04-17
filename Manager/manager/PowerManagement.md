@@ -145,19 +145,27 @@ If bit 7 in select (see CAL_CHANNEL_WRITEBIT in manager) is set the value sent w
 
 ## Cmd 36 from the application controller /w i2c-debug running read analog timed accumulation.
 
-Needs five bytes from I2C. They are command followed by a UINT32 from a buffered ADC's timed accumulation.
+Enumeration 0 (ADC_ENUM_ALT_I) and 2 (ADC_ENUM_PWR_I) are use to select a timed accumulation. 
+
+Send five bytes on I2C. They are are a command followed by a UINT32 for a timed accumulation to be returned.
 
 ``` 
 picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 36,0,0,0,6
-{"txBuffer[5]":[{"data":"0x24"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x6"}]}
+{"master_address":"0x29"}
+/1/ibuff 36,0,0,0,0
+{"txBuffer[5]":[{"data":"0x24"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
 /1/iread? 5
-{"rxBuffer":[{"data":"0x24"},{"data":"0x9"},{"data":"0x5"},{"data":"0x39"},{"data":"0x76"}]}
+{"rxBuffer":[{"data":"0x24"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/ibuff 36,0,0,0,2
+{"txBuffer[5]":[{"data":"0x24"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x2"}]}
+/1/iread? 5
+{"rxBuffer":[{"data":"0x24"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x97"}]}
 ``` 
 
-The PWR_IT four bytes sum to 15,1337,334 (e.g., 9*(2**24) + 5*(2**16) + 57*(2**8) + 118). PWR_I is measured with analog channel 6 on a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected and a referance of 5V. PWR_IT is accumulated every 10mSec, so use PWR_I correction and divide by 1000*3600/100 to get 6.037mAHr (e.g., (accumulated/1024)*referance/(0.068*50.0)/36000)). Clearly it is running to fast, but it seems to work.
+The ALT_I accumulation is called ALT_IT... WIP not tested yet
+
+The PWR_I accumulation is called PWR_IT, the four bytes sum to 151 (0x97). PWR_I is measured with analog enum input 2 on a 0.068 Ohm sense resistor that has a pre-amp with gain of 50 connected and a referance of 5V. PWR_I (((adc)/1024)*referance/(0.068*50.0)) readings are accumulated every 10mSec (1000mA*3600Hr/100) and when they reach 1,000,000 one is added to PWR_IT so the corrections are ((accumulated*1000000)/1024)*referance/(0.068*50.0)/36000 gives about 6.02mAHr.
 
 
 ## Cmd 38 from the application controller /w i2c-debug running access analog referance.

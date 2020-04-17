@@ -39,7 +39,10 @@ SOFTWARE.
 
 unsigned long adc_started_at;
 unsigned long accumulate_alt_ti;
+unsigned long accumulate_alt_mega_ti; // add to maga at 10E6 counts 
 unsigned long accumulate_pwr_ti;
+unsigned long accumulate_pwr_mega_ti;
+uint8_t add_half_LSB_every_other_accumulation; // because the ADC max value represents the selected reference voltage minus one LSB.
 
 // every 10 mSec accumulate current (for Amp Hr) and scan the ADC channels
 // high side curr sense for pwr_i is from 0.068 ohm, the adc reads 512 with 0.735 Amp
@@ -51,11 +54,31 @@ void adc_burst(void)
     unsigned long kRuntime= elapsed(&adc_started_at);
     if ((kRuntime) > ((unsigned long)ADC_DELAY_MILSEC))
     {
+        if (add_half_LSB_every_other_accumulation)
+        {
+            accumulate_alt_ti += 1;
+            accumulate_pwr_ti += 1;
+            add_half_LSB_every_other_accumulation = 0;
+        }
+        else
+        {
+            add_half_LSB_every_other_accumulation = 1;
+        }
+        
         ATOMIC_BLOCK ( ATOMIC_RESTORESTATE )
         {
-            // this works with lots of byes at a time, and the ISR can change them at any time
             accumulate_alt_ti += adc[MCU_IO_ALT_I];
+            if (accumulate_alt_ti > 1000000UL)
+            {
+                accumulate_alt_ti = accumulate_alt_ti - 1000000UL;
+                accumulate_alt_mega_ti += 1;
+            }
             accumulate_pwr_ti += adc[MCU_IO_PWR_I];
+            if (accumulate_pwr_ti > 1000000UL)
+            {
+                accumulate_pwr_ti = accumulate_pwr_ti - 1000000UL;
+                accumulate_pwr_mega_ti += 1;
+            }
         }
         enable_ADC_auto_conversion(BURST_MODE);
         adc_started_at += ADC_DELAY_MILSEC; 

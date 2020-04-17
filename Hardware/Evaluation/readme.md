@@ -7,6 +7,7 @@ This shows the setup and method used for evaluation of Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 I2C Multi-Master 
 1. ^1 SMBus Block Read/Write Checked With Raspberry Pi Zero
 1. ^1 SPI 2MHz Checked With Raspberry Pi Zero
 1. ^1 UART with nRTS
@@ -17,6 +18,15 @@ This shows the setup and method used for evaluation of Gravimetric.
 1. ^0 Bootload
 1. ^0 Bootloader and Manager fw
 1. ^0 Mockup
+
+
+## ^1 I2C Multi-Master
+
+I2C has been overhauled at this time. The master now has non-blocking functions, and that can help open deadlocks. Some programs (i2c-debug and adc) are currently using a static loop state enumeration to allow software execution to return to the main loop while waiting for the TWI hardware. 
+
+These changes opened the door to a multi-master operation.  The first implementation of which is the day-night state machine. To use it the application registers four values (bytes) with the manager first is a callback slave address. The next three bytes are the functions that deliver events. The events are day-night state machine changes, the start of the day, and the start of the night.
+
+Only time will tell how well this will work, but I am pleased to remove polling, the application now feels as responsive as it did when the day-night state machine was on the application controller. 
 
 
 ## ^1 SMBus Block Read/Write Checked With Raspberry Pi Zero

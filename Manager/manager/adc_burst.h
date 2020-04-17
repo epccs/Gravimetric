@@ -13,6 +13,8 @@ extern void adc_burst(void);
 
 extern unsigned long adc_started_at;
 extern unsigned long accumulate_alt_ti;
+extern unsigned long accumulate_alt_mega_ti;
 extern unsigned long accumulate_pwr_ti;
+extern unsigned long accumulate_pwr_mega_ti;
 
 #endif // ADC_burst_H 

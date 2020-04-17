@@ -452,22 +452,24 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to read timed accumulation of analog channel ALT_I or PWR_I sent
+// I2C command to read timed accumulation/1e6 of analog input ALT_I or PWR_I
+// ADC_ENUM_ALT_I == 0
+// ADC_ENUM_PWR_I == 2
 void fnRdTimedAccum(uint8_t* i2cBuffer)
 {
-    uint32_t channel = 0;
-    channel += ((uint32_t)i2cBuffer[1])<<24;
-    channel += ((uint32_t)i2cBuffer[2])<<16;
-    channel += ((uint32_t)i2cBuffer[3])<<8;
-    channel += ((uint32_t)i2cBuffer[4]);
+    uint32_t adc_enum = 0;
+    adc_enum += ((uint32_t)i2cBuffer[1])<<24;
+    adc_enum += ((uint32_t)i2cBuffer[2])<<16;
+    adc_enum += ((uint32_t)i2cBuffer[3])<<8;
+    adc_enum += ((uint32_t)i2cBuffer[4]);
     unsigned long my_copy; //I2C runs this in ISR but durring SMBus this is not run in ISR context
-    if (channel == ADC_CH_ALT_I)
+    if (adc_enum == ADC_ENUM_ALT_I)
     {
-        my_copy = accumulate_alt_ti;
+        my_copy = accumulate_alt_mega_ti;
     }
-    else if (channel == ADC_CH_PWR_I)
+    else if (adc_enum == ADC_ENUM_PWR_I)
     {
-        my_copy = accumulate_pwr_ti;
+        my_copy = accumulate_pwr_mega_ti;
     }
     else
     {

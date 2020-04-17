@@ -4,9 +4,9 @@
 (done) change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration.
 (done) change cmd 4 and 5 to use one cmd 4 to access shutdown of host
 (done) change cmd 6 and 7 to use one cmd 6 to an access status of manager
-try to do daynight state machine so it acts as a i2c master to send state change and work events once enabled (e.g., multi-master)
-Timed Accumulation overflows to soon.
-Timed Accumulation needs a half LSB added (e.g. an LSB every other accumulation) because the ADC max value represents the selected reference voltage minus one LSB.
+(done) try to do daynight state machine so it acts as a i2c master to send state change and work events once enabled (e.g., multi-master)
+(done) Timed Accumulation needs a half LSB added (e.g. an LSB every other accumulation) because the ADC max value represents the selected reference voltage minus one LSB.
+(done) Timed Accumulation overflows to soon.
 Verify alternate power control with applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
