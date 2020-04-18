@@ -24,8 +24,8 @@ extern void fnStatus(uint8_t*); // 6
 // not used // 7
 
 // Prototypes for point 2 point commands
-extern void fnWtArduinMode(uint8_t*); // 16
-extern void fnRdArduinMode(uint8_t*); // 17
+extern void fnArduinMode(uint8_t*); // 16
+// not used  // 17
 extern void fnBatStartChrg(uint8_t*); // 18
 extern void fnBatDoneChrg(uint8_t*); // 19
 extern void fnRdBatChrgTime(uint8_t*); // 20

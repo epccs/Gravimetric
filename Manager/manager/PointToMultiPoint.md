@@ -5,11 +5,11 @@
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
 1. not used.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
-3. not used.
+3. access arduino_mode.
 4. access shutdown_detect, manager MCU_IO_SHUTDOWN has a weak pull-up and a momentary switch.
 5. not used.
-6. read status bits.
-7. write (or clear) status.
+6. access status bits.
+7. not used.
 
 status bits: 
 
@@ -143,6 +143,79 @@ print(bus.read_i2c_block_data(42, 2, 2))
 The out of range address above was ignored. If the sent bootload address is in the range 48..122 (ASCII '0'..'z') then it will be used.
 
 Address 48 is 0x30 or ASCII '0'. The manager with that address will reset its application controller, and the serial multi-drop bus will switch to a point to point connection between the host and the application controller connected to that manager. The point to point serial allows the uploader tool to send a new application image to the bootloader, which places it in the flash execution memory. 
+
+
+## Cmd 3 from a controller /w i2c-debug set p2p mode
+
+set arduino_mode so LOCKOUT_DELAY and BOOTLOADER_ACTIVE last forever when the host RTS toggles active. Arduino IDE can then make p2p connections to the bootload address.
+
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 3,1
+{"txBuffer[2]":[{"data":"0x3"},{"data":"0x01"}]}
+/1/iread? 2
+{"rxBuffer":[{"data":"0x3"},{"data":"0x01"}]}
+``` 
+
+The i2c-debug applicaiton will read the address on i2c which will cause the manager to send a RPU_NORMAL_MODE signal on the DTR pair and end the p2p connection, to stay in p2p the bus address must not be read.
+
+
+## Cmd 16 from a Raspberry Pi set p2p mode
+
+An R-Pi host can do it with SMBus, lets try with two RPUpi boards.
+
+``` 
+python3
+import smbus
+bus = smbus.SMBus(1)
+#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
+#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
+# what is the bootload address
+bus.write_i2c_block_data(42, 2, [255])
+bus.read_i2c_block_data(42, 2, 2)
+[2, 48]
+# what is my address
+bus.write_i2c_block_data(42, 0, [255])
+bus.read_i2c_block_data(42, 0, 2)
+[0, 50]
+# set the bootload address to my address
+bus.write_i2c_block_data(42, 2, [ord('2')])
+bus.read_i2c_block_data(42, 2, 2)
+[2, 50]
+# clear the host lockout status bit so serial from this host can work
+bus.write_i2c_block_data(42, 6, [0])
+print(bus.read_i2c_block_data(42, 6, 2))
+[6, 0]
+exit()
+# load the blinkLED application which does not read the bus address
+git clone https://github.com/epccs/Gravimetric/
+cd /Gravimetric/Applications/BlinkLED
+make all
+make bootload
+# now back to 
+python3
+import smbus
+bus = smbus.SMBus(1)
+# and set the arduino_mode
+bus.write_i2c_block_data(42, 3, [1])
+print(bus.read_i2c_block_data(42, 3, 2))
+[3, 0]
+# arduino_mode will read back after it has been set over the DTR pair (sending zero does nothing)
+bus.write_i2c_block_data(42, 3, [0])
+print(bus.read_i2c_block_data(42, 3, 2))
+[3, 1]
+# the R-Pi host can now connect by serial so LOCKOUT_DELAY and BOOTLOADER_ACTIVE last forever
+``` 
+
+Now the R-Pi can connect to serial in P2P mode.
+
+``` 
+picocom -b 38400 /dev/ttyAMA0
+``` 
+
+At this time, the point to point mode persists, I will sort out more details when they are needed.
 
 
 ## Cmd 4 from the application controller /w i2c-debug access host shutdown detected.

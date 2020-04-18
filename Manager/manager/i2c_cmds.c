@@ -59,8 +59,8 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnMgrAddr, fnNull, fnBootldAddr, fnNull, fnShtdnDtct, fnNull, fnStatus, fnNull},
-        {fnWtArduinMode, fnRdArduinMode, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+        {fnMgrAddr, fnNull, fnBootldAddr, fnArduinMode, fnShtdnDtct, fnNull, fnStatus, fnNull},
+        {fnNull, fnNull, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
@@ -186,6 +186,26 @@ void fnBootldAddr(uint8_t* i2cBuffer)
     i2cBuffer[1] = bootloader_address;
 }
 
+// I2C command to access arduino_mode
+// read the local address to send a byte on DTR for RPU_NORMAL_MODE
+void fnArduinMode(uint8_t* i2cBuffer)
+{
+    if (i2cBuffer[1] == 1)
+    {
+        if (!arduino_mode_started)
+        {
+            uart_started_at = milliseconds();
+            uart_output = RPU_ARDUINO_MODE;
+            printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
+            uart_has_TTL = 1; // causes host_is_foreign to be false
+            arduino_mode_started = 1; // it is cleared by check_uart where arduino_mode is set
+            arduino_mode = 0; // system wide state is set by check_uart when RPU_ARDUINO_MODE seen
+        } 
+    } // ignore everything but the command
+
+    i2cBuffer[1] = arduino_mode; // ignore everything but the command
+}
+
 // I2C command to access shutdown_detect and start a shutdown (data byte == 1) 
 void fnShtdnDtct(uint8_t* i2cBuffer)
 {
@@ -241,38 +261,6 @@ void fnStatus(uint8_t* i2cBuffer)
 
 /********* PIONT TO POINT MODE ***********
   *    arduino_mode LOCKOUT_DELAY and BOOTLOADER_ACTIVE last forever when the host RTS toggles   */
-
-// I2C command to set arduino_mode
-void fnWtArduinMode(uint8_t* i2cBuffer)
-{
-    if (i2cBuffer[1] == 1)
-    {
-        if (!arduino_mode_started)
-        {
-            uart_started_at = milliseconds();
-            uart_output = RPU_ARDUINO_MODE;
-            printf("%c%c", uart_output, ( (~uart_output & 0x0A) << 4 | (~uart_output & 0x50) >> 4 ) ); 
-            uart_has_TTL = 1; // causes host_is_foreign to be false
-            arduino_mode_started = 1; // it is cleared by check_uart where arduino_mode is set
-            arduino_mode = 0; // system wide state is set by check_uart when RPU_ARDUINO_MODE seen
-        } 
-        else
-        {
-            i2cBuffer[1] = 0; // repeated commands are ignored until check_uart is done
-        }
-    }
-    else 
-    {
-        // read the local address to send a byte on DTR for RPU_NORMAL_MODE
-        i2cBuffer[1] = 0; // ignore everything but the command
-    }
-}
-
-// I2C command to read arduino_mode
-void fnRdArduinMode(uint8_t* i2cBuffer)
-{
-    i2cBuffer[1] = arduino_mode;
-}
 
 // I2C command for Battery charge start limit (uint16_t)
 void fnBatStartChrg(uint8_t* i2cBuffer)

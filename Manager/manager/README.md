@@ -7,7 +7,9 @@
 (done) try to do daynight state machine so it acts as a i2c master to send state change and work events once enabled (e.g., multi-master)
 (done) Timed Accumulation needs a half LSB added (e.g. an LSB every other accumulation) because the ADC max value represents the selected reference voltage minus one LSB.
 (done) Timed Accumulation overflows to soon.
-Verify alternate power control with applicaiton
+(done) change cmd 16 and 17 to use one cmd 16 to access point2point mode of host
+(done) move cmd 16 to 3, rename PointToPoint.md to PVandBattery.md
+Verify power_manager with an applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
 A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
@@ -116,18 +118,18 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
 1. not used.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
-3. not used.
+3. access arduino_mode.
 4. access shutdown_detect, manager MCU_IO_SHUTDOWN has a weak pull-up and a momentary switch.
 5. not used.
-6. read status bits. (todo: access mode)
-7. write (or clear) status. (todo: enable i2c callback as soon as status changes)
+6. access status bits.
+7. not used.
 
-[Point To Point] and Management commands (application controller must not read the manager address or it will switch back to multi-point) 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
+[PV and Battery] Management commands 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
-[Point To Point]: ./PointToPoint.md
+[PV and Battery]: ./PVandBattery.md
 
-16. set arduino_mode (uint8_t)
-17. read arduino_mode (uint8_t)
+16. not used.
+17. not used.
 18. Battery charge start (low) limit (uint16_t)
 19. Battery charge done (high) limit (uint16_t)
 20. Battery absorption (e.g., pwm) time (uint32_t)
