@@ -4,6 +4,9 @@
 extern uint8_t enable_alternate_power;
 extern unsigned long alt_pwm_accum_charge_time;
 
+extern uint8_t power_enable_callback_address;
+extern uint8_t power_state_callback_cmd;
+
 extern void check_if_alt_should_be_on(void);
 
 #define ALT_PWM_PERIOD 2000

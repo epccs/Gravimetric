@@ -188,6 +188,7 @@ void fnBootldAddr(uint8_t* i2cBuffer)
 
 // I2C command to access arduino_mode
 // read the local address to send a byte on DTR for RPU_NORMAL_MODE
+// in arduino_mode LOCKOUT_DELAY and BOOTLOADER_ACTIVE will last forever after the HOST_nRTS toggles
 void fnArduinMode(uint8_t* i2cBuffer)
 {
     if (i2cBuffer[1] == 1)
@@ -239,7 +240,7 @@ void fnStatus(uint8_t* i2cBuffer)
         i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
     if (ioRead(MCU_IO_PIPWR_EN)) 
         i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
-    if (daynight_state==DAYNIGHT_FAIL_STATE) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
+    if (daynight_state==DAYNIGHT_STATE_FAIL) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
 
     // if update bit 7 is set then change the status bits and related things
     if (tmp_status & 0x80)
@@ -253,14 +254,21 @@ void fnStatus(uint8_t* i2cBuffer)
         {
             ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
         } 
-        if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_START_STATE; // restart
+        if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_STATE_START; // restart
         status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
     }
 }
 
 
-/********* PIONT TO POINT MODE ***********
-  *    arduino_mode LOCKOUT_DELAY and BOOTLOADER_ACTIVE last forever when the host RTS toggles   */
+/********* PV and Battery Management ***********/
+
+// I2C command to enable power manager and set a i2c callback address for power_state when command command byte is > zero.
+// The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
+void fnPowerMgr(uint8_t* i2cBuffer)
+{ 
+    power_enable_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address) 
+    power_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero 
+}
 
 // I2C command for Battery charge start limit (uint16_t)
 void fnBatStartChrg(uint8_t* i2cBuffer)
@@ -360,7 +368,7 @@ void fnDayNightState(uint8_t* i2cBuffer)
     night_work_callback_cmd = i2cBuffer[4];
 }
 
-/********* POWER MANAGER ***********
+/********* Analog ***********
   *  ADC_ENUM_t has ADC_ENUM_ALT_I, ADC_ENUM_ALT_V, ADC_ENUM_PWR_I, ADC_ENUM_PWR_V, ADC_ENUM_END
   *  and is used to refer to adc channels ADC_CH_ALT_I = 0, ADC_CH_ALT_V = 1, ADC_CH_PWR_I = 6, ADC_CH_PWR_V = 7
   * */

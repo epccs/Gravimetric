@@ -9,6 +9,11 @@
 (done) Timed Accumulation overflows to soon.
 (done) change cmd 16 and 17 to use one cmd 16 to access point2point mode of host
 (done) move cmd 16 to 3, rename PointToPoint.md to PVandBattery.md
+(done) daynight state enum
+PowerManagement.md to Analog.md
+move alt_enable from status bit 4 to its own cmd 16
+alt_enable is for the power_manager to control, so change its name to...
+
 Verify power_manager with an applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
@@ -128,14 +133,14 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [PV and Battery]: ./PVandBattery.md
 
-16. not used.
+16. not used. (Power-Manager i2c callback (enable with callback address, report state cmd).
 17. not used.
 18. Battery charge start (low) limit (uint16_t)
 19. Battery charge done (high) limit (uint16_t)
 20. Battery absorption (e.g., pwm) time (uint32_t)
 21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
-23. Day-Night i2c callback (4 x uint8_t).
+23. Day-Night i2c callback (callback address, report state cmd, day event cmd, night event cmd).
 
 Note: arduino_mode is point to point.
 

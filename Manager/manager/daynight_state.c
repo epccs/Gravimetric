@@ -49,7 +49,7 @@ SOFTWARE.
 // change to fail state if is to long
 #define DAYNIGHT_TO_LONG 72000000UL
 
-uint8_t daynight_state;
+DAYNIGHT_STATE_t daynight_state;
 uint8_t daynight_work;
 
 unsigned long dayTmrStarted;
@@ -94,13 +94,13 @@ void check_daynight(void)
     unsigned long kRuntime = elapsed(&dayTmrStarted);
     
     // start
-    if(daynight_state == DAYNIGHT_START_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_START) 
     { 
         if (kRuntime > STARTUP_DELAY) 
         {
             if(sensor_val > daynight_evening_threshold ) 
             {
-                daynight_state = DAYNIGHT_DAY_STATE;
+                daynight_state = DAYNIGHT_STATE_DAY;
                 if (daynight_callback_address && daynight_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -110,7 +110,7 @@ void check_daynight(void)
             } 
             else 
             {
-                daynight_state = DAYNIGHT_NIGHT_STATE;
+                daynight_state = DAYNIGHT_STATE_NIGHT;
                 if (daynight_callback_address && daynight_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -123,11 +123,11 @@ void check_daynight(void)
     } 
 
     //day
-    if(daynight_state == DAYNIGHT_DAY_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_DAY) 
     {
         if (sensor_val < daynight_evening_threshold ) 
         {
-            daynight_state = DAYNIGHT_EVENING_DEBOUNCE_STATE;
+            daynight_state = DAYNIGHT_STATE_EVENING_DEBOUNCE;
             if (daynight_callback_address && daynight_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -137,7 +137,7 @@ void check_daynight(void)
         }
         if (kRuntime > DAYNIGHT_TO_LONG) 
         {
-            daynight_state = DAYNIGHT_FAIL_STATE;
+            daynight_state = DAYNIGHT_STATE_FAIL;
             if (daynight_callback_address && daynight_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -149,25 +149,25 @@ void check_daynight(void)
     }
 
     // evening debounce
-    if(daynight_state == DAYNIGHT_EVENING_DEBOUNCE_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_EVENING_DEBOUNCE) 
     { 
         if (sensor_val < daynight_evening_threshold ) 
         {
             if (kRuntime > daynight_evening_debounce) 
             {
-                daynight_state = DAYNIGHT_NIGHTWORK_STATE;
+                daynight_state = DAYNIGHT_STATE_NIGHTWORK;
                 if (daynight_callback_address && daynight_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    // remote daynight_state gets DAYNIGHT_NIGHT_STATE while DAYNIGHT_NIGHTWORK_STATE is used to operate night_work_callback_cmd
-                    i2c_callback(daynight_callback_address, daynight_state_callback_cmd, DAYNIGHT_NIGHT_STATE, &loop_state); // update remote
+                    // remote daynight_state gets DAYNIGHT_STATE_NIGHT while DAYNIGHT_NIGHTWORK_STATE is used to operate night_work_callback_cmd
+                    i2c_callback(daynight_callback_address, daynight_state_callback_cmd, DAYNIGHT_STATE_NIGHT, &loop_state); // update remote
                 }
                 dayTmrStarted = milliseconds();
             } 
         } 
         else 
         {
-            daynight_state = DAYNIGHT_DAY_STATE;
+            daynight_state = DAYNIGHT_STATE_DAY;
             if (daynight_callback_address && daynight_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -179,26 +179,26 @@ void check_daynight(void)
     }
 
     // work befor night
-    if(daynight_state == DAYNIGHT_NIGHTWORK_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_NIGHTWORK) 
     {
         //set the night work bit 7
         daynight_work = 0x80; // note the day work bit 6 is clear
-        daynight_state = DAYNIGHT_NIGHT_STATE;
+        daynight_state = DAYNIGHT_STATE_NIGHT;
         if (daynight_callback_address && night_work_callback_cmd)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(daynight_callback_address, night_work_callback_cmd, DAYNIGHT_NIGHTWORK_STATE, &loop_state); // night_work_callback remote
+            i2c_callback(daynight_callback_address, night_work_callback_cmd, DAYNIGHT_STATE_NIGHTWORK, &loop_state); // night_work_callback remote
         }
         // timer is running
         return;
     }
 
     // night
-    if(daynight_state == DAYNIGHT_NIGHT_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_NIGHT) 
     {
         if (sensor_val > daynight_morning_threshold ) 
         {
-            daynight_state = DAYNIGHT_MORNING_DEBOUNCE_STATE;
+            daynight_state = DAYNIGHT_STATE_MORNING_DEBOUNCE;
             if (daynight_callback_address && daynight_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -208,7 +208,7 @@ void check_daynight(void)
         }
         if (kRuntime > DAYNIGHT_TO_LONG) 
         {
-            daynight_state = DAYNIGHT_FAIL_STATE;
+            daynight_state = DAYNIGHT_STATE_FAIL;
             if (daynight_callback_address && daynight_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -220,25 +220,25 @@ void check_daynight(void)
     }
 
     // morning debounce
-    if(daynight_state == DAYNIGHT_MORNING_DEBOUNCE_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_MORNING_DEBOUNCE) 
     {
         if (sensor_val > daynight_morning_threshold ) 
         {
             if (kRuntime > daynight_morning_debounce) 
             {
-                daynight_state = DAYNIGHT_DAYWORK_STATE;
+                daynight_state = DAYNIGHT_STATE_DAYWORK;
                 if (daynight_callback_address && daynight_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    // remote daynight_state gets DAYNIGHT_DAY_STATE while DAYNIGHT_DAYWORK_STATE is used to operate day_work_callback_cmd
-                    i2c_callback(daynight_callback_address, daynight_state_callback_cmd, DAYNIGHT_DAY_STATE, &loop_state); // update remote
+                    // remote daynight_state gets DAYNIGHT_STATE_DAY while DAYNIGHT_STATE_DAYWORK is used to operate day_work_callback_cmd
+                    i2c_callback(daynight_callback_address, daynight_state_callback_cmd, DAYNIGHT_STATE_DAY, &loop_state); // update remote
                 }
                 dayTmrStarted = milliseconds();
             }
         }
         else 
         {
-            daynight_state = DAYNIGHT_NIGHT_STATE;
+            daynight_state = DAYNIGHT_STATE_NIGHT;
             if (daynight_callback_address && daynight_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -250,23 +250,23 @@ void check_daynight(void)
     }
 
     // work befor day
-    if(daynight_state == DAYNIGHT_DAYWORK_STATE) 
+    if(daynight_state == DAYNIGHT_STATE_DAYWORK) 
     {
         daynight_work = 0x40; // note the night work bit 7 is clear
-        daynight_state = DAYNIGHT_DAY_STATE; // update local
+        daynight_state = DAYNIGHT_STATE_DAY; // update local
         if (daynight_callback_address && day_work_callback_cmd)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(daynight_callback_address, day_work_callback_cmd, DAYNIGHT_DAYWORK_STATE, &loop_state); // day_work_callback remote
+            i2c_callback(daynight_callback_address, day_work_callback_cmd, DAYNIGHT_STATE_DAYWORK, &loop_state); // day_work_callback remote
         }
         // timer is running
         return;
     }
 
     //fail state, restart by clearing status bit 6 with i2c command 6
-    if(daynight_state > DAYNIGHT_FAIL_STATE) 
+    if(daynight_state > DAYNIGHT_STATE_FAIL) 
     {
-        daynight_state = DAYNIGHT_FAIL_STATE;
+        daynight_state = DAYNIGHT_STATE_FAIL;
         if (daynight_callback_address && daynight_state_callback_cmd)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;

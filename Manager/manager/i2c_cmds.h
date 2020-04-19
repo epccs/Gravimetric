@@ -17,14 +17,14 @@ extern void fnMgrAddr(uint8_t*); // 0 for I2C
 extern void fnMgrAddrQuietly(uint8_t*); // 0 for SMBus
 // not used //1
 extern void fnBootldAddr(uint8_t*); // 2
-// not used  // 3
+extern void fnArduinMode(uint8_t*);  // 3
 extern void fnShtdnDtct(uint8_t*); // 4
 // not used  // 5
 extern void fnStatus(uint8_t*); // 6
 // not used // 7
 
-// Prototypes for point 2 point commands
-extern void fnArduinMode(uint8_t*); // 16
+// Prototypes for PV and Battery Management
+extern void fnPowerMgr(uint8_t*); // 16 
 // not used  // 17
 extern void fnBatStartChrg(uint8_t*); // 18
 extern void fnBatDoneChrg(uint8_t*); // 19
@@ -33,7 +33,7 @@ extern void fnMorningThreshold(uint8_t*); // 21
 extern void fnEveningThreshold(uint8_t*); // 22
 extern void fnDayNightState(uint8_t*); // 23
 
-// Prototypes for Power Management commands
+// Prototypes for Analog commands
 extern void fnAnalogRead(uint8_t*); //32
 extern void fnCalibrationRead(uint8_t*); //33
 // not used //34

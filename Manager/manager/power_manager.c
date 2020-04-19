@@ -45,6 +45,8 @@ uint8_t enable_alternate_power; // flag for I2C or SMBus to enable alternate pow
 unsigned long alt_pwm_started_at; // pwm on time
 unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pwm was done (e.g., approx LA absorption time)
 
+uint8_t power_enable_callback_address;
+uint8_t power_state_callback_cmd;
 
 // enable_alternate_power must be set to start charging
 // to do: pwm with a 2 second period, pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
