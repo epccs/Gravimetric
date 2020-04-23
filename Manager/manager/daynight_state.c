@@ -77,17 +77,14 @@ TWI0_LOOP_STATE_t loop_state;
     ALT_V reading of 80 is about 4.3V
     ALT_V reading of 160 is about 8.6V
     ALT_V reading of 320 is about 17.18V
-    
-    high nibble of daynight_state is used by i2C in place of callback functions, the usage is TBD
-    bit 7 is set when night_work needs done
-    bit 6 is set when day_work needs done
-    bit 5 is used with I2C, which if a 1 is passed then bits 7 and 6 are returned with the state
-    bit 4 is used with I2C, which if set with the bytes from master/host will clear bits 7 and 6 if they are also clear on the data byte from master/host.
 */
 void check_daynight(void)
 {
     // TWI waiting to finish (ignore daynight changes while TWI is waiting)
-    if (i2c_callback_waiting(&loop_state)) return;
+    if (i2c_callback_waiting(&loop_state)) return; 
+    
+    // if somthing else is using twi then my loop_state should allow getting to this, but I want to skip this state machine
+    if (i2c_is_in_use) return;
 
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
     int sensor_val = adcAtomic(MCU_IO_ALT_V);

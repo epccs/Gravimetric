@@ -44,7 +44,7 @@ SOFTWARE.
 #include "i2c_cmds.h"
 #include "adc_burst.h"
 #include "references.h"
-#include "power_manager.h"
+#include "battery_manager.h"
 #include "battery_limits.h"
 #include "daynight_limits.h"
 #include "daynight_state.h"
@@ -245,11 +245,7 @@ void fnStatus(uint8_t* i2cBuffer)
     // if update bit 7 is set then change the status bits and related things
     if (tmp_status & 0x80)
     {
-        if ( (i2cBuffer[1] & 0x10) ) 
-        {
-            enable_alternate_power = 1;
-            alt_pwm_accum_charge_time = 0; // clear charge time
-        }
+        // bit 4 is not used, it was used to enable_alternate but that is done with fnPowerMgr
         if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
         {
             ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
@@ -266,8 +262,13 @@ void fnStatus(uint8_t* i2cBuffer)
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 void fnPowerMgr(uint8_t* i2cBuffer)
 { 
-    power_enable_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address) 
-    power_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero 
+    enable_alternate_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
+    battery_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero
+    if (enable_alternate_callback_address) 
+    {
+        alt_pwm_accum_charge_time = 0; // clear charge time when enabled
+        batmgr_state = BATTERYMGR_STATE_START;
+    }
 }
 
 // I2C command for Battery charge start limit (uint16_t)

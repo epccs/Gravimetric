@@ -14,7 +14,7 @@ OBJECTS = rpubus_manager_state.o \
 	id_in_ee.o \
 	adc_burst.o \
 	references.o \
-	power_manager.o \
+	battery_manager.o \
 	battery_limits.o \
 	daynight_limits.o \
 	daynight_state.o \

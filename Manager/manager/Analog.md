@@ -1,4 +1,4 @@
-# Power Management Commands
+# Analog Commands
 
 32..47 (Ox20..0x2F | 0b00100000..0b00111111)
 

@@ -48,6 +48,7 @@ uint8_t twi_errorCode;
 // largest I2C transaction with manager so far is six bytes.
 #define MAX_CMD_SIZE 8
 
+uint8_t i2c_is_in_use; // wait for the resource to be free befor loading buffers
 uint8_t i2c_address_;
 uint8_t txBuffer_[MAX_CMD_SIZE];
 uint8_t bytes_to_write_; // master wrties bytes to slave (you may want to zero the last byte txBuffer array)
@@ -60,29 +61,15 @@ uint8_t i2c_address_; // master address this slave
 #define ADDRESS_CMD_SIZE 2
 
 
-// cycle the twi state machine on both the master and slave(s)
-void i2c_ping(uint8_t i2c_address, TWI0_LOOP_STATE_t *loop_state)
-{ 
-    // ping I2C for an RPU bus manager 
-    uint8_t data = 0;
-    uint8_t length = 0;
-    for (uint8_t i =0;1; i++) // try a few times, it is slower starting after power up.
-    {
-        twi_errorCode = twi0_masterBlockingWrite(i2c_address, &data, length, TWI0_PROTOCALL_STOP); 
-        if (twi_errorCode == 0) break; // error free code
-        if (i>5) return; // give up after 5 trys
-    }
-    return; 
-}
-
 // command is used to send a byte from manager to application
 // i2c_address is the slave address for callback to place the data
 // command allows the slave address to be used for multiple data (e.g., events or state machine values)
 void i2c_callback(uint8_t i2c_address, uint8_t command, uint8_t data, TWI0_LOOP_STATE_t *loop_state)
 { 
     // if not in INTI state ignore 
-    if (*loop_state == TWI0_LOOP_STATE_INIT)
+    if ( (*loop_state == TWI0_LOOP_STATE_INIT) )
     {
+        i2c_is_in_use = 1; // flag for other (state machine) to see that it is in use 
         i2c_address_ = i2c_address;
         bytes_to_write_ = ADDRESS_CMD_SIZE;
         txBuffer_[0] = command; // replace the command byte
@@ -113,13 +100,15 @@ uint8_t i2c_callback_waiting(TWI0_LOOP_STATE_t *loop_state)
             }
             ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH); // LED OFF
             *loop_state = TWI0_LOOP_STATE_RAW;
+            i2c_is_in_use = 0;
             done = 0;
         }
     }
-    else // INIT and DONE should not occure, but just in case make them RAW
+    else // this should not be called with INIT or DONE state, but just in case make the state RAW.
     {
         *loop_state = TWI0_LOOP_STATE_RAW;
         done = 0;
+        // do not clear the i2c_is_in_use flag.
     }
     
     return done;

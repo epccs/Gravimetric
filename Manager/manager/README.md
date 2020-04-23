@@ -10,9 +10,9 @@
 (done) change cmd 16 and 17 to use one cmd 16 to access point2point mode of host
 (done) move cmd 16 to 3, rename PointToPoint.md to PVandBattery.md
 (done) daynight state enum
-PowerManagement.md to Analog.md
-move alt_enable from status bit 4 to its own cmd 16
-alt_enable is for the power_manager to control, so change its name to...
+(done) PowerManagement.md to Analog.md
+(done) move alt_enable from status bit 4 to its own cmd 16 to setup callback
+alt_enable name changed to enable_alternate_callback_address, and holds callback
 
 Verify power_manager with an applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
@@ -145,9 +145,9 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 Note: arduino_mode is point to point.
 
 
-[Power Management] commands 32..47 (Ox20..0x2F | 0b00100000..0b00101111)
+[Analog] commands 32..47 (Ox20..0x2F | 0b00100000..0b00101111)
 
-[Power Management]: ./PowerManagement.md
+[Analog]: ./Analog.md
 
 32. adc[channel] (uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return adc reading)
 33. calMap[channelMap.cal_map[channel]] (uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) and float (as uint32_t), return channel and calibration)
