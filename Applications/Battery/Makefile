@@ -1,10 +1,10 @@
 # build application from source
 # when files for application change the binary image needs updated
 # https://www.gnu.org/software/make/manual/make.html
-TARGET = Alternat
+TARGET = Battery
 LIBDIR = ../lib
 OBJECTS = main.o \
-	alternat.o \
+	battery.o \
 	../Uart/id.o \
 	../Adc/analog.o \
 	../Adc/references.o \

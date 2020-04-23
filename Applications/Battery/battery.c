@@ -1,5 +1,5 @@
 /*
-alternat is a library that accesses the managers alternat power reporting and control.
+battery is a library that accesses the managers battery charging control.
 Copyright (C) 2019 Ronald Sutherland
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
@@ -24,7 +24,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/timers_bsd.h"
 #include "../Adc/references.h"
 #include "../DayNight/day_night.h"
-#include "alternat.h"
+#include "battery.h"
 
 static unsigned long alternat_serial_print_started_at;
 

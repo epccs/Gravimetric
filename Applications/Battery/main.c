@@ -1,6 +1,6 @@
 /*
-Alternat is a CLI demonstration to show Alternat power input sending photovoltaic power to a battery.
-Copyright (C) 2018 Ronald Sutherland
+Battery application is a CLI  that demonstrates battery charging from photovoltaic on the alternat power input.
+Copyright (C) 2020 Ronald Sutherland
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.
 
@@ -31,7 +31,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../Uart/id.h"
 #include "../Adc/analog.h"
 #include "../DayNight/day_night.h"
-#include "alternat.h"
+#include "battery.h"
 
 #define ADC_DELAY_MILSEC 50UL
 static unsigned long adc_started_at;

@@ -1,15 +1,15 @@
-# Alternate Power Input
+# Battery Charging
 
-ToDo: this is WIP, the manager needs to expose more of how the charger works so I can report it with this app.
+ToDo: this is WIP, the manager will send charging events over the private I2C bus.
 
 
 ## Overview
 
-The manager has control of the Alternate power input that may be used to send current from the alternate supply to the primary power input. 
+The manager has control of the Alternate power input that may be used to send current from a charging supply to the primary power input (with the battery). 
 
-The alternate power needs to act as a current source, and the principal power source needs to act as a battery. Do not attempt this with a bench power supply as the primary power input, since many will not tolerate back drive. When the alternate power is enabled, it must have a current limit bellow a safe level at which the battery can charge.
+The alternate power supply needs to act as a current source, and the principal power source needs to act as a battery. Do not attempt this with a bench power supply as the primary power input, since many will not tolerate back drive. When the alternate power is enabled, it must have a current limit bellow what the parts and battery can handle.
 
-The DayNight state machine is on the manager; it has two work states. The day work state is to enable the alternate input, while the night work state turns it off. Analog measurements are from the ADC during a burst of interrupts every ten milliseconds. The ADC mux channel code-named PWR_V is connected to an input voltage divider (a 1% 15.8k and a 0.1% 100k) and used to measure the battery voltage. The manager will enable the Alternate input when the battery is bellow battery_low_limit, and enable_alternate_power has been established (for details see the power_manager.c file on the manager).
+The DayNight state machine is on the manager; it has two work events. When the DayNight state shows it is day the enabled battery state machine is allowed to control the alternate power input. Analog measurements occur every ten milliseconds. The primary power measurement channel (PWR_V) is connected to a voltage divider (1% 15.8k and a 0.1% 100k) and is the battery voltage. The battery state machine will enable the Alternate input when the battery is lower than midway between the battery_low_limit and battery_high_limit. The battery state machine will PWM when the battery is above midway between the battery_low_limit and battery_high_limit.
 
 
 ## Wiring Needed

@@ -12,9 +12,9 @@
 (done) daynight state enum
 (done) PowerManagement.md to Analog.md
 (done) move alt_enable from status bit 4 to its own cmd 16 to setup callback
-alt_enable name changed to enable_alternate_callback_address, and holds callback
+(done) alt_enable name changed to enable_alternate_callback_address, and holds callback
 
-Verify power_manager with an applicaiton
+Verify battery_manager with an applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
 A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
@@ -49,6 +49,13 @@ Arduino Mode is a permanent bootload mode so that the IDE can connect to a speci
 Test Mode. I2C command to swithch to test_mode (save trancever control values). I2C command to recover trancever control bits after test_mode.
 
 Power Management commands allow reading ADC channels, saving reference values, battery limits, day-night state machine threshold and status. 
+
+
+## Multi-Master i2C
+
+The application starts as the only master on the private I2C bus between the manager and application. If the application controller enables callbacks (day-night state machine, battery charger) then the related events will be sent from the manager as an I2C master to the application controller as a slave.
+
+The advantage of doing this event propagation with a multi-master mode is the nearly instantaneous flow from the manager to the application. The disadvantage is complexity.
 
 
 ## Analog 
