@@ -91,23 +91,40 @@ void AssembleCommand(int input)
         command_done = 1;                     
     }
     else
-    {
-        //echo the input  
-        if (echo_on) printf("%c", input);
-
-        // assemble the command
-        command_buf[command_head] = input;
-        
-        // do not go past the buffer
-        if (command_head < (COMMAND_BUFFER_SIZE - 1) )
+    { 
+        if ( (input == '\b') || (input == 0x7F)) // backspace or delete key, picocom maps BS to DEL and DEL to BS by default
         {
-            ++command_head;
+            if (command_head>2)
+            {
+                command_head--; // move pointer back one
+                command_buf[command_head] = '\0'; // invalidate
+                if (echo_on)
+                {
+                    putchar ('\b'); // backspace
+                    putchar (' '); // space to clear what was
+                    putchar ('\b'); // backspace again to position
+                }
+            }
         }
-        else // command is to big
+        else
         {
-            command_buf[1] = '\0'; 
-            if (echo_on) printf_P(PSTR("Ignore_Input\r\n"));
-            echo_on = 0;
+            //echo the input  
+            if (echo_on) putchar(input);
+
+            // assemble the command
+            command_buf[command_head] = input;
+
+            // do not go past the buffer
+            if (command_head < (COMMAND_BUFFER_SIZE - 1) )
+            {
+                ++command_head;
+            }
+            else // command is to big
+            {
+                command_buf[1] = '\0'; 
+                if (echo_on) printf_P(PSTR("Ignore_Input\r\n"));
+                echo_on = 0;
+            }
         }
     }
 }
