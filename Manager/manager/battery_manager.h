@@ -8,9 +8,9 @@ typedef enum BATTERYMGR_STATE_enum {
     BATTERYMGR_STATE_PWM_MODE, // pwm starts half way between high and low limit. The off time increases up to the high limit.
     BATTERYMGR_STATE_DONE, // got to max charge, so charge is done
     BATTERYMGR_STATE_FAIL
-} POWERMGR_STATE_t;
+} BATTERYMGR_STATE_t;
 
-extern POWERMGR_STATE_t batmgr_state;
+extern BATTERYMGR_STATE_t batmgr_state;
 
 extern unsigned long alt_pwm_accum_charge_time;
 

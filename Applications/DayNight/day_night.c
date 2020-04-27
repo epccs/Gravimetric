@@ -27,7 +27,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "day_night.h"
 #include "main.h"
 
-volatile uint8_t daynight_state = 0; 
+volatile DAYNIGHT_STATE_t daynight_state; 
 #define CHK_DAYNIGHT_DELAY 2000UL
 
 static unsigned long daynight_serial_print_started_at;

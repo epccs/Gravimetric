@@ -60,7 +60,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnMgrAddr, fnNull, fnBootldAddr, fnArduinMode, fnShtdnDtct, fnNull, fnStatus, fnNull},
-        {fnNull, fnNull, fnBatStartChrg, fnBatDoneChrg, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+        {fnNull, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
@@ -271,8 +271,9 @@ void fnPowerMgr(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command for Battery charge start limit (uint16_t)
-void fnBatStartChrg(uint8_t* i2cBuffer)
+// I2C command to access Battery charge low limit (uint16_t)
+// Used to (re)start charging and set PWM range at middle of high+low/2 up to high
+void fnBatChrgLowLim(uint8_t* i2cBuffer)
 {
     // battery_low_limit is a uint16_t e.g., two bytes
     uint16_t old = battery_low_limit;
@@ -287,11 +288,12 @@ void fnBatStartChrg(uint8_t* i2cBuffer)
     // new is ready
     battery_low_limit = new;
 
-    bat_limit_loaded = BAT_LOW_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    bat_limit_loaded = BAT_LIM_LOW_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
-// I2C command for Battery charge done limit (uint16_t)
-void fnBatDoneChrg(uint8_t* i2cBuffer)
+// I2C command to access Battery charge high limit (uint16_t)
+// Used to (re)start charging and set PWM range at middle of high+low/2 up to high
+void fnBatChrgHighLim(uint8_t* i2cBuffer)
 {
     // battery_high_limit is a uint16_t e.g., two bytes
     uint16_t old = battery_high_limit;
@@ -306,7 +308,7 @@ void fnBatDoneChrg(uint8_t* i2cBuffer)
     // new is ready
     battery_high_limit = new;
 
-    bat_limit_loaded = BAT_HIGH_LIM_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    bat_limit_loaded = BAT_LIM_HIGH_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
 // I2C command to read battery charging time while doing pwm e.g., absorption time

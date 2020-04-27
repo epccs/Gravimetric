@@ -153,7 +153,7 @@ void BatLimitsFromI2CtoEE(void)
 {
     if (bat_limit_loaded > BAT_LIM_DEFAULT)
     {
-        if (bat_limit_loaded == BAT_HIGH_LIM_TOSAVE)
+        if (bat_limit_loaded == BAT_LIM_HIGH_TOSAVE)
         {
             if ( IsValidBatHighLimFor12V(&battery_high_limit) || IsValidBatHighLimFor24V(&battery_high_limit) )
             {
@@ -164,7 +164,7 @@ void BatLimitsFromI2CtoEE(void)
                 }
             }
         }
-        if (bat_limit_loaded == BAT_LOW_LIM_TOSAVE)
+        if (bat_limit_loaded == BAT_LIM_LOW_TOSAVE)
         {    
             if ( IsValidBatLowLimFor12V(&battery_low_limit) || IsValidBatLowLimFor24V(&battery_low_limit) )
             {

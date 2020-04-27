@@ -21,12 +21,41 @@ Same as DayNight
 
 # Firmware Upload
 
-With a serial port connection (see BOOTLOAD_PORT in Makefile) and optiboot installed on the RPUno run 'make bootload' and it should compile and then flash the MCU.
+The manager needs to be told that it has a localhost and the address to bootload. I do this with some commands on the SMBus interface from an R-Pi.
 
 ``` 
-sudo apt-get install make git gcc-avr binutils-avr gdb-avr avr-libc avrdude
-git clone https://github.com/epccs/RPUno/
-cd /RPUno/Alternat
+sudo apt-get install i2c-tools python3-smbus
+sudo usermod -a -G i2c your_user_name
+# logout for the change to take
+python3
+import smbus
+bus = smbus.SMBus(1)
+#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
+#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
+# what is my address
+bus.write_i2c_block_data(42, 0, [255])
+print("'"+chr(bus.read_i2c_block_data(42, 0, 2)[1])+"'" )
+'2'
+# I want to bootload address '1'
+bus.write_i2c_block_data(42, 3, [ord('1')])
+print("'"+chr(bus.read_i2c_block_data(42, 3, 2)[1])+"'" )
+'1'
+# clear the host lockout status bit so nRTS from my R-Pi on '2' will triger the bootloader on '1'
+bus.write_i2c_block_data(42, 7, [0])
+print(bus.read_i2c_block_data(42,7, 2))
+[7, 0]
+exit()
+```
+
+Or use the bootload port.
+
+Now the serial port connection (see BOOTLOAD_PORT in Makefile) can reset the MCU and execute optiboot so that the 'make bootload' rule can upload a new binary image in the application area of flash memory.
+
+``` 
+sudo apt-get install make git picocom gcc-avr binutils-avr gdb-avr avr-libc avrdude
+git clone https://github.com/epccs/Gravimetric/
+cd /Gravimetric/Applications/Battery
+make
 make bootload
 ...
 avrdude done.  Thank you.
@@ -34,8 +63,11 @@ avrdude done.  Thank you.
 
 Now connect with picocom (or ilk).
 
+
 ``` 
 #exit is C-a, C-x
+picocom -b 38400 /dev/ttyAMA0
+# with bootload port
 picocom -b 38400 /dev/ttyUSB0
 ``` 
 
@@ -57,16 +89,7 @@ identify
 
 ``` 
 /1/id?
-{"id":{"name":"Alternat","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
-```
-
-##  /0/alt
-
-This will report alternat enable
-
-``` 
-/1/alt
-{"alt_en":"OFF"}
+{"id":{"name":"Battery","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
 ##  /0/altcntl?
@@ -75,7 +98,19 @@ Reports alternat power control values.
 
 ``` 
 /1/altcntl?
-{"mgr_alt_en":"0x0","charge_start":"374","charge_stop":"398"}
+{"state":"0x0","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"357","adc_alt_v":"238","pwm_timer":"0","dn_timer":"414262"}
+{"state":"0x0","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"357","adc_alt_v":"238","pwm_timer":"0","dn_timer":"419261"}
 ``` 
 
-The non calibrated default charge_start is 374, and charge_stop is 398. 
+AlThe non calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V.
+
+##  /0/alt
+
+This will report alternat enable
+
+``` 
+/1/alt
+{"bat_en":"ON"}
+```
+
+BROKEN, not turning on at this time

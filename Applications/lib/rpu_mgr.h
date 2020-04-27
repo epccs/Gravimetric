@@ -21,6 +21,7 @@ extern char i2c_get_Rpu_address(void);
 extern int i2c_get_adc_from_manager(uint8_t channel, TWI0_LOOP_STATE_t *loop_state);
 extern uint8_t i2c_read_status(void);
 extern void i2c_daynight_cmd(void);
+extern void i2c_battery_cmd(uint8_t enable);
 extern unsigned long i2c_ul_access_cmd(uint8_t, unsigned long);
 extern int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop_state);
 float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, TWI0_LOOP_STATE_t *loop_state);
@@ -29,14 +30,14 @@ float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, 
 #define DAYNIGHT_STATE 23
 
 // values used for i2c_ul_access_cmd
-#define CHARGE_BATTERY_ABSORPTION 20
+#define CHARGE_BATTERY_PWM 20
 #define EVENING_DEBOUNCE 52
 #define MORNING_DEBOUNCE 53
 #define DAYNIGHT_TIMER 54
 
 // values used for i2c_int_access_cmd
-#define CHARGE_BATTERY_START 18
-#define CHARGE_BATTERY_STOP 19
+#define CHARGE_BATTERY_LOW 18
+#define CHARGE_BATTERY_HIGH 19
 #define MORNING_THRESHOLD 21
 #define EVENING_THRESHOLD 22
 

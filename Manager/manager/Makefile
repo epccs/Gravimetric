@@ -2,10 +2,9 @@
 # https://www.gnu.org/software/make/manual/make.html
 TARGET = manager
 LIBDIR = ../lib
-# these have a restricted license, source is not published
-OBJECTRISTRICT = main.o \
-	calibration_limits.o
-# these are LGPL license
+# source is not published
+OBJECTRISTRICT = main.o
+# source is published
 OBJECTS = rpubus_manager_state.o \
 	dtr_transmition.o \
 	i2c_cmds.o \
@@ -18,6 +17,7 @@ OBJECTS = rpubus_manager_state.o \
 	battery_limits.o \
 	daynight_limits.o \
 	daynight_state.o \
+	calibration_limits.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/adc_bsd.o \
 	$(LIBDIR)/timers_bsd.o \

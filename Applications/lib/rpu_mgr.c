@@ -65,6 +65,11 @@ uint8_t i2c_address_; // master address this slave
 #define DAYNIGHT_CALLBK_CMD {0x17,0x31,0x1,0x2,0x3}
 #define DAYNIGHT_CALLBK_CMD_SIZE 5
 
+// set battery callback address 43, state cmd 4
+// e.g., 16 is used to set daynight state machine callbacks. 
+#define BATTERY_CALLBK_CMD {0x10,0x31,0x4}
+#define BATTERY_CALLBK_CMD_SIZE 3
+
 // commands 32 will have the manger do an 
 // analogRead and pass that to the application
 #define ANALOG_RD_CMD {0x20,0x00,0x00}
@@ -241,12 +246,12 @@ uint8_t i2c_read_status(void)
     }
 }
 
-// management to enable daynight callback from manager (is blocking ok during setup?)
+// enable daynight callbacks from manager
 // 23 .. cmd 0x17 plus four bytes 
 //       byte 1 is the slave address for manager to send envents
-//       byte 2 is event number (or command number) used to send daynight_state changes
-//       byte 3 is for day work event
-//       byte 4 is for night work event 
+//       byte 2 is command to receive daynight_state changes
+//       byte 3 is command to receive day work event
+//       byte 4 is command to receive night work event 
 void i2c_daynight_cmd(void)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
@@ -268,8 +273,34 @@ void i2c_daynight_cmd(void)
     }
 }
 
+// enable battery callback from manager
+// 16 .. cmd 0x17 plus two bytes 
+//       byte 1 is the slave address for manager to send envents
+//       byte 2 is command to receive batmgr_state changes
+void i2c_battery_cmd(uint8_t enable)
+{ 
+    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
+    uint8_t txBuffer[BATTERY_CALLBK_CMD_SIZE] = BATTERY_CALLBK_CMD;
+    uint8_t length = BATTERY_CALLBK_CMD_SIZE;
+    if (!enable) txBuffer[1] = 0; // a slave callback address of zero will disable battery charge control, and end callbacks
+    twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
+    if (twi_errorCode)
+    {
+        return; // failed
+    }
+    
+    // above writes data to slave, this reads data from slave
+    uint8_t rxBuffer[BATTERY_CALLBK_CMD_SIZE];
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+    if ( bytes_read != length )
+    {
+        twi_errorCode = 5;
+        return;
+    }
+}
+
 // management commands to access managers unsigned long prameters e.g.,
-// 20 .. CHARGE_BATTERY_ABSORPTION 
+// 20 .. CHARGE_BATTERY_PWM 
 // 52 .. EVENING_DEBOUNCE 
 // 53 .. MORNING_DEBOUNCE 
 // 54 .. DAYNIGHT_TIMER
@@ -308,8 +339,8 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with)
 }
 
 // management commands that take an int to update and return an int e.g. 
-// 18 .. CHARGE_BATTERY_START 
-// 19 .. CHARGE_BATTERY_STOP 
+// 18 .. CHARGE_BATTERY_LOW
+// 19 .. CHARGE_BATTERY_HIGH 
 // 21 .. MORNING_THRESHOLD daynight threshold prameter
 // 22 .. EVENING_THRESHOLD daynight threshold prameter
 // 32 .. takes a ADC_CH_MGR_enum and returns the 10 bit adc reading (ALT_I | ALT_V | PWR_I | PWR_V)

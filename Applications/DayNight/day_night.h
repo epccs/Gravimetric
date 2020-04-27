@@ -2,11 +2,18 @@
 //#ifndef DayNight_H
 //#define DayNight_H
 
-extern volatile uint8_t daynight_state;
-extern int daynight_morning_threshold;
-extern int daynight_evening_threshold;
-extern unsigned long daynight_morning_debounce;
-extern unsigned long daynight_evening_debounce;
+typedef enum DAYNIGHT_STATE_enum {
+    DAYNIGHT_STATE_START, // Start day-night state machine
+    DAYNIGHT_STATE_DAY, // day
+    DAYNIGHT_STATE_EVENING_DEBOUNCE, // was day, maybe a dark cloud, or the PV panel got covered
+    DAYNIGHT_STATE_NIGHTWORK, // task to at start of night, lights enabled, PV panel blocked so it does not drain battery
+    DAYNIGHT_STATE_NIGHT, // night
+    DAYNIGHT_STATE_MORNING_DEBOUNCE, // was night, maybe a flash light or...
+    DAYNIGHT_STATE_DAYWORK, // task to at start of day, charge battery, water the garden
+    DAYNIGHT_STATE_FAIL
+} DAYNIGHT_STATE_t;
+
+extern volatile DAYNIGHT_STATE_t daynight_state;
 
 extern void Day(unsigned long);
 extern void check_daynight_state(void);

@@ -26,8 +26,8 @@ extern void fnStatus(uint8_t*); // 6
 // Prototypes for PV and Battery Management
 extern void fnPowerMgr(uint8_t*); // 16 
 // not used  // 17
-extern void fnBatStartChrg(uint8_t*); // 18
-extern void fnBatDoneChrg(uint8_t*); // 19
+extern void fnBatChrgLowLim(uint8_t*); // 18
+extern void fnBatChrgHighLim(uint8_t*); // 19
 extern void fnRdBatChrgTime(uint8_t*); // 20
 extern void fnMorningThreshold(uint8_t*); // 21
 extern void fnEveningThreshold(uint8_t*); // 22

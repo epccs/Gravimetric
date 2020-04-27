@@ -1,8 +1,8 @@
-# PV and Battery Management Commands
+# PV, DayNight and Battery Management Commands
 
 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
-16. not used.
+16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. not used.
 18. Access battery_low_limit (uint16_t)
 19. Access battery_high_limit (uint16_t)
@@ -11,7 +11,21 @@
 22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
 23. Day-Night state (4 x uint8_t).
 
-Note: morning_debouce and evening_debouce are part of the Day-Night state machine but there I2C commands are found in the test section (for now).
+## Cmd 16 from a controller /w i2c-debug to enable battery manager
+
+Send a byte to enable the battery manager, its value is also a callback address. The second byte byte is used as the command number to send the battery state updates from the manager (i2c master) to the application (i2c slave).
+
+``` 
+# I am using the bootload interface 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 16,0,0
+{"txBuffer[3]":[{"data":"0x12"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 3
+{"rxBuffer":[{"data":"0x12"},{"data":"0x1"},{"data":"0x76"}]}
+```
+
 
 ## Cmd 18 from a controller /w i2c-debug to access battery_low_limit
 
@@ -171,37 +185,17 @@ picocom -b 38400 /dev/ttyUSB0
 
 ```
 
-States are in the daynight_state.h file.
-
-``` C
-#define DAYNIGHT_START_STATE 0
-#define DAYNIGHT_DAY_STATE 1
-#define DAYNIGHT_EVENING_DEBOUNCE_STATE 2
-#define DAYNIGHT_NIGHTWORK_STATE 3
-#define DAYNIGHT_NIGHT_STATE 4
-#define DAYNIGHT_MORNING_DEBOUNCE_STATE 5
-#define DAYNIGHT_DAYWORK_STATE 6
-#define DAYNIGHT_FAIL_STATE 7
-```
-
-It is night since ALT_V was 0V after startup, it will switch to 7 after 20 hours, but if not needed don't worry about it. 
-
-Set bit 4 from master to clear bits 6 and 7
-
-``` 
-/1/ibuff 23,16
-{"txBuffer[3]":[{"data":"0x17"},{"data":"0x10"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x17"},{"data":"0x4"}]}
-```
-
-Set bit 5 from master to include bits 6 and 7 in readback
+States defined in application need to match with the managers daynight_state.h file.
 
 ```
-/1/ibuff 23,32
-{"txBuffer[3]":[{"data":"0x17"},{"data":"0x20"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x17"},{"data":"0x4"}]}
+typedef enum DAYNIGHT_STATE_enum {
+    DAYNIGHT_STATE_START, // Start day-night state machine
+    DAYNIGHT_STATE_DAY, // day
+    DAYNIGHT_STATE_EVENING_DEBOUNCE, // was day, maybe a dark cloud, or the PV panel got covered
+    DAYNIGHT_STATE_NIGHTWORK, // task to at start of night, lights enabled, PV panel blocked so it does not drain battery
+    DAYNIGHT_STATE_NIGHT, // night
+    DAYNIGHT_STATE_MORNING_DEBOUNCE, // was night, maybe a flash light or...
+    DAYNIGHT_STATE_DAYWORK, // task to at start of day, charge battery, water the garden
+    DAYNIGHT_STATE_FAIL
+} DAYNIGHT_STATE_t;
 ```
-
-Bit 6 shows day_work. Bit 7 shows night_work. If set they need to be cleared after doing the work.

@@ -20,17 +20,19 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 
 #include <stdbool.h>
 #include <avr/pgmspace.h>
-#include <util/atomic.h>
+#include <util/delay.h>
 #include "../lib/uart0_bsd.h"
 #include "../lib/parse.h"
 #include "../lib/timers_bsd.h"
 #include "../lib/adc_bsd.h"
 #include "../lib/twi0_bsd.h"
 #include "../lib/rpu_mgr.h"
+#include "../lib/rpu_mgr_callback.h"
 #include "../lib/io_enum_bsd.h"
 #include "../Uart/id.h"
 #include "../Adc/analog.h"
 #include "../DayNight/day_night.h"
+#include "main.h"
 #include "battery.h"
 
 #define ADC_DELAY_MILSEC 50UL
@@ -43,16 +45,13 @@ static unsigned long daynight_status_blink_started_at;
 static unsigned long blink_started_at;
 static char rpu_addr;
 static uint8_t rpu_addr_is_fake;
-
-#define I2C_INTERLEAVE_DELAY 1000UL
-static unsigned long last_interleave_started_at;
-static uint8_t interleave_i2c;
+uint8_t manager_status;
 
 void ProcessCmd()
 { 
     if ( (strcmp_P( command, PSTR("/id?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        Id("Alternat"); 
+        Id("Battery"); 
     }
     if ( (strcmp_P( command, PSTR("/analog?")) == 0) && ( (arg_count >= 1 ) && (arg_count <= 5) ) )
     {
@@ -70,6 +69,40 @@ void ProcessCmd()
     {
         AltPwrCntl(5000UL);  
     }
+}
+
+// these functions can be registered as callbacks 
+// so the manager can update the application over i2c
+void daynight_state_event(uint8_t daynight_state_from_mgr)
+{
+    daynight_state = daynight_state_from_mgr;
+}
+
+// Don't printf inside the callback since it is in i2c's ISR context.
+// Why? The UART can/will block and lock up everything.
+uint8_t day_work_flag;
+void day_work_event(uint8_t data)
+{
+    day_work_flag = 1;
+}
+
+uint8_t night_work_flag;
+void night_work_event(uint8_t data)
+{
+    night_work_flag = 1;
+}
+
+void battery_state_event(uint8_t batmgr_state_from_mgr)
+{
+    batmgr_state = batmgr_state_from_mgr;
+}
+
+void register_manager_callbacks(void)
+{
+    twi0_registerOnDayNightStateCallback(daynight_state_event);
+    twi0_registerOnDayWorkCallback(day_work_event);
+    twi0_registerOnNightWorkCallback(night_work_event);
+    twi0_registerOnBatMgrStateCallback(battery_state_event);
 }
 
 void setup(void) 
@@ -92,11 +125,17 @@ void setup(void)
     /* Initialize UART to 38.4kbps, it returns a pointer to FILE so redirect of stdin and stdout works*/
     stderr = stdout = stdin = uart0_init(38400UL, UART0_RX_REPLACE_CR_WITH_NL);
     
-    /* Initialize I2C */
-    twi0_init(100000UL, TWI0_PINS_PULLUP);
-
     /* Clear and setup the command buffer, (probably not needed at this point) */
     initCommandBuffer();
+
+    // manager delays (blocks) for 50mSec after power up so i2c is not running yet
+    _delay_ms(60); 
+
+    /* Initialize I2C */
+    twi0_slaveAddress(I2C0_APP_ADDR);
+    twi0_registerSlaveTxCallback(transmit_i2c_event); // called when manager wants data returned (and I need to transmit it)
+    twi0_registerSlaveRxCallback(receive_i2c_event); // called when manager has an event to send (and I need to receive data)
+    twi0_init(100000UL, TWI0_PINS_PULLUP);
 
     // Enable global interrupts to start TIMER0 and UART ISR's
     sei(); 
@@ -106,6 +145,7 @@ void setup(void)
     
      // manager will broadcast normal mode on DTR pair of mulit-drop
     rpu_addr = i2c_get_Rpu_address(); 
+    if (twi_errorCode) manager_status = twi_errorCode;
     
     // default address, since RPU manager not found
     if (rpu_addr == 0)
@@ -121,8 +161,21 @@ void setup(void)
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
     // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
     // manager uses int bellow and analogRead(ALT_V) to check threshold. 
-    i2c_int_access_cmd(EVENING_THRESHOLD,40);
-    i2c_int_access_cmd(MORNING_THRESHOLD,80);
+    TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+    while (loop_state != TWI0_LOOP_STATE_DONE)
+    {
+        i2c_int_access_cmd(EVENING_THRESHOLD,40,&loop_state);
+    }
+    loop_state = TWI0_LOOP_STATE_INIT;
+    while (loop_state != TWI0_LOOP_STATE_DONE)
+    {
+        i2c_int_access_cmd(MORNING_THRESHOLD,80,&loop_state);
+    }
+
+    // register manager callbacks
+    // then enable the manager as i2c master to send updates to the application
+    register_manager_callbacks();
+    i2c_daynight_cmd();
 }
 
 void blink_mgr_status(void)
@@ -191,26 +244,6 @@ void blink_daynight_state(void)
     }
 }
 
-// don't let i2c cause long delays, thus interleave the dispatch of i2c based updates 
-void i2c_update_interleave(void)
-{
-    unsigned long kRuntime = elapsed(&last_interleave_started_at);
-    if (kRuntime > (I2C_INTERLEAVE_DELAY) )
-    {
-        switch (interleave_i2c)
-        {
-            case 0: 
-                check_daynight_state();
-                interleave_i2c = 1;
-                break;
-            default: 
-                check_manager_status(); 
-                interleave_i2c = 0;
-        } 
-        last_interleave_started_at += I2C_INTERLEAVE_DELAY;
-    }
-}
-
 void adc_burst(void)
 {
     unsigned long kRuntime= elapsed(&adc_started_at);
@@ -235,9 +268,6 @@ int main(void)
 
         // delay between ADC burst
         adc_burst();
-
-        // cordinate i2c updates
-        i2c_update_interleave();
 
         // check if character is available to assemble a command, e.g. non-blocking
         if ( (!command_done) && uart0_available() ) // command_done is an extern from parse.h

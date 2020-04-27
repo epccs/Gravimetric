@@ -45,7 +45,6 @@ char rpu_addr;
 uint8_t rpu_addr_is_fake;
 uint8_t manager_status;
 
-
 void ProcessCmd()
 { 
     if ( (strcmp_P( command, PSTR("/id?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
@@ -62,7 +61,7 @@ void ProcessCmd()
 // so the manager can update the application over i2c
 void daynight_state_event(uint8_t daynight_state_from_mgr)
 {
-    daynight_state = daynight_state_from_mgr;
+    daynight_state = (DAYNIGHT_STATE_t) daynight_state_from_mgr;
 }
 
 // Don't printf inside the callback since it is in i2c's ISR context.
@@ -150,7 +149,6 @@ void setup(void)
 
     // manager will broadcast normal mode on DTR pair of mulit-drop
     rpu_addr = i2c_get_Rpu_address(); 
-
     if (twi_errorCode) manager_status = twi_errorCode;
     
     // default address, since RPU manager not found

@@ -15,10 +15,10 @@ extern void transmit_i2c_event(void);
 // Prototypes for callbacks from manager where the
 // manager becomes an I2C master and sends to this slave addresss
 // not used //0
-extern void fnDayNightState(uint8_t*); // 1  daynight_state
-extern void fnDayWork(uint8_t*); // 2 day_work_callback
-extern void fnNightWork(uint8_t*); // 3 night_work_callback
-// not used  // 4
+extern void fnDayNightState(uint8_t*); // to get daynight_state set daynight_callback_address and daynight_state_callback_cmd to command number 1
+extern void fnDayWork(uint8_t*); // to get a day work event enable daynight_callback_address and set day_work_callback_cmd to command number 2
+extern void fnNightWork(uint8_t*); // to get a night work event enable daynight_callback_address and set night_work_callback_cmd to command number 3
+extern void fnBatMgrState(uint8_t*);  // to get batmgr_state enable_alternate_callback_address and set battery_state_callback_cmd to command number 4
 // not used  // 5
 // not used // 6
 // not used // 7
@@ -30,5 +30,6 @@ extern  void fnNull(uint8_t*);
 void twi0_registerOnDayNightStateCallback( void (*function)(uint8_t data) );
 void twi0_registerOnDayWorkCallback( void (*function)(uint8_t data) );
 void twi0_registerOnNightWorkCallback( void (*function)(uint8_t data) );
+void twi0_registerOnBatMgrStateCallback( void (*function)(uint8_t data) );
 
 #endif // Rpu_Mgr_Callback_H 

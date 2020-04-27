@@ -13,7 +13,9 @@
 (done) PowerManagement.md to Analog.md
 (done) move alt_enable from status bit 4 to its own cmd 16 to setup callback
 (done) alt_enable name changed to enable_alternate_callback_address, and holds callback
-
+when setting enable_alternate_callback_address init the state machine so that a callback update occurs
+remove status bit 4 (report alternat power)
+if app is reset clear enable_alternate_callback_address and daynight_callback_address
 Verify battery_manager with an applicaiton
 Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
 Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
@@ -140,7 +142,7 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [PV and Battery]: ./PVandBattery.md
 
-16. not used. (Power-Manager i2c callback (enable with callback address, report state cmd).
+16. Power-Manager i2c callback, enable with callback address, and and comand number to send state updates to.
 17. not used.
 18. Battery charge start (low) limit (uint16_t)
 19. Battery charge done (high) limit (uint16_t)

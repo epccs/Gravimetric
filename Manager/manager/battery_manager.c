@@ -42,7 +42,7 @@ SOFTWARE.
 #include "battery_limits.h"
 #include "battery_manager.h"
 
-POWERMGR_STATE_t batmgr_state;
+BATTERYMGR_STATE_t batmgr_state;
 
 unsigned long alt_pwm_started_at; // pwm on time
 unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pwm was done (e.g., approx LA absorption time)
@@ -50,6 +50,8 @@ unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pw
 uint8_t enable_alternate_callback_address;
 uint8_t battery_state_callback_cmd;
 TWI0_LOOP_STATE_t loop_state;
+
+uint8_t fail_wip;
 
 // enable_alternate_callback_address must be set to start charging
 // to do: pwm with a 2 second period, pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
@@ -61,11 +63,15 @@ void check_if_alt_should_be_on(void)
     // if somthing else is using twi then my loop_state should allow getting to this, but I want to skip this state machine
     if (i2c_is_in_use) return;
 
-    if ( (enable_alternate_callback_address) )
+    // if limits are changing skip this state machine
+    if (bat_limit_loaded >= BAT_LIM_DEFAULT) return;
+
+    if ( (enable_alternate_callback_address) ) // disable with callback set to zero (note the i2c callback also needs battery_state_callback_cmd)
     {
+        int battery = adcAtomic(ADC_CH_PWR_V);
         if (batmgr_state < BATTERYMGR_STATE_DONE)
         {
-            int battery = adcAtomic(ADC_CH_PWR_V);
+            // when battery is at or above the high limit it is done
             if (battery >= battery_high_limit)
             {
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
@@ -162,7 +168,46 @@ void check_if_alt_should_be_on(void)
         }
         else
         {
-            // done or fail, so do nothing
+            // when the battery is bellow the low limit it is time to charge
+            if ((batmgr_state == BATTERYMGR_STATE_DONE) && (battery <= battery_low_limit))
+            {
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
+                alt_pwm_started_at = milliseconds();
+                batmgr_state = BATTERYMGR_STATE_CC_REST;
+                if (battery_state_callback_cmd)
+                {
+                    if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                }
+                return;
+            }
+
+            // if somthing sets fail state then report it and shutdown charge control, 
+            if (batmgr_state == BATTERYMGR_STATE_FAIL)
+            {
+                switch (fail_wip) // failure work in progress, it takes a few loops to finish since the TWI reporting is non-blocking 
+                {
+                case 0: // turn off alternat power input and report failure
+                    ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
+                    if (battery_state_callback_cmd)
+                    {
+                        if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                        i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    }
+                    fail_wip = 1;
+                    break;
+
+                case 1: // turn off the alternat power control state machine
+                    battery_state_callback_cmd = 0;
+                    enable_alternate_callback_address =0;
+                    fail_wip = 0;
+                    break;
+
+                default:
+                    break;
+                }
+                return;
+            }
             return;
         }
         
@@ -173,11 +218,12 @@ void check_if_alt_should_be_on(void)
         {
             ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
             batmgr_state = BATTERYMGR_STATE_DONE;
-            // callback also not enabled
+            // callback not enabled
             return;
         }
         else
         {
+            // done or fail, so do nothing
             return;
         }
         

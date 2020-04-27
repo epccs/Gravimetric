@@ -29,8 +29,8 @@
 
 #define BAT_LIM_LOADED 0
 #define BAT_LIM_DEFAULT 1
-#define BAT_HIGH_LIM_TOSAVE 2
-#define BAT_LOW_LIM_TOSAVE 3
+#define BAT_LIM_HIGH_TOSAVE 2
+#define BAT_LIM_LOW_TOSAVE 3
 extern uint8_t bat_limit_loaded;
 extern int battery_high_limit;
 extern int battery_low_limit;
