@@ -38,7 +38,7 @@ SOFTWARE.
 #include <avr/eeprom.h> 
 #include "battery_limits.h"
 
-uint8_t bat_limit_loaded;
+BAT_LIM_t bat_limit_loaded;
 int battery_high_limit;
 int battery_low_limit;
 

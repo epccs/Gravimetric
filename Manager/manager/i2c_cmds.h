@@ -24,7 +24,7 @@ extern void fnStatus(uint8_t*); // 6
 // not used // 7
 
 // Prototypes for PV and Battery Management
-extern void fnPowerMgr(uint8_t*); // 16 
+extern void fnBatteryMgr(uint8_t*); // 16 
 // not used  // 17
 extern void fnBatChrgLowLim(uint8_t*); // 18
 extern void fnBatChrgHighLim(uint8_t*); // 19

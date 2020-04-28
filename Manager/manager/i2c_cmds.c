@@ -60,7 +60,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnMgrAddr, fnNull, fnBootldAddr, fnArduinMode, fnShtdnDtct, fnNull, fnStatus, fnNull},
-        {fnNull, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+        {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
@@ -258,9 +258,9 @@ void fnStatus(uint8_t* i2cBuffer)
 
 /********* PV and Battery Management ***********/
 
-// I2C command to enable power manager and set a i2c callback address for power_state when command command byte is > zero.
+// I2C command to enable battery manager and set a i2c callback address for batmgr_state when command command byte is > zero.
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
-void fnPowerMgr(uint8_t* i2cBuffer)
+void fnBatteryMgr(uint8_t* i2cBuffer)
 { 
     enable_alternate_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
     battery_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero

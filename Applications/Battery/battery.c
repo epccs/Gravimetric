@@ -79,6 +79,10 @@ void AltPwrCntl(unsigned long serial_print_delay_milsec)
     if ( (command_done == 10) )
     {
         battery_serial_print_started_at = milliseconds();
+        command_done = 11;
+    }
+    if ( (command_done == 11) )
+    {
         printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
         command_done = 12;
     }
@@ -148,7 +152,8 @@ void AltPwrCntl(unsigned long serial_print_delay_milsec)
         unsigned long kRuntime= elapsed(&battery_serial_print_started_at);
         if ((kRuntime) > (serial_print_delay_milsec))
         {
-            command_done = 10; /* This keeps looping output forever (until a Rx char anyway) */
+            battery_serial_print_started_at += serial_print_delay_milsec;
+            command_done = 11; /* This keeps looping output forever (until a Rx char anyway) */
         }
     }
 } 

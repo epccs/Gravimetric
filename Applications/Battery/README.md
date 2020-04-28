@@ -113,4 +113,4 @@ This will report alternat enable
 {"bat_en":"ON"}
 ```
 
-BROKEN, not turning on at this time
+BROKEN, i2c running at 100%, but it is not locking up.

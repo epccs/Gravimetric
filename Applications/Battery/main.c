@@ -102,7 +102,7 @@ void register_manager_callbacks(void)
     twi0_registerOnDayNightStateCallback(daynight_state_event);
     twi0_registerOnDayWorkCallback(day_work_event);
     twi0_registerOnNightWorkCallback(night_work_event);
-    twi0_registerOnBatMgrStateCallback(battery_state_event);
+    twi0_registerOnBatMgrStateCallback(battery_state_event); // register but not enabled in setup (done in battery.c)
 }
 
 void setup(void) 

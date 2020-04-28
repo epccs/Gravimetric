@@ -27,11 +27,14 @@
 // 25.0/(((5.5)/1024.0)*(115.8/15.8))
 #define BAT24_LIMIT_LOW_MIN 635
 
-#define BAT_LIM_LOADED 0
-#define BAT_LIM_DEFAULT 1
-#define BAT_LIM_HIGH_TOSAVE 2
-#define BAT_LIM_LOW_TOSAVE 3
-extern uint8_t bat_limit_loaded;
+typedef enum BAT_LIM_enum {
+    BAT_LIM_LOADED, // Limits loaded from EEPROM
+    BAT_LIM_DEFAULT, // Limits have default values from source
+    BAT_LIM_HIGH_TOSAVE, // i2c has set the high limit, it needs checked and if valid saved into EEPROM
+    BAT_LIM_LOW_TOSAVE // i2c has set the low limit, it needs checked and if valid saved into EEPROM
+} BAT_LIM_t;
+
+extern BAT_LIM_t bat_limit_loaded;
 extern int battery_high_limit;
 extern int battery_low_limit;
 

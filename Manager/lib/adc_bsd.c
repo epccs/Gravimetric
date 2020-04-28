@@ -30,7 +30,7 @@ how to use the buffer
 
 
 volatile int adc[ADC_CHANNELS];
-volatile uint8_t adc_channel;
+volatile ADC_CH_t adc_channel;
 volatile uint8_t ADC_auto_conversion;
 volatile uint8_t analog_reference;
 volatile uint8_t adc_isr_status;
@@ -39,28 +39,38 @@ static uint8_t free_running;
 
 // Interrupt service routine started with enable_ADC_auto_conversion
 ISR(ADC_vect){
-    adc[adc_channel] = ADC;
+    if( (adc_channel == ADC_CH_ALT_V) && (ioRead(MCU_IO_ALT_EN)) )
+    {
+        // do not save this adc reading, it may be wrong.
+    }
+    else
+    {
+        adc[adc_channel] = ADC;
+    }
     
     ++adc_channel;
-    
-    // ch 0 is ALT_I, always read
-    // ch 1 is ALT_V, only read when ALT_EN is low (e.g., at rest/not charging)
-    if ( (adc_channel == 1) && ioRead(MCU_IO_ALT_EN) )
+    switch (adc_channel)
     {
-        adc_channel = 6; // skip channel 1
-    }
-    // skip channels 3..5
-    if (adc_channel == 2)
-    {
-        adc_channel = 6;
-    }
-    // ch 6 is PWR_I, always read
-    // ch 7 is PWR_V, always read
-    
-    if (adc_channel >= ADC_CHANNELS) 
-    {
+    case ADC_CH_ALT_I: break; // always read
+    case ADC_CH_ALT_V:
+        if ( ioRead(MCU_IO_ALT_EN) ) // skip ADC_CH_ALT_V when alternat enable
+        {
+            adc_channel = ADC_CH_PWR_I; 
+        }
+        break;
+    case ADC_CH_NC2:
+    case ADC_CH_NC3:
+    case ADC_CH_NC4:
+    case ADC_CH_NC5:
+        adc_channel = ADC_CH_PWR_I;
+        break;
+    case ADC_CH_PWR_I: break; // always read
+    case ADC_CH_PWR_V: break; // always read
+    case ADC_CHANNELS:
+    default:
         adc_channel = 0;
         adc_isr_status = ISR_ADCBURST_DONE; // mark to notify burst is done
+        break;
     }
 
 #if defined(ADMUX)

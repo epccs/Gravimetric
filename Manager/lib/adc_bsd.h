@@ -19,7 +19,7 @@ typedef enum ADC_CH_enum {
 // the ADC channel can be used with analogRead(ADC0)*(<referance>/1024.0)
 
 extern volatile int adc[];
-extern volatile uint8_t adc_channel;
+extern volatile ADC_CH_t adc_channel;
 extern volatile uint8_t ADC_auto_conversion;
 extern volatile uint8_t analog_reference;
 
