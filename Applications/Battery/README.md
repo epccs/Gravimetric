@@ -1,15 +1,21 @@
 # Battery Charging
 
-ToDo: this is WIP, the manager will send charging events over the private I2C bus.
+##ToDo
+
+```
+pwm mode high time/low time needs to be locked in at the start of a period, it has problems as is
+halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
+ad cli to change bm values
+```
 
 
-## Overview
+ Overview
 
 The manager has control of the Alternate power input that may be used to send current from a charging supply to the primary power input (with the battery). 
 
 The alternate power supply needs to act as a current source, and the principal power source needs to act as a battery. Do not attempt this with a bench power supply as the primary power input, since many will not tolerate back drive. When the alternate power is enabled, it must have a current limit bellow what the parts and battery can handle.
 
-The DayNight state machine is on the manager; it has two work events. When the DayNight state shows it is day the enabled battery state machine is allowed to control the alternate power input. Analog measurements occur every ten milliseconds. The primary power measurement channel (PWR_V) is connected to a voltage divider (1% 15.8k and a 0.1% 100k) and is the battery voltage. The battery state machine will enable the Alternate input when the battery is lower than midway between the battery_low_limit and battery_high_limit. The battery state machine will PWM when the battery is above midway between the battery_low_limit and battery_high_limit.
+A DayNight state machine is on the manager; it has two work events. When the DayNight state shows it is day state the enabled battery state machine controls the alternate power input. Analog measurements occur every ten milliseconds. The primary power measurement channel (PWR_V) is used to measure the battery voltage with a voltage divider (1% 15.8k and 0.1% 100k). The battery management state machine controls the alternate input depending on the measured battery voltage in relation to battery_low_limit and battery_high_limit. The alternate input will PWM when the battery is above midway between the battery_low_limit and battery_high_limit, and operate as constant current bellow the midpoint. 
 
 
 ## Wiring Needed
@@ -92,25 +98,25 @@ identify
 {"id":{"name":"Battery","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
-##  /0/altcntl?
+##  /0/bmcntl?
 
-Reports alternat power control values. 
-
-``` 
-/1/altcntl?
-{"state":"0x0","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"357","adc_alt_v":"238","pwm_timer":"0","dn_timer":"414262"}
-{"state":"0x0","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"357","adc_alt_v":"238","pwm_timer":"0","dn_timer":"419261"}
-``` 
-
-AlThe non calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V.
-
-##  /0/alt
-
-This will report alternat enable
+Reports battery manager control values. 
 
 ``` 
-/1/alt
+/1/bmcntl?
+{"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"238","pwm_timer":"0","dn_timer":"12984815"}
+{"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"238","pwm_timer":"0","dn_timer":"12989814"}
+{"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"237","pwm_timer":"0","dn_timer":"12994812"}
+``` 
+
+The non calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V.
+
+##  /0/bm
+
+This will togle the battery manager enable
+
+``` 
+/1/bm
 {"bat_en":"ON"}
 ```
 
-BROKEN, i2c running at 100%, but it is not locking up.

@@ -179,7 +179,7 @@ void setup(void)
     // register daynight callbacks
     // then enable the manager as i2c master to send updates
     register_daynight_callbacks();
-    i2c_daynight_cmd();
+    i2c_daynight_cmd(I2C0_APP_ADDR);
 }
 
 void blink_mgr_status(void)

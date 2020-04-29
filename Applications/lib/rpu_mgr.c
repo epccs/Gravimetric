@@ -252,10 +252,11 @@ uint8_t i2c_read_status(void)
 //       byte 2 is command to receive daynight_state changes
 //       byte 3 is command to receive day work event
 //       byte 4 is command to receive night work event 
-void i2c_daynight_cmd(void)
+void i2c_daynight_cmd(uint8_t my_callback_addr)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[DAYNIGHT_CALLBK_CMD_SIZE] = DAYNIGHT_CALLBK_CMD;
+    txBuffer[1] = my_callback_addr;
     uint8_t length = DAYNIGHT_CALLBK_CMD_SIZE;
     twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
@@ -277,12 +278,12 @@ void i2c_daynight_cmd(void)
 // 16 .. cmd 0x17 plus two bytes 
 //       byte 1 is the slave address for manager to send envents
 //       byte 2 is command to receive batmgr_state changes
-void i2c_battery_cmd(uint8_t enable)
+void i2c_battery_cmd(uint8_t my_callback_addr)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[BATTERY_CALLBK_CMD_SIZE] = BATTERY_CALLBK_CMD;
     uint8_t length = BATTERY_CALLBK_CMD_SIZE;
-    if (!enable) txBuffer[1] = 0; // a slave callback address of zero will disable battery charge control, and end callbacks
+    txBuffer[1] = my_callback_addr; // a slave callback address of zero will disable battery charge control, and end callbacks
     twi_errorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (twi_errorCode)
     {

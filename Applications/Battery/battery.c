@@ -24,41 +24,41 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "../lib/timers_bsd.h"
 #include "../Adc/references.h"
 #include "../DayNight/day_night.h"
+#include "main.h"
 #include "battery.h"
 
 static unsigned long battery_serial_print_started_at;
 volatile BATTERYMGR_STATE_t batmgr_state;
-uint8_t enable_battery_manager; 
+uint8_t bm_callback_addr; 
 
 // the manager status byte can be read with i2c command 6. 
 // status bit 4 has ALT_EN
-void EnableAlt(void)
+void EnableBatMngCntl(void)
 {
     if ( (command_done == 10) )
     {
-        if (enable_battery_manager) 
+        if (bm_callback_addr) 
         {
-            enable_battery_manager = 0;
+            bm_callback_addr = 0; // zero will disable battery manager
         }
         else
         {
-            enable_battery_manager = 1;
+            bm_callback_addr = I2C0_APP_ADDR;
         }
         
-        i2c_battery_cmd(enable_battery_manager);
+        i2c_battery_cmd(bm_callback_addr);
         printf_P(PSTR("{\"bat_en\":"));
         command_done = 11;
     }
     else if ( (command_done == 11) )
     {
-        if (enable_battery_manager)
+        if (bm_callback_addr)
         {
             printf_P(PSTR("\"ON\""));
         }
         else
         {
             printf_P(PSTR("\"OFF\""));
-            batmgr_state = BATTERYMGR_STATE_START;
         }
         command_done = 12;
     }
@@ -73,8 +73,8 @@ void EnableAlt(void)
     }
 }
 
-// report ALT_EN, charge_start, charge_stop
-void AltPwrCntl(unsigned long serial_print_delay_milsec)
+// Report Battery Manager, charge_start, charge_stop
+void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
     {
@@ -83,7 +83,7 @@ void AltPwrCntl(unsigned long serial_print_delay_milsec)
     }
     if ( (command_done == 11) )
     {
-        printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
+        printf_P(PSTR("{\"bm_state\":\"0x%X\","),batmgr_state); // print a hex value
         command_done = 12;
     }
     else if ( (command_done == 12) ) 

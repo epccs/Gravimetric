@@ -38,7 +38,7 @@ SOFTWARE.
 #include <avr/eeprom.h> 
 #include "daynight_limits.h"
 
-uint8_t daynight_values_loaded;
+DAYNIGHT_t daynight_values_loaded;
 int daynight_morning_threshold;
 int daynight_evening_threshold;
 unsigned long daynight_morning_debounce;

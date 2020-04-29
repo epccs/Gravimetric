@@ -39,13 +39,15 @@
 // 8.0*1000 # 8 sec
 #define MORNING_DEBOUNCE_MIN 8000UL
 
-#define DAYNIGHT_VALUES_LOADED 0
-#define DAYNIGHT_VALUES_DEFAULT 1
-#define DAYNIGHT_MORNING_THRESHOLD_TOSAVE 2
-#define DAYNIGHT_EVENING_THRESHOLD_TOSAVE 3
-#define DAYNIGHT_MORNING_DEBOUNCE_TOSAVE 4
-#define DAYNIGHT_EVENING_DEBOUNCE_TOSAVE 5
-extern uint8_t daynight_values_loaded;
+typedef enum DAYNIGHT_enum {
+    DAYNIGHT_VALUES_LOADED, // Settings loaded from EEPROM
+    DAYNIGHT_VALUES_DEFAULT, // Limits have default values from source
+    DAYNIGHT_MORNING_THRESHOLD_TOSAVE, // i2c has set the daynight_morning_threshold, it needs checked and if valid saved into EEPROM
+    DAYNIGHT_EVENING_THRESHOLD_TOSAVE, // i2c has set the daynight_evening_threshold, it needs checked and if valid saved into EEPROM
+    DAYNIGHT_MORNING_DEBOUNCE_TOSAVE, // i2c has set the daynight_morning_debounce, it needs checked and if valid saved into EEPROM
+    DAYNIGHT_EVENING_DEBOUNCE_TOSAVE // i2c has set the daynight_evening_debounce, it needs checked and if valid saved into EEPROM
+} DAYNIGHT_t;
+extern DAYNIGHT_t daynight_values_loaded;
 extern int daynight_morning_threshold;
 extern int daynight_evening_threshold;
 extern unsigned long daynight_morning_debounce;

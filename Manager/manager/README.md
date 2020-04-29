@@ -14,6 +14,8 @@
 (done) move alt_enable from status bit 4 to its own cmd 16 to setup callback
 (done) alt_enable name changed to enable_alternate_callback_address, and holds callback
 when setting enable_alternate_callback_address init the state machine so that a callback update occurs
+bm pwm mode high time/low time needs to be locked in at the start of a period, it has problems as is
+halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
 remove status bit 4 (report alternat power)
 if app is reset clear enable_alternate_callback_address and daynight_callback_address
 Verify battery_manager with an applicaiton

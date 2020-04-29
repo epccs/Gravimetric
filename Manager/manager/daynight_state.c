@@ -86,6 +86,9 @@ void check_daynight(void)
     // if somthing else is using twi then my loop_state should allow getting to this, but I want to skip this state machine
     if (i2c_is_in_use) return;
 
+    // if daynight settins are changing skip this state machine
+    if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT) return;
+
     // check light on solar pannel with ALT_V, reading are only taken when !ALT_EN.
     int sensor_val = adcAtomic(MCU_IO_ALT_V);
     unsigned long kRuntime = elapsed(&dayTmrStarted);

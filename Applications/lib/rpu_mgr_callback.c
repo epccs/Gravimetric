@@ -96,8 +96,6 @@ static PointerToCallback twi0_onDayWork = twi0_callback_default;
 static PointerToCallback twi0_onNightWork = twi0_callback_default;
 static PointerToCallback twi0_onBatMgrState = twi0_callback_default;
 
-volatile static int a;
-
 // I2C command returning the managers daynight_state
 void fnDayNightState(uint8_t* i2cBuffer)
 {

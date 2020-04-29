@@ -61,13 +61,13 @@ void ProcessCmd()
     {
         Day(5000UL); 
     }
-    if ( (strcmp_P( command, PSTR("/alt")) == 0) && ( (arg_count == 0 ) ) )
+    if ( (strcmp_P( command, PSTR("/bm")) == 0) && ( (arg_count == 0 ) ) )
     {
-        EnableAlt(); 
+        EnableBatMngCntl(); 
     }
-    if ( (strcmp_P( command, PSTR("/altcntl?")) == 0) && ( (arg_count == 0 ) ) )
+    if ( (strcmp_P( command, PSTR("/bmcntl?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        AltPwrCntl(5000UL);  
+        ReportBatMngCntl(5000UL);  
     }
 }
 
@@ -94,7 +94,7 @@ void night_work_event(uint8_t data)
 
 void battery_state_event(uint8_t batmgr_state_from_mgr)
 {
-    batmgr_state = batmgr_state_from_mgr;
+    batmgr_state = (BATTERYMGR_STATE_t)batmgr_state_from_mgr;
 }
 
 void register_manager_callbacks(void)
@@ -175,7 +175,7 @@ void setup(void)
     // register manager callbacks
     // then enable the manager as i2c master to send updates to the application
     register_manager_callbacks();
-    i2c_daynight_cmd();
+    i2c_daynight_cmd(I2C0_APP_ADDR);
 }
 
 void blink_mgr_status(void)

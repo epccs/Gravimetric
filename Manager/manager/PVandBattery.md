@@ -13,7 +13,7 @@
 
 ## Cmd 16 from a controller /w i2c-debug to enable battery manager
 
-Send a byte to enable the battery manager, its value is also a callback address. The second byte byte is used as the command number to send the battery state updates from the manager (i2c master) to the application (i2c slave).
+Send a byte to enable the battery manager, its value is also a callback address. The second byte is used as the command number to send the battery manager state machine events from the manager (i2c master) to the application (i2c slave).
 
 ``` 
 # I am using the bootload interface 
