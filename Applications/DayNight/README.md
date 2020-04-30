@@ -1,5 +1,11 @@
 # Day-Night State Machine
 
+##ToDo
+
+```
+ad cli to change daynight_morning_threshold, daynight_evening_threshold, daynight_morning_debounce, daynight_evening_debounce
+```
+
 ## Overview
 
 The manager has a day-night state machine that tracks voltage on the ALT_V power input (photovoltaic) to tell if it is day or night. The 324pb application controler can access the state machine over I2C.

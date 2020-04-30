@@ -13,15 +13,16 @@
 (done) PowerManagement.md to Analog.md
 (done) move alt_enable from status bit 4 to its own cmd 16 to setup callback
 (done) alt_enable name changed to enable_alternate_callback_address, and holds callback
-when setting enable_alternate_callback_address init the state machine so that a callback update occurs
-bm pwm mode high time/low time needs to be locked in at the start of a period, it has problems as is
-halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
+(done) when setting enable_alternate_callback_address init the state machine so that a callback update occurs
+(done) bm pwm mode high time/low time needs to be locked in at the start of a period, it has problems otherwise
+(done) verify battery_manager with Battery applicaiton
+(nix) Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
+(nix) Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
+(done) bm runs only when night_state == DAYNIGHT_STATE_DAY
+(nix) A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
 remove status bit 4 (report alternat power)
 if app is reset clear enable_alternate_callback_address and daynight_callback_address
-Verify battery_manager with an applicaiton
-Turn on enable_alternate_power and clear alt_pwm_accum_charge_time when daynight state is at DAYNIGHT_DAYWORK_STATE
-Turn off enable_alternate_power when daynight state is at DAYNIGHT_NIGHTWORK_STATE
-A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
+halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
 

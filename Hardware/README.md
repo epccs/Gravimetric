@@ -78,6 +78,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             Q105 and Q118 need to go into cut off (or hi-z) when the MOSFET gate is low.
             Add note on schem near *manager* ISP port "remove alternat power befor programing with ISP"
             Add test points on I2C0 nodes.
+            Staggered holes shifted 8mil (~0.2 mm) off-center for bootload and ISP header (see AVR128DA48-Curiosity-Nano).
 
         ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, 
             WIP: Testing,

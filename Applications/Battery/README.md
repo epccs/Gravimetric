@@ -3,9 +3,9 @@
 ##ToDo
 
 ```
-pwm mode high time/low time needs to be locked in at the start of a period, it has problems as is
+(done) pwm mode high time/low time needs to be locked at the start of a period, it has problems otherwise.
 halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
-ad cli to change bm values
+ad cli to change battery_low_limit and battery_high_limit
 ```
 
 
@@ -109,7 +109,7 @@ Reports battery manager control values.
 {"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"237","pwm_timer":"0","dn_timer":"12994812"}
 ``` 
 
-The non calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V.
+The non-calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V during the above reading.
 
 ##  /0/bm
 

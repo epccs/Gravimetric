@@ -51,6 +51,7 @@ unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pw
 uint8_t enable_alternate_callback_address;
 uint8_t battery_state_callback_cmd;
 TWI0_LOOP_STATE_t loop_state;
+unsigned long ontime;
 
 uint8_t fail_wip;
 
@@ -79,6 +80,7 @@ void check_if_alt_should_be_on(void)
         case BATTERYMGR_STATE_START:
             ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW); // start a pwm period, but with out alternat enabled
             alt_pwm_started_at = milliseconds();
+            ontime = 0;
             batmgr_state = BATTERYMGR_STATE_PWM_MODE;
             if (battery_state_callback_cmd)
             {
@@ -109,6 +111,7 @@ void check_if_alt_should_be_on(void)
             { 
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH); // start a pwm period
                 alt_pwm_started_at = milliseconds();
+                ontime = 0;
                 batmgr_state = BATTERYMGR_STATE_PWM_MODE;
                 if (battery_state_callback_cmd)
                 {
@@ -146,13 +149,11 @@ void check_if_alt_should_be_on(void)
                 break;
             }
 
-            // when battery is above half way between high and low limit pwm operates with 2 sec intervals
-            if (battery > (battery_low_limit + pwm_range ) )
+            // each 2 sec PWM interval is fixed when ontime is calculated
+            if (ontime)
             { 
-                unsigned long ontime = ALT_PWM_PERIOD * ( (battery_high_limit - battery) / pwm_range );
-
                 // end of on_time
-                if (ioRead(MCU_IO_ALT_EN) && ((kRuntime + ontime) > ALT_PWM_PERIOD ))
+                if (ioRead(MCU_IO_ALT_EN) && (kRuntime > ontime))
                 {
                     ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 }
@@ -160,30 +161,37 @@ void check_if_alt_should_be_on(void)
                 // new pwm period
                 if (kRuntime > ALT_PWM_PERIOD)
                 {
-                    ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
-                    alt_pwm_started_at += ALT_PWM_PERIOD;
+                    if (battery > (battery_low_limit + pwm_range ) )
+                    {
+                        alt_pwm_started_at += ALT_PWM_PERIOD;
+                        ontime = 0;
+                    }
+                    else
+                    {
+                        batmgr_state = BATTERYMGR_STATE_CC_REST;
+                        if (battery_state_callback_cmd)
+                        {
+                            if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                            i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                        }
+                    }
+                    
                 }
-                break;
             }
-
-            // when battery is bellow half way between high and low limit it need to operates in CC mode
-            if (battery <= (battery_low_limit + pwm_range) )
+            else
             {
-                batmgr_state = BATTERYMGR_STATE_CC_REST;
-                if (battery_state_callback_cmd)
-                {
-                    if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
-                }
+                ontime = ALT_PWM_PERIOD * ( (battery_high_limit - battery) / pwm_range );
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
             }
             break;
 
         case BATTERYMGR_STATE_DONE:
-            // if the battery is bellow the PWM range start PWM mode
+            // if the battery has went bellow the PWM range start it in PWM mode
             if (battery <= (battery_low_limit + pwm_range) )
             {
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 alt_pwm_started_at = milliseconds();
+                ontime = 0;
                 batmgr_state = BATTERYMGR_STATE_PWM_MODE;
                 if (battery_state_callback_cmd)
                 {
