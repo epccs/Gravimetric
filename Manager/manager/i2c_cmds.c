@@ -1,5 +1,5 @@
 /*
-i2c_cmds is a i2c RPUBUS manager commands library in the form of a function pointer array  
+i2c_cmds is a i2c manager slave commands library in the form of a function pointer array  
 Copyright (C) 2019 Ronald Sutherland
 
 All rights reserved, specifically, the right to Redistribut is withheld. Subject 
@@ -684,15 +684,15 @@ void fnEveningDebounce(uint8_t* i2cBuffer)
     daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
 }
 
-// I2C command to read day daynight timer offset
+// I2C command to read elapsed_time_since_dayTmrStarted
 void fnDayNightTimer(uint8_t* i2cBuffer)
 {
-    unsigned long daynight_timer = elapsed(&dayTmrStarted);
+    unsigned long elapsed_time_since_dayTmrStarted = elapsed(&dayTmrStarted);
     // there are four bytes in an unsigned long
-    i2cBuffer[1] = ( (0xFF000000UL & daynight_timer) >>24 ); 
-    i2cBuffer[2] =  ( (0x00FF0000UL & daynight_timer) >>16 ); 
-    i2cBuffer[3] =  ( (0x0000FF00UL & daynight_timer) >>8 ); 
-    i2cBuffer[4] =  ( (0x000000FFUL & daynight_timer) );
+    i2cBuffer[1] = ( (0xFF000000UL & elapsed_time_since_dayTmrStarted) >>24 ); 
+    i2cBuffer[2] =  ( (0x00FF0000UL & elapsed_time_since_dayTmrStarted) >>16 ); 
+    i2cBuffer[3] =  ( (0x0000FF00UL & elapsed_time_since_dayTmrStarted) >>8 ); 
+    i2cBuffer[4] =  ( (0x000000FFUL & elapsed_time_since_dayTmrStarted) );
 }
 
 /* Dummy function */

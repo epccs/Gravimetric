@@ -13,9 +13,9 @@ typedef enum BATTERYMGR_STATE_enum {
 extern volatile BATTERYMGR_STATE_t batmgr_state;
 
 extern void EnableBatMngCntl(void);
-extern void ReportBatMngCntl(unsigned long);
-
-extern void check_if_alt_should_be_on(uint8_t, float, float);
+extern void ReportBatMngCntl(unsigned long serial_print_delay_milsec);
+extern void BatMngLowLimit(void);
+extern void BatMngHighLimit(void);
 
 extern  uint8_t alt_enable;
 

@@ -31,8 +31,8 @@ static unsigned long battery_serial_print_started_at;
 volatile BATTERYMGR_STATE_t batmgr_state;
 uint8_t bm_callback_addr; 
 
-// the manager status byte can be read with i2c command 6. 
-// status bit 4 has ALT_EN
+// /0/bm
+// enable the battery manager and the callback where it can tell me what it is doing.
 void EnableBatMngCntl(void)
 {
     if ( (command_done == 10) )
@@ -73,7 +73,8 @@ void EnableBatMngCntl(void)
     }
 }
 
-// Report Battery Manager, charge_start, charge_stop
+// /0/bmcntl?
+// report on battery manager, battery_low_limit, battery_high_limit
 void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
@@ -94,7 +95,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         {
             local_copy = i2c_int_access_cmd(CHARGE_BATTERY_LOW,0,&loop_state);
         }
-        printf_P(PSTR("\"bat_chg_low\":\"%u\","),local_copy);
+        printf_P(PSTR("\"bat_low_lim\":\"%u\","),local_copy);
         command_done = 13;
     }
     else if ( (command_done == 13) ) 
@@ -105,7 +106,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         {
             local_copy = i2c_int_access_cmd(CHARGE_BATTERY_HIGH,0,&loop_state);
         }
-        printf_P(PSTR("\"bat_chg_high\":\"%u\","),local_copy);
+        printf_P(PSTR("\"bat_high_lim\":\"%u\","),local_copy);
         command_done = 14;
     }
     else if ( (command_done == 14) ) 
@@ -133,13 +134,13 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
     else if ( (command_done == 16) ) 
     {
         unsigned long local_copy = i2c_ul_access_cmd(CHARGE_BATTERY_PWM,0);
-        printf_P(PSTR("\"pwm_timer\":\"%lu\","),local_copy);
+        printf_P(PSTR("\"pwm_timer\":\"%lu\","),local_copy); // alt_pwm_accum_charge_time
         command_done = 17;
     }
     else if ( (command_done == 17) ) 
     {
         unsigned long local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0);
-        printf_P(PSTR("\"dn_timer\":\"%lu\""),local_copy);
+        printf_P(PSTR("\"dn_timer\":\"%lu\""),local_copy); // elapsed_time_since_dayTmrStarted
         command_done = 24;
     }
     else if ( (command_done == 24) ) 
@@ -158,3 +159,102 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
     }
 } 
 
+// /0/bmlow? [value]
+// read [set] battery manager battery_low_limit
+void BatMngLowLimit(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 0) || (atoi(arg[0]) >= (1<<10) ) )
+            {
+                printf_P(PSTR("{\"err\":\"BMLowLimMax 1023\"}\r\n"));
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"bat_low_lim\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        int int_to_send = 0;
+        if (arg_count == 1) int_to_send = atoi(arg[0]);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_int_access_cmd(CHARGE_BATTERY_LOW,int_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        int int_to_send = 0;
+        int int_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            int_to_get = i2c_int_access_cmd(CHARGE_BATTERY_LOW,int_to_send,&loop_state);
+        }
+        printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
+        initCommandBuffer();
+        return;
+    }
+}
+
+// /0/bmhigh? [value]
+// set battery manager battery_high_limit
+void BatMngHighLimit(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 0) || (atoi(arg[0]) >= (1<<10) ) )
+            {
+                printf_P(PSTR("{\"err\":\"BMHighLimMax 1023\"}\r\n"));
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"bat_high_lim\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        int int_to_send = 0;
+        if (arg_count == 1) int_to_send = atoi(arg[0]);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_int_access_cmd(CHARGE_BATTERY_HIGH,int_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        int int_to_send = 0;
+        int int_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            int_to_get = i2c_int_access_cmd(CHARGE_BATTERY_HIGH,int_to_send,&loop_state);
+        }
+        printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
+        initCommandBuffer();
+        return;
+    }
+}

@@ -69,6 +69,14 @@ void ProcessCmd()
     {
         ReportBatMngCntl(5000UL);  
     }
+    if ( (strcmp_P( command, PSTR("/bmlowlim?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        BatMngLowLimit(); 
+    }
+    if ( (strcmp_P( command, PSTR("/bmhighlim?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        BatMngHighLimit(); 
+    }
 }
 
 // these functions can be registered as callbacks 

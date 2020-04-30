@@ -4,8 +4,9 @@
 
 ```
 (done) pwm mode high time/low time needs to be locked at the start of a period, it has problems otherwise.
-halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
-ad cli to change battery_low_limit and battery_high_limit
+(done) add cli to change battery_low_limit and battery_high_limit
+add a battery_halt_limit to halt the host and turn off its power.
+change the low and high limit to be the PWM range
 ```
 
 
@@ -120,3 +121,24 @@ This will togle the battery manager enable
 {"bat_en":"ON"}
 ```
 
+##  /0/bmlowlim? \[0..1023\]
+
+This will set the battery manager low limit used with 10 bit ADC.
+
+``` 
+/1/bmlowlim?
+{"bat_low_lim":"374"}
+/1/bmlowlim? 373
+{"bat_low_lim":"373"}
+```
+
+##  /0/bmhighlim? \[0..1023\]
+
+This will set the battery manager high limit used with 10 bit ADC.
+
+``` 
+/1/bmhighlim?
+{"bat_high_lim":"398"}
+/1/bmhighlim? 399
+{"bat_high_lim":"399"}
+```

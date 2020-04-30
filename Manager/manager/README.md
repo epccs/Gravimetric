@@ -22,7 +22,7 @@
 (nix) A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
 remove status bit 4 (report alternat power)
 if app is reset clear enable_alternate_callback_address and daynight_callback_address
-halt the host at (battery_low_limit - (battery_low_limit>>2)) //e.g., 75%
+halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
 
