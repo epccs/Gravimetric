@@ -15,7 +15,12 @@ typedef enum DAYNIGHT_STATE_enum {
 
 extern volatile DAYNIGHT_STATE_t daynight_state;
 
-extern void Day(unsigned long);
+extern void dnReport(unsigned long);
+extern void dnMorningThreshold(void);
+extern void dnEveningThreshold(void);
+extern void dnMorningDebounce(void);
+extern void dnEveningDebounce(void);
+
 extern void check_daynight_state(void);
 extern void check_manager_status(void);
 

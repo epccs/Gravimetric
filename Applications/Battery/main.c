@@ -59,7 +59,23 @@ void ProcessCmd()
     }
     if ( (strcmp_P( command, PSTR("/day?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        Day(5000UL); 
+        dnReport(5000UL); 
+    }
+    if ( (strcmp_P( command, PSTR("/dnmthresh?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        dnMorningThreshold(); // set daynight state machine daynight_morning_threshold
+    }
+    if ( (strcmp_P( command, PSTR("/dnethresh?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        dnEveningThreshold(); // set daynight state machine daynight_evening_threshold
+    }
+    if ( (strcmp_P( command, PSTR("/dnmdebounc?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        dnMorningDebounce(); // set daynight state machine daynight_morning_debounce
+    }
+    if ( (strcmp_P( command, PSTR("/dnedebounc?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        dnEveningDebounce(); // set daynight state machine daynight_evening_debounce
     }
     if ( (strcmp_P( command, PSTR("/bm")) == 0) && ( (arg_count == 0 ) ) )
     {
@@ -69,13 +85,13 @@ void ProcessCmd()
     {
         ReportBatMngCntl(5000UL);  
     }
-    if ( (strcmp_P( command, PSTR("/bmlowlim?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    if ( (strcmp_P( command, PSTR("/bmlow?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        BatMngLowLimit(); 
+        BatMngLowLimit();  // set battery manager battery_low_limit
     }
-    if ( (strcmp_P( command, PSTR("/bmhighlim?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    if ( (strcmp_P( command, PSTR("/bmhigh?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        BatMngHighLimit(); 
+        BatMngHighLimit(); // set battery manager battery_high_limit
     }
 }
 
@@ -153,7 +169,7 @@ void setup(void)
     
      // manager will broadcast normal mode on DTR pair of mulit-drop
     rpu_addr = i2c_get_Rpu_address(); 
-    if (twi_errorCode) manager_status = twi_errorCode;
+    if (mgr_twiErrorCode) manager_status = mgr_twiErrorCode;
     
     // default address, since RPU manager not found
     if (rpu_addr == 0)
@@ -163,13 +179,21 @@ void setup(void)
     }
 
     // managers default debounce is 20 min (e.g. 1,200,000 milliseconds) but to test this I want less
-    i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL); // 18 sec is used if it is valid
-    i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL);
+    TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+    while (loop_state != TWI0_LOOP_STATE_DONE)
+    {
+        i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL,&loop_state); // 18 sec is used if it is valid
+    }
+    loop_state = TWI0_LOOP_STATE_INIT;
+    while (loop_state != TWI0_LOOP_STATE_DONE)
+    {
+        i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL,&loop_state);
+    }
 
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
     // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
     // manager uses int bellow and analogRead(ALT_V) to check threshold. 
-    TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+    loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
         i2c_int_access_cmd(EVENING_THRESHOLD,40,&loop_state);

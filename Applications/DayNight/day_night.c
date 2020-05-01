@@ -32,8 +32,9 @@ volatile DAYNIGHT_STATE_t daynight_state;
 
 static unsigned long daynight_serial_print_started_at;
 
-
-void Day(unsigned long serial_print_delay_milsec)
+// /0//day?
+// report on daynight state machine, threshold and debounce settings, adc reading, and elapsed time since dayTmrStarted
+void dnReport(unsigned long serial_print_delay_milsec)
 {
     if ( (command_done == 10) )
     {
@@ -76,19 +77,34 @@ void Day(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 15) ) 
     {
-        unsigned long local_copy = i2c_ul_access_cmd(MORNING_DEBOUNCE,0);
+        unsigned long local_copy = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            i2c_ul_access_cmd(MORNING_DEBOUNCE,0,&loop_state);
+        }
         printf_P(PSTR("\"mor_debounce\":\"%lu\","),local_copy);
         command_done = 16;
     }
     else if ( (command_done == 16) ) 
     {
-        unsigned long local_copy = i2c_ul_access_cmd(EVENING_DEBOUNCE,0);
+        unsigned long local_copy = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            i2c_ul_access_cmd(EVENING_DEBOUNCE,0,&loop_state);
+        }
         printf_P(PSTR("\"eve_debounce\":\"%lu\","),local_copy);
         command_done = 17;
     }
     else if ( (command_done == 17) ) 
     {
-        unsigned long local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0);
+        unsigned long local_copy = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            i2c_ul_access_cmd(DAYNIGHT_TIMER,0,&loop_state);
+        }
         printf_P(PSTR("\"dn_timer\":\"%lu\""),local_copy);
         command_done = 24;
     }
@@ -107,4 +123,249 @@ void Day(unsigned long serial_print_delay_milsec)
     }
 }
 
+// /0/dnmthresh? [value]
+// set daynight state machine daynight_morning_threshold
+void dnMorningThreshold(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 0) || (atoi(arg[0]) >= (1<<10) ) )
+            {
+                printf_P(PSTR("{\"err\":\"DNMornThrshMax 1023\"}\r\n"));
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"mor_threshold\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        int int_to_send = 0;
+        if (arg_count == 1) int_to_send = atoi(arg[0]);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_int_access_cmd(MORNING_THRESHOLD,int_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        int int_to_send = 0;
+        int int_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            int_to_get = i2c_int_access_cmd(MORNING_THRESHOLD,int_to_send,&loop_state);
+        }
+        printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
+        initCommandBuffer();
+        return;
+    }
+}
+
+// /0/dnethresh? [value]
+// set daynight state machine daynight_evening_threshold
+void dnEveningThreshold(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 0) || (atoi(arg[0]) >= (1<<10) ) )
+            {
+                printf_P(PSTR("{\"err\":\"DNEvenThrshMax 1023\"}\r\n"));
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"eve_threshold\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        int int_to_send = 0;
+        if (arg_count == 1) int_to_send = atoi(arg[0]);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_int_access_cmd(EVENING_THRESHOLD,int_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        int int_to_send = 0;
+        int int_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            int_to_get = i2c_int_access_cmd(EVENING_THRESHOLD,int_to_send,&loop_state);
+        }
+        printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
+        initCommandBuffer();
+        return;
+    }
+}
+
+// /0/dnmdebounc? [value]
+// set daynight state machine daynight_morning_debounce
+void dnMorningDebounce(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            uint8_t arg0_outOfRange = 0; 
+            if ( !isdigit(arg[0][0]) )
+            {
+                printf_P(PSTR("{\"err\":\"DNMorDebounc NaN\"}\r\n"));
+                arg0_outOfRange = 1;
+            }
+            else
+            {
+                if (strtoul(arg[0], (char **)NULL, 10) < 8000UL)
+                {
+                    printf_P(PSTR("{\"err\":\"DNMorDebounc> 8000\"}\r\n"));
+                    arg0_outOfRange = 1;
+                }
+                if (strtoul(arg[0], (char **)NULL, 10) > 3600000UL)
+                {
+                    printf_P(PSTR("{\"err\":\"DNMorDebounc< 3600000\"}\r\n"));
+                    arg0_outOfRange = 1;
+                }
+            }
+            if (arg0_outOfRange)
+            {
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"mor_debounce\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        unsigned long ul_to_send = 0;
+        if (arg_count == 1) ul_to_send = strtoul(arg[0], (char **)NULL, 10);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_ul_access_cmd(MORNING_DEBOUNCE,ul_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        unsigned long ul_to_send = 0;
+        unsigned long ul_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            ul_to_get = i2c_ul_access_cmd(MORNING_DEBOUNCE,ul_to_send,&loop_state);
+        }
+        printf_P(PSTR("\"%lu\""),ul_to_get);
+        if(!ul_to_get)
+        {
+            printf_P(PSTR(",\"mgr_twierr\":\"%u\""),mgr_twiErrorCode);
+        }
+        printf_P(PSTR("}\r\n"));
+        initCommandBuffer();
+        return;
+    }
+}
+
+// /0/dnedebounc? [value]
+// set daynight state machine daynight_evening_debounce
+void dnEveningDebounce(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            uint8_t arg0_outOfRange = 0; 
+            if ( !isdigit(arg[0][0]) )
+            {
+                printf_P(PSTR("{\"err\":\"DNEveDebounc NaN\"}\r\n"));
+                arg0_outOfRange = 1;
+            }
+            else
+            {
+                if (strtoul(arg[0], (char **)NULL, 10) < 8000UL)
+                {
+                    printf_P(PSTR("{\"err\":\"DNEveDebounc> 8000\"}\r\n"));
+                    arg0_outOfRange = 1;
+                }
+                if (strtoul(arg[0], (char **)NULL, 10) > 3600000UL)
+                {
+                    printf_P(PSTR("{\"err\":\"DNEveDebounc< 3600000\"}\r\n"));
+                    arg0_outOfRange = 1;
+                }
+            }
+            if (arg0_outOfRange)
+            {
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"eve_debounce\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        unsigned long ul_to_send = 0;
+        if (arg_count == 1) ul_to_send = strtoul(arg[0], (char **)NULL, 10);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_ul_access_cmd(EVENING_DEBOUNCE,ul_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        unsigned long ul_to_send = 0;
+        unsigned long ul_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            ul_to_get = i2c_ul_access_cmd(EVENING_DEBOUNCE,ul_to_send,&loop_state);
+        }
+        printf_P(PSTR("\"%lu\""),ul_to_get);
+        if(!ul_to_get)
+        {
+            printf_P(PSTR(",\"mgr_twierr\":\"%u\""),mgr_twiErrorCode);
+        }
+        printf_P(PSTR("}\r\n"));
+        initCommandBuffer();
+        return;
+    }
+}
 

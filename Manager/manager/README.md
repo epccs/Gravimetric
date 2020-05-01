@@ -21,6 +21,7 @@
 (done) bm runs only when night_state == DAYNIGHT_STATE_DAY
 (nix) A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
 remove status bit 4 (report alternat power)
+reading after seting a value returns zero, (daynight_morning_debounce)
 if app is reset clear enable_alternate_callback_address and daynight_callback_address
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 

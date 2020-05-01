@@ -3,7 +3,8 @@
 ##ToDo
 
 ```
-ad cli to change daynight_morning_threshold, daynight_evening_threshold, daynight_morning_debounce, daynight_evening_debounce
+(done) add cli to change daynight_morning_threshold, daynight_evening_threshold, daynight_morning_debounce, daynight_evening_debounce
+reading after seting a value returns zero ???
 ```
 
 ## Overview
@@ -127,3 +128,31 @@ Day: Charge the battry
 ```
 
 
+## /0/dnmdebounc? [value]
+
+Set manager daynight state machine daynight_morning_debounce.
+
+```
+/1/dnmdebounc?
+{"mor_debounce":"1200000"}
+/1/dnmdebounc? 18000
+{"mor_debounce":"18000"}
+/1/dnmdebounc?
+{"mor_debounce":"0","mgr_twierr":"0"}
+```
+
+reading after seting a value returns zero but twi does not show an error
+
+
+## /0/dnmthresh? [value]
+
+Set daynight state machine daynight_morning_threshold
+
+```
+/1/dnmthresh?
+{"mor_threshold":"80"}
+/1/dnmthresh? 81
+{"mor_debounce":"81"}
+/1/dnmthresh?
+{"mor_debounce":"81"}
+```

@@ -130,9 +130,9 @@ void Analog(unsigned long serial_print_delay_milsec)
         temp_adc = i2c_get_adc_from_manager(adc_ch_from_manager, &twi0_loop_state);
         if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
         {
-            if (twi_errorCode)
+            if (mgr_twiErrorCode)
             {
-                printf_P(PSTR("\"Err=%d_ch=%d\"}\r\n"), twi_errorCode, adc_ch_from_manager);
+                printf_P(PSTR("\"Err=%d_ch=%d\"}\r\n"), mgr_twiErrorCode, adc_ch_from_manager);
                 initCommandBuffer();
                 return;
             }
@@ -148,9 +148,9 @@ void Analog(unsigned long serial_print_delay_milsec)
         float temp_float = i2c_float_access_cmd(command, select, &update_with, &twi0_loop_state);
         if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
         {
-            if (twi_errorCode)
+            if (mgr_twiErrorCode)
             {
-                printf_P(PSTR("\"Err=%d_extern_avcc\"}\r\n"),twi_errorCode);
+                printf_P(PSTR("\"Err=%d_extern_avcc\"}\r\n"),mgr_twiErrorCode);
                 initCommandBuffer();
                 return;
             }
@@ -167,9 +167,9 @@ void Analog(unsigned long serial_print_delay_milsec)
         float temp_float = i2c_float_access_cmd(command, select, &update_with, &twi0_loop_state);
         if (twi0_loop_state == TWI0_LOOP_STATE_DONE)
         {
-            if (twi_errorCode)
+            if (mgr_twiErrorCode)
             {
-                printf_P(PSTR("\"Err=%d_ch_cal\"}\r\n"),twi_errorCode);
+                printf_P(PSTR("\"Err=%d_ch_cal\"}\r\n"),mgr_twiErrorCode);
                 initCommandBuffer();
                 return;
             }

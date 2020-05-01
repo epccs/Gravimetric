@@ -133,13 +133,23 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
     }
     else if ( (command_done == 16) ) 
     {
-        unsigned long local_copy = i2c_ul_access_cmd(CHARGE_BATTERY_PWM,0);
+        unsigned long local_copy = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            i2c_ul_access_cmd(CHARGE_BATTERY_PWM,0,&loop_state);
+        }
         printf_P(PSTR("\"pwm_timer\":\"%lu\","),local_copy); // alt_pwm_accum_charge_time
         command_done = 17;
     }
     else if ( (command_done == 17) ) 
     {
-        unsigned long local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0);
+        unsigned long local_copy = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            i2c_ul_access_cmd(DAYNIGHT_TIMER,0,&loop_state);
+        }
         printf_P(PSTR("\"dn_timer\":\"%lu\""),local_copy); // elapsed_time_since_dayTmrStarted
         command_done = 24;
     }

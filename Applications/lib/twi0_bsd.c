@@ -513,7 +513,7 @@ uint8_t twi0_masterWrite(uint8_t slave_address, uint8_t* write_data, uint8_t byt
                 break; // wrong state was set befor running
             }
     }
-    return status; // note that TWI1_WRT_STAT_BUSY (1) is reported when TWI1_WRT_TO_MUCH_DATA occures
+    return status; // note that TWI0_WRT_STAT_BUSY (1) is reported when TWI0_WRT_TO_MUCH_DATA occures
 }
 
 // TWI write busy-wait transaction, do not use with multi-master.
@@ -729,7 +729,7 @@ uint8_t twi0_masterWriteRead(uint8_t slave_address, uint8_t* write_data, uint8_t
         {
             // twi_wrt_code may have an error in which case loop_state is set as TWI0_LOOP_STATE_DONE
             // or write is not done and we can check again after a spin through the outside loop
-            return twi_wrt_code<<5; // if twi_wrt_code has an error use twi0_masterAsyncWrite_status to see it
+            return 0; // if twi_wrt_code has an error use twi0_masterAsyncWrite_status to see it
         }
     }
 
