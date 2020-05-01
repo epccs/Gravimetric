@@ -4,11 +4,19 @@ Some lessons I learned doing Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 I2C Use Of Invalid Values
 1. ^1 Reflow Disaster
 1. ^0 N-CH Cutoff
 1. ^0 Power Protection 
 1. ^0 Manager Should Do More
 1. ^0 Alternat Power Diode
+
+
+## ^1 I2C Use Of Invalid Values
+
+daynight_morning_debounce and daynight_evening_debounce i2c receive events were saving invalid numbers and then testing them when they tried saving to EEPROM. They need to be tested in the TWI receive event so that invalid data is not placed where the state machine (or other users) can access it. Also, the function that saves to EEPROM does not restore defaults of invalid data at this time, the bloat of restoring an invalid value looks worse than checking in the TWI event.
+
+I need to look things over and make sure this is not happening with other values.
 
 
 ## ^1 Reflow Disaster

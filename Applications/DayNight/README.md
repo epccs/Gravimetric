@@ -4,7 +4,7 @@
 
 ```
 (done) add cli to change daynight_morning_threshold, daynight_evening_threshold, daynight_morning_debounce, daynight_evening_debounce
-reading after seting a value returns zero ???
+(found bug and fixed) reading after seting a value returns zero ???
 ```
 
 ## Overview
@@ -98,6 +98,54 @@ Identify is from ../Uart/id.h Id().
 ```
 
 
+## /0/dnmdebounc? [value]
+
+Set manager daynight state machine daynight_morning_debounce.
+
+```
+/1/dnmdebounc?
+{"mor_debounce":"1200000"}
+/1/dnmdebounc? 18000
+{"mor_debounce":"18000"}
+/1/dnmdebounc?
+{"mor_debounce":"18000"}
+```
+
+
+## /0/dnedebounc? [value]
+
+Set manager daynight state machine daynight_evening_debounce.
+
+```
+/1/dnedebounc?
+{"eve_debounce":"1200000"}
+/1/dnedebounc? 18000
+{"eve_debounce":"18000"}
+/1/dnedebounc?
+{"eve_debounce":"18000"}
+```
+
+
+## /0/dnmthresh? [value]
+
+Set daynight state machine daynight_morning_threshold
+
+```
+/1/dnmthresh?
+{"mor_threshold":"80"}
+```
+
+
+## /0/dnethresh? [value]
+
+Set daynight state machine daynight_evening_threshold
+
+```
+/1/dnethresh?
+{"eve_threshold":"40"}
+```
+
+
 ## /0/day?
 
 Report status of the state machine.
@@ -125,34 +173,4 @@ Day: Charge the battry
 {"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"5014"}
 {"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"10014"}
 {"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"15014"}
-```
-
-
-## /0/dnmdebounc? [value]
-
-Set manager daynight state machine daynight_morning_debounce.
-
-```
-/1/dnmdebounc?
-{"mor_debounce":"1200000"}
-/1/dnmdebounc? 18000
-{"mor_debounce":"18000"}
-/1/dnmdebounc?
-{"mor_debounce":"0","mgr_twierr":"0"}
-```
-
-reading after seting a value returns zero but twi does not show an error
-
-
-## /0/dnmthresh? [value]
-
-Set daynight state machine daynight_morning_threshold
-
-```
-/1/dnmthresh?
-{"mor_threshold":"80"}
-/1/dnmthresh? 81
-{"mor_debounce":"81"}
-/1/dnmthresh?
-{"mor_debounce":"81"}
 ```

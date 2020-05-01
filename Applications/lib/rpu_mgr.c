@@ -401,7 +401,7 @@ int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop
             // twi0_masterWriteRead error code is in bits 5..7
             if(bytes_read & 0xE0)
             {
-                mgr_twiErrorCode = bytes_read>>5;
+                mgr_twiErrorCode = twi0_masterAsyncWrite_status(); //bytes_read>>5
                 value = 0; // int does not have NaN
             }
             else
@@ -474,7 +474,7 @@ float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, 
             // twi0_masterWriteRead error code is in bits 5..7
             if(bytes_read & 0xE0)
             {
-                mgr_twiErrorCode = bytes_read>>5;
+                mgr_twiErrorCode = twi0_masterAsyncWrite_status(); // bytes_read>>5
                 value = (float)0xFFFFFFFFUL; // return NaN
             }
             else

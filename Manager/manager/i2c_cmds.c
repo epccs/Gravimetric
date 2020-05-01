@@ -276,19 +276,21 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
 void fnBatChrgLowLim(uint8_t* i2cBuffer)
 {
     // battery_low_limit is a uint16_t e.g., two bytes
-    uint16_t old = battery_low_limit;
+    // save the new value
     uint16_t new = 0;
-
     new += ((uint16_t)i2cBuffer[1])<<8;
-    i2cBuffer[1] =  ( (0xFF00 & old) >>8 ); 
-
     new += ((uint16_t)i2cBuffer[2]);
-    i2cBuffer[2] =  ( (0x00FF & old) ); 
 
-    // new is ready
-    battery_low_limit = new;
+    // swap the return value
+    i2cBuffer[1] =  ( (0xFF00 & battery_low_limit) >>8 ); 
+    i2cBuffer[2] =  ( (0x00FF & battery_low_limit) ); 
 
-    bat_limit_loaded = BAT_LIM_LOW_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    // keep the new value and mark it to save in EEPROM
+    if (IsValidBatLowLimFor12V(&new) || IsValidBatLowLimFor24V(&new))
+    {
+        battery_low_limit = new;
+        bat_limit_loaded = BAT_LIM_LOW_TOSAVE; // main loop will save to eeprom
+    }
 }
 
 // I2C command to access Battery charge high limit (uint16_t)
@@ -296,19 +298,21 @@ void fnBatChrgLowLim(uint8_t* i2cBuffer)
 void fnBatChrgHighLim(uint8_t* i2cBuffer)
 {
     // battery_high_limit is a uint16_t e.g., two bytes
-    uint16_t old = battery_high_limit;
+    // save the new value
     uint16_t new = 0;
-
     new += ((uint16_t)i2cBuffer[1])<<8;
-    i2cBuffer[1] =  ( (0xFF00 & old) >>8 ); 
-
     new += ((uint16_t)i2cBuffer[2]);
-    i2cBuffer[2] =  ( (0x00FF & old) ); 
 
-    // new is ready
-    battery_high_limit = new;
+    // swap the return value
+    i2cBuffer[1] =  ( (0xFF00 & battery_high_limit) >>8 ); 
+    i2cBuffer[2] =  ( (0x00FF & battery_high_limit) ); 
 
-    bat_limit_loaded = BAT_LIM_HIGH_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    // keep the new value and mark it to save in EEPROM
+    if (IsValidBatHighLimFor12V(&new) || IsValidBatHighLimFor24V(&new))
+    {
+        battery_high_limit = new;
+        bat_limit_loaded = BAT_LIM_HIGH_TOSAVE; // main loop will save to eeprom
+    }
 }
 
 // I2C command to read battery charging time while doing pwm e.g., absorption time
@@ -327,38 +331,42 @@ void fnRdBatChrgTime(uint8_t* i2cBuffer)
 void fnMorningThreshold(uint8_t* i2cBuffer)
 {
     // daynight_morning_threshold is a uint16_t e.g., two bytes
-    uint16_t old = daynight_morning_threshold;
+    // save the new value
     uint16_t new = 0;
-
     new += ((uint16_t)i2cBuffer[1])<<8;
-    i2cBuffer[1] =  ( (0xFF00 & old) >>8 ); 
-
     new += ((uint16_t)i2cBuffer[2]);
-    i2cBuffer[2] =  ( (0x00FF & old) ); 
 
-    // new is ready
-    daynight_morning_threshold = new;
-    
-    daynight_values_loaded = DAYNIGHT_MORNING_THRESHOLD_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    // swap the return value
+    i2cBuffer[1] =  ( (0xFF00 & daynight_morning_threshold) >>8 );
+    i2cBuffer[2] =  ( (0x00FF & daynight_morning_threshold) ); 
+
+    // keep the new value and mark it to save in EEPROM
+    if ( IsValidMorningThresholdFor12V(&new) || IsValidMorningThresholdFor24V(&new) )
+    {
+        daynight_morning_threshold = new;
+        daynight_values_loaded = DAYNIGHT_MORNING_THRESHOLD_TOSAVE; // main loop will save to eeprom
+    }
 }
 
 // I2C command for day-night Evening Threshold (uint16_t)
 void fnEveningThreshold(uint8_t* i2cBuffer)
 {
     // daynight_evening_threshold is a uint16_t e.g., two bytes
-    uint16_t old = daynight_evening_threshold;
+    // save the new value
     uint16_t new = 0;
-
     new += ((uint16_t)i2cBuffer[1])<<8;
-    i2cBuffer[1] =  ( (0xFF00 & old) >>8 ); 
-
     new += ((uint16_t)i2cBuffer[2]);
-    i2cBuffer[2] =  ( (0x00FF & old) ); 
 
-    // new is ready
-    daynight_evening_threshold = new;
+    // swap the return value
+    i2cBuffer[1] =  ( (0xFF00 & daynight_evening_threshold) >>8 ); 
+    i2cBuffer[2] =  ( (0x00FF & daynight_evening_threshold) ); 
 
-    daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    // keep the new value and mark it to save in EEPROM
+    if ( (IsValidEveningThresholdFor12V(&new) || IsValidEveningThresholdFor24V(&new)) )
+    {
+        daynight_evening_threshold = new;
+        daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom
+    }
 }
 
 // I2C command to set i2c callback address and three commands for daynight_state, day_work, and night_work events.
@@ -640,48 +648,50 @@ void fnWtXcvrCntlInTestMode(uint8_t* i2cBuffer)
 void fnMorningDebounce(uint8_t* i2cBuffer)
 {
     // daynight_morning_debounce is a unsigned long and has four bytes
-    uint32_t old = daynight_morning_debounce;
+    // save the new value
     uint32_t new = 0;
     new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    i2cBuffer[1] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
-
     new += ((uint32_t)i2cBuffer[2])<<16;
-    i2cBuffer[2] =  ( (0x00FF0000UL & old) >>16 ); 
-
     new += ((uint32_t)i2cBuffer[3])<<8;
-    i2cBuffer[3] =  ( (0x0000FF00UL & old) >>8 ); 
-
     new += ((uint32_t)i2cBuffer[4]);
-    i2cBuffer[4] =  ( (0x000000FFUL & old) ); 
 
-    // new is ready
-    daynight_morning_debounce = new;
+    // swap the return value
+    i2cBuffer[1] = ( (0xFF000000UL & daynight_morning_debounce) >>24 ); 
+    i2cBuffer[2] =  ( (0x00FF0000UL & daynight_morning_debounce) >>16 ); 
+    i2cBuffer[3] =  ( (0x0000FF00UL & daynight_morning_debounce) >>8 ); 
+    i2cBuffer[4] =  ( (0x000000FFUL & daynight_morning_debounce) ); 
 
-    daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    // keep the new value and mark it to save in EEPROM
+    if (IsValidMorningDebounce(&new))
+    {
+        daynight_morning_debounce = new;
+        daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
+    }
 }
 
 // I2C command for day-night evening debounce time (unsigned long)
 void fnEveningDebounce(uint8_t* i2cBuffer)
 {
     // daynight_evening_debounce is a unsigned long and has four bytes
-    uint32_t old = daynight_evening_debounce;
+    // save the new value
     uint32_t new = 0;
     new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    i2cBuffer[1] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
-
     new += ((uint32_t)i2cBuffer[2])<<16;
-    i2cBuffer[2] =  ( (0x00FF0000UL & old) >>16 ); 
-
     new += ((uint32_t)i2cBuffer[3])<<8;
-    i2cBuffer[3] =  ( (0x0000FF00UL & old) >>8 ); 
-
     new += ((uint32_t)i2cBuffer[4]);
-    i2cBuffer[4] =  ( (0x000000FFUL & old) ); 
 
-    // new is ready
-    daynight_evening_debounce = new;
+    // swap the return value
+    i2cBuffer[1] = ( (0xFF000000UL & daynight_evening_debounce) >>24 ); // swap the return value with the old byte
+    i2cBuffer[2] =  ( (0x00FF0000UL & daynight_evening_debounce) >>16 ); 
+    i2cBuffer[3] =  ( (0x0000FF00UL & daynight_evening_debounce) >>8 ); 
+    i2cBuffer[4] =  ( (0x000000FFUL & daynight_evening_debounce) ); 
 
-    daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom or load default value if new value is out of range
+    // keep the new value and mark it to save in EEPROM
+    if (IsValidEveningDebounce(&new))
+    {
+        daynight_evening_debounce = new;
+        daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
+    }
 }
 
 // I2C command to read elapsed_time_since_dayTmrStarted
