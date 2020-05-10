@@ -1,5 +1,10 @@
 # Self-Test
 
+## To Do
+
+    Befor running i2c_testmode_set_xcvrbits and i2c_testmode_test_xcvrbits, turn off battery manager (which controls ALT_EN) with command 16 (e.g., set the callback address to zero).
+
+
 ## known issues
 
 Use bootload port to view test, since "Remote" firmware on remote managers does not recover after test mode.

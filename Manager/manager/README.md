@@ -21,8 +21,10 @@
 (done) bm runs only when night_state == DAYNIGHT_STATE_DAY
 (nix) A status bit 4 write sets enable_alternate_power and clears alt_pwm_accum_charge_time, but is that a good approch?
 (bug found and fixed) reading after seting a value returns zero, (daynight_morning_debounce)
-remove status bit 4 (report alternat power)
-if app is reset clear enable_alternate_callback_address and daynight_callback_address
+(done) remove status bit 4 (report alternat power)
+(done) remvoe status bit 5 (report SBC power)
+(done) remove status bit 6 (report daynight state machine fail)
+(done) if manager resets application then clear enable_bm_callback_address and daynight_callback_address
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
@@ -146,13 +148,13 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [PV and Battery]: ./PVandBattery.md
 
-16. Power-Manager i2c callback, enable with callback address, and and comand number to send state updates to.
+16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. not used.
-18. Battery charge start (low) limit (uint16_t)
-19. Battery charge done (high) limit (uint16_t)
-20. Battery absorption (e.g., pwm) time (uint32_t)
-21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
-22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
+18. Access battery_low_limit (int16_t)
+19. Access battery_high_limit (int16_t)
+20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
+21. morning_threshold (int16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
+22. evening_threshold (int16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
 23. Day-Night i2c callback (callback address, report state cmd, day event cmd, night event cmd).
 
 Note: arduino_mode is point to point.

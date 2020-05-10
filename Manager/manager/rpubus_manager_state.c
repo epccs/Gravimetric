@@ -98,48 +98,6 @@ void connect_normal_mode(void)
     }
 }
 
-void connect_bootload_mode(void)
-{
-    // connect the remote host and local mcu
-    if (host_is_foreign)
-    {
-        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
-        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
-        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
-        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
-    }
-    
-    // connect the local host and local mcu
-    else
-    {
-        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
-        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
-        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
-        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
-    }
-}
-
-void connect_lockout_mode(void)
-{
-    // lockout everything
-    if (host_is_foreign)
-    {
-        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
-        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
-        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
-        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
-    }
-    
-    // lockout MCU, but not host
-    else
-    {
-        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
-        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
-        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
-        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
-    }
-}
-
 // blink if the host is active, fast blink if status_byt, slow blink in lockout
 void blink_on_activate(void)
 {

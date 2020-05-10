@@ -4,12 +4,12 @@
 
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. not used.
-18. Access battery_low_limit (uint16_t)
-19. Access battery_high_limit (uint16_t)
+18. Access battery_low_limit (int16_t)
+19. Access battery_high_limit (int16_t)
 20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
-21. morning_threshold (uint16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
-22. evening_threshold (uint16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
-23. Day-Night state (4 x uint8_t).
+21. morning_threshold (int16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
+22. evening_threshold (int16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
+23. Day-Night i2c callback (callback address, report state cmd, day event cmd, night event cmd).
 
 ## Cmd 16 from a controller /w i2c-debug to enable battery manager
 

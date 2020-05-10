@@ -38,8 +38,10 @@ SOFTWARE.
 #include "../lib/io_enum_bsd.h"
 #include "main.h"
 #include "rpubus_manager_state.h"
-#include "dtr_transmition.h"
 #include "daynight_state.h"
+#include "battery_manager.h"
+#include "dtr_transmition.h"
+
 
 // public
 unsigned long uart_started_at;
@@ -96,12 +98,54 @@ void check_DTR(void)
     }
 }
 
+void connect_bootload_mode(void)
+{
+    // connect the remote host and local mcu
+    if (host_is_foreign)
+    {
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
+    }
+    
+    // connect the local host and local mcu
+    else
+    {
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_LOW);  // enable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_HIGH); // allow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
+    }
+}
+
+void connect_lockout_mode(void)
+{
+    // lockout everything
+    if (host_is_foreign)
+    {
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_LOW); // disallow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);  // disable TX pair recevior to output to FTDI_RX input
+    }
+    
+    // lockout MCU, but not host
+    else
+    {
+        ioWrite(MCU_IO_RX_DE, LOGIC_LEVEL_HIGH); // allow RX pair driver to enable if FTDI_TX is low
+        ioWrite(MCU_IO_RX_nRE, LOGIC_LEVEL_HIGH);  // disable RX pair recevior to output to local MCU's RX input
+        ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW); // disallow TX pair driver to enable if TX (from MCU) is low
+        ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_LOW);  // enable TX pair recevior to output to FTDI_RX input
+    }
+}
 
 /* The UART is connected to the DTR pair which is half duplex, 
      but is self enabling when TX is pulled low.
 
      Both I2C events and nRTS events (e.g., check_DTR) place state changes on 
-     the DTR pair. This function drives those state changes.
+     the DTR pair. This function drives those changes.
+     ToDo: a state machine with enums: RPU_NORMAL_MODE, RPU_ARDUINO_MODE, RPU_START_TEST_MODE, RPU_END_TEST_MODE...
 */
 void check_uart(void)
 {
@@ -180,8 +224,8 @@ void check_uart(void)
                 transceiver_state = (ioRead(MCU_IO_HOST_nRTS)<<7) | (ioRead(MCU_IO_HOST_nCTS)<<6) |  (ioRead(MCU_IO_TX_nRE)<<5) | \
                                     (ioRead(MCU_IO_TX_DE)<<4) | (ioRead(MCU_IO_DTR_nRE)<<3) | (ioRead(MCU_IO_DTR_DE)<<2) | \
                                     (ioRead(MCU_IO_RX_nRE)<<1) | (ioRead(MCU_IO_RX_DE));
-                // turn off alternate power
-                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
+                // turn off batter manager (which controls ALT_EN) with command 16; set the callback address to zero
+                // ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 // turn off transceiver controls except the DTR recevior
                 ioWrite(MCU_IO_TX_nRE, LOGIC_LEVEL_HIGH);
                 ioWrite(MCU_IO_TX_DE, LOGIC_LEVEL_LOW);
@@ -223,6 +267,8 @@ void check_uart(void)
 
                     // start the bootloader
                     ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_LOW);   // nSS goes through a open collector buffer to nRESET
+                    enable_bm_callback_address = 0;
+                    daynight_callback_address = 0;
                     target_reset_started_at = milliseconds();
                     my_mcu_is_target_and_i_have_it_reset = 1;
                     return; 

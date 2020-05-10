@@ -48,14 +48,14 @@ BATTERYMGR_STATE_t batmgr_state;
 unsigned long alt_pwm_started_at; // pwm on time
 unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pwm was done (e.g., approx LA absorption time)
 
-uint8_t enable_alternate_callback_address;
+uint8_t enable_bm_callback_address;
 uint8_t battery_state_callback_cmd;
 TWI0_LOOP_STATE_t loop_state;
 unsigned long ontime;
 
 uint8_t fail_wip;
 
-// enable_alternate_callback_address must be set to start charging
+// enable_bm_callback_address must be set to start charging
 // to do: pwm with a 2 second period, pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
 void check_if_alt_should_be_on(void)
 {
@@ -70,7 +70,7 @@ void check_if_alt_should_be_on(void)
 
     // disable if not day or callback is zero
     // callback also needs battery_state_callback_cmd set or state machine will run without sending updates to application
-    if (enable_alternate_callback_address && (daynight_state == DAYNIGHT_STATE_DAY) ) 
+    if (enable_bm_callback_address && (daynight_state == DAYNIGHT_STATE_DAY) ) 
     {
         int battery = adcAtomic(ADC_CH_PWR_V);
         int pwm_range = ( (battery_high_limit - battery_low_limit)>>1 ); // half the diff between high and low limit
@@ -85,7 +85,7 @@ void check_if_alt_should_be_on(void)
             if (battery_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
             }
             break;
 
@@ -98,7 +98,7 @@ void check_if_alt_should_be_on(void)
                 if (battery_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                 }
             }
             break;
@@ -116,7 +116,7 @@ void check_if_alt_should_be_on(void)
                 if (battery_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                 }
                 break;
             }
@@ -130,7 +130,7 @@ void check_if_alt_should_be_on(void)
                 if (battery_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                 }
             }
             break;
@@ -144,7 +144,7 @@ void check_if_alt_should_be_on(void)
                 if (battery_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                 }
                 break;
             }
@@ -172,7 +172,7 @@ void check_if_alt_should_be_on(void)
                         if (battery_state_callback_cmd)
                         {
                             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                            i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                            i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                         }
                     }
                     
@@ -196,7 +196,7 @@ void check_if_alt_should_be_on(void)
                 if (battery_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                 }
             }
             break;
@@ -210,14 +210,14 @@ void check_if_alt_should_be_on(void)
                 if (battery_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
                 }
                 fail_wip = 1;
                 break;
 
                 case 1: // turn off the alternat power control state machine
                     battery_state_callback_cmd = 0;
-                    enable_alternate_callback_address =0;
+                    enable_bm_callback_address =0;
                     fail_wip = 0;
                     break;
 
@@ -236,10 +236,10 @@ void check_if_alt_should_be_on(void)
         {
             ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
             batmgr_state = BATTERYMGR_STATE_DONE;
-            if (enable_alternate_callback_address && battery_state_callback_cmd)
+            if (enable_bm_callback_address && battery_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(enable_alternate_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
+                i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, batmgr_state, &loop_state); // update application
             }
             return;
         }

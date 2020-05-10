@@ -236,21 +236,25 @@ void fnStatus(uint8_t* i2cBuffer)
     uint8_t tmp_status = i2cBuffer[1];
 
     i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
+    /* remove bit 4, 5, and 6
     if (ioRead(MCU_IO_ALT_EN)) 
         i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
     if (ioRead(MCU_IO_PIPWR_EN)) 
         i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
     if (daynight_state==DAYNIGHT_STATE_FAIL) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
+    */
 
     // if update bit 7 is set then change the status bits and related things
     if (tmp_status & 0x80)
     {
+        /*
         // bit 4 is not used, it was used to enable_alternate but that is done with fnPowerMgr
         if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
         {
             ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
         } 
         if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_STATE_START; // restart
+        */
         status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
     }
 }
@@ -262,24 +266,24 @@ void fnStatus(uint8_t* i2cBuffer)
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 void fnBatteryMgr(uint8_t* i2cBuffer)
 { 
-    enable_alternate_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
+    enable_bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
     battery_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero
-    if (enable_alternate_callback_address) 
+    if (enable_bm_callback_address) 
     {
         alt_pwm_accum_charge_time = 0; // clear charge time when enabled
         batmgr_state = BATTERYMGR_STATE_START;
     }
 }
 
-// I2C command to access Battery charge low limit (uint16_t)
-// Used to (re)start charging and set PWM range at middle of high+low/2 up to high
+// I2C command to access Battery charge low limit (int)
+// battery manager will start charging with PWM mode when main power is bellow this limit
 void fnBatChrgLowLim(uint8_t* i2cBuffer)
 {
-    // battery_low_limit is a uint16_t e.g., two bytes
+    // battery_low_limit is an int e.g., two bytes
     // save the new value
-    uint16_t new = 0;
-    new += ((uint16_t)i2cBuffer[1])<<8;
-    new += ((uint16_t)i2cBuffer[2]);
+    int new = 0;
+    new += ((int)i2cBuffer[1])<<8;
+    new += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & battery_low_limit) >>8 ); 
@@ -293,15 +297,16 @@ void fnBatChrgLowLim(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to access Battery charge high limit (uint16_t)
-// Used to (re)start charging and set PWM range at middle of high+low/2 up to high
+// I2C command to access Battery charge high limit (int)
+// battery manager will stop charging when main power is above this limit 
+// PWM ontime is reduced as main power approches this limit
 void fnBatChrgHighLim(uint8_t* i2cBuffer)
 {
-    // battery_high_limit is a uint16_t e.g., two bytes
+    // battery_high_limit is a int e.g., two bytes
     // save the new value
-    uint16_t new = 0;
-    new += ((uint16_t)i2cBuffer[1])<<8;
-    new += ((uint16_t)i2cBuffer[2]);
+    int new = 0;
+    new += ((int)i2cBuffer[1])<<8;
+    new += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & battery_high_limit) >>8 ); 
@@ -327,14 +332,14 @@ void fnRdBatChrgTime(uint8_t* i2cBuffer)
     i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
 }
 
-// I2C command for day-night Morning Threshold (uint16_t)
+// I2C command for day-night Morning Threshold (int)
 void fnMorningThreshold(uint8_t* i2cBuffer)
 {
     // daynight_morning_threshold is a uint16_t e.g., two bytes
     // save the new value
-    uint16_t new = 0;
-    new += ((uint16_t)i2cBuffer[1])<<8;
-    new += ((uint16_t)i2cBuffer[2]);
+    int new = 0;
+    new += ((int)i2cBuffer[1])<<8;
+    new += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & daynight_morning_threshold) >>8 );
@@ -348,14 +353,14 @@ void fnMorningThreshold(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command for day-night Evening Threshold (uint16_t)
+// I2C command for day-night Evening Threshold (int)
 void fnEveningThreshold(uint8_t* i2cBuffer)
 {
     // daynight_evening_threshold is a uint16_t e.g., two bytes
     // save the new value
-    uint16_t new = 0;
-    new += ((uint16_t)i2cBuffer[1])<<8;
-    new += ((uint16_t)i2cBuffer[2]);
+    int new = 0;
+    new += ((int)i2cBuffer[1])<<8;
+    new += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & daynight_evening_threshold) >>8 ); 

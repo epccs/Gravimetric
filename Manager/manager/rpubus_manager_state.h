@@ -54,8 +54,8 @@ volatile extern uint8_t status_byt;
 
 // rpubus mode setup
 extern void connect_normal_mode(void);
-extern void connect_bootload_mode(void);
-extern void connect_lockout_mode(void);
+//extern void connect_bootload_mode(void); // moved to dtr_transmition.c
+//extern void connect_lockout_mode(void); // moved to dtr_transmition.c
 extern void blink_on_activate(void);
 extern void check_Bootload_Time(void);
 extern void check_lockout(void);

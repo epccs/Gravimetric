@@ -15,10 +15,10 @@ typedef enum DAYNIGHT_STATE_enum {
 extern DAYNIGHT_STATE_t daynight_state; 
 extern uint8_t daynight_work;
 extern unsigned long dayTmrStarted;
-extern uint8_t daynight_callback_address;
-extern uint8_t daynight_state_callback_cmd;
-extern uint8_t day_work_callback_cmd;
-extern uint8_t night_work_callback_cmd;
+extern uint8_t daynight_callback_address; // set callback address for daynight state machine, zero will stop sending events to application
+extern uint8_t daynight_state_callback_cmd; // command number to use with daynight event updates.
+extern uint8_t day_work_callback_cmd; // command number to use when day event occures, e.g., turn off lights, water garden, power SBC...
+extern uint8_t night_work_callback_cmd; // command number to use when night event occures, e.g., your app can turn on lights and power off the SBC.
 
 extern void check_daynight(void);
 

@@ -11,17 +11,6 @@
 6. access status bits.
 7. not used.
 
-status bits: 
-
-0. DTR (management pair) readback timeout
-1. twi slave transmit fail
-2. DTR readback not match
-3. host lockout
-4. alternate power enable (ALT_EN)
-5. SBC power enable (PIPWR_EN), use to restart SBC after a shutdown with command 5
-6. Day-Night state fail (e.g. > 20hr of day or night), clear will restart it.
-7. Update bit, if set change the other bits.
-
 
 ## Cmd 0 from the application controller /w i2c-debug access the serial multi-drop address
 
@@ -267,19 +256,20 @@ status bits:
 1. twi slave transmit fail
 2. DTR readback not match
 3. host lockout
-4. alternate power enable (ALT_EN)
-5. SBC power enable (PIPWR_EN), use to restart SBC after a shutdown
-6. Day-Night state fail (e.g. > 20hr of day or night), clear will restart it.
+4. not used.
+5. not used.
+6. not used.
 7. Update bit, if set change the other bits.
 
 ``` 
+#picocom -b 38400 /dev/ttyUSB0
 picocom -b 38400 /dev/ttyAMA0
 /1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 6,255
-{"txBuffer[2]":[{"data":"0x6"},{"data":"0xFF"}]}
+{"master_address":"0x29"}
+/1/ibuff 6,0
+{"txBuffer[2]":[{"data":"0x6"},{"data":"0x0"}]}
 /1/iread? 2
-{"rxBuffer":[{"data":"0x6"},{"data":"0x8"}]}
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x6"},{"data":"0x8"}]}
 ``` 
 
 
@@ -293,7 +283,7 @@ import smbus
 bus = smbus.SMBus(1)
 #write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
 #read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
-bus.write_i2c_block_data(42, 6, [255])
+bus.write_i2c_block_data(42, 6, [0])
 print(bus.read_i2c_block_data(42, 6, 2))
 [6, 8]
 ``` 
@@ -312,5 +302,5 @@ Terminal ready
 # C-a, C-x.
 ``` 
 
-The Raspberry Pi has cleared the host lockout bit (3) and can now bootload a target on the multi-drop serial bus. Once PIPWR_EN is set it will not clear (see command 5 for shutdown). 
+The Raspberry Pi has cleared the host lockout bit (3) and can now bootload a target on the multi-drop serial bus.
 
