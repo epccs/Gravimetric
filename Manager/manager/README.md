@@ -253,7 +253,21 @@ calibration_0       UINT32      82
 calibration_1       UINT32      86
 calibration_2       UINT32      90
 calibration_3       UINT32      94
+calibration_4*      UINT32      98
+calibration_5*      UINT32      102
+calibration_6*      UINT32      106
+calibration_7*      UINT32      110
+calibration_8*      UINT32      114
+calibration_9*      UINT32      118
+calibration_10*     UINT32      122
+calibration_11*     UINT32      126
+shutdown_halt_curr  UINT16      130
+shutdown_ttl        UINT32      132
+shutdown_delay      UINT32      136
+shutdown_wearlevel  UINT32      140
 ```
+
+Some values are reserved (*)
 
 The AVCC pin is used to power the analog to digital converter and is also used as a reference. The AVCC pin is powered by a switchmode supply that can be measured and used as a reference.
 

@@ -55,9 +55,10 @@ unsigned long ontime;
 
 uint8_t fail_wip;
 
+// battery manager: controls ALT_EN pin PB3 to charge a battery connected on the power input
 // enable_bm_callback_address must be set to start charging
 // to do: pwm with a 2 second period, pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
-void check_if_alt_should_be_on(void)
+void check_battery_manager(void)
 {
     // TWI waiting to finish (ignore daynight changes while TWI is waiting)
     if (i2c_callback_waiting(&loop_state)) return; 

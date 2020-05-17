@@ -2,10 +2,11 @@
 # https://www.gnu.org/software/make/manual/make.html
 TARGET = manager
 LIBDIR = ../lib
-# source is not published
-OBJECTRISTRICT = main.o
+# option to not publish some source (elf files are kept for publishing)
+OBJECTRISTRICT = 
 # source is published
-OBJECTS = rpubus_manager_state.o \
+OBJECTS = main.o \
+	rpubus_manager_state.o \
 	dtr_transmition.o \
 	i2c_cmds.o \
 	i2c_callback.o \
@@ -13,10 +14,12 @@ OBJECTS = rpubus_manager_state.o \
 	id_in_ee.o \
 	adc_burst.o \
 	references.o \
-	battery_manager.o \
-	battery_limits.o \
 	daynight_limits.o \
 	daynight_state.o \
+	host_shutdown_manager.o \
+	host_shutdown_limits.o \
+	battery_manager.o \
+	battery_limits.o \
 	calibration_limits.o \
 	$(LIBDIR)/uart0_bsd.o \
 	$(LIBDIR)/adc_bsd.o \

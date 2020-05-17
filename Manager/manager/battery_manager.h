@@ -17,7 +17,7 @@ extern unsigned long alt_pwm_accum_charge_time;
 extern uint8_t enable_bm_callback_address; // enable bm and set callback address, zero will disable and stop sending events to application
 extern uint8_t battery_state_callback_cmd; // command number to use with bm event updates, zero will prevent sending events to application but bm will run.
 
-extern void check_if_alt_should_be_on(void);
+extern void check_battery_manager(void);
 
 #define ALT_PWM_PERIOD 2000
 #define ALT_REST_PERIOD 10000

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This board has an ATmega324pb which has three timers (Timer1, Timer3, Timer4) that have input capture (ICP) hardware all running from the same crystal. The main idea is to calibrate flow meters with a gravimetric method, so that means it needs to capture flow meter events (pulses) so they can be calibrated them with a volume corrected weight. This method is also the preferred way to calibrate [provers]. ICP1 connects with the flow meter which produces pulses as a unit of volume flows (e.g., a magnet on a spinning turbine triggering a sensor). ICP3 is used to measure a start event and ICP4 a stop event. ICP3 and ICP4 inputs each have a one-shot pulse extender. Gravimetric proving is reasonably natural with a flow meter alone but may also benefit from ideas seen in flow labs. A diversion needs to switch the flow from the unmeasured path to measurement side like a bistable switch. Usually, the measurement side fills a bucket (or ilk) that will be weighted. The one-shot that feds ICP3 on the ATmega324pb is also a circuit that starts the diversion instantly and gives the interrupt service routine (ISR) some time to latch the diversion. The one-shot pulse extender on ICP4 can override the diversion latch to send the flow away from the bucket. The ISR that ICP4 runs can then disable the latch that holds the diversion so it will stay off after the ICP4 one-shot ends. The result is that flow is immediately diverted from the instant START occurs to the instant STOP occurs. One helpful thing to do is slow the flow near the start and stop events, but that requires the magic of a computer (and SBC like an R-Pi) which needs to estimate when those events will occur relative to the flow meter pulse counts and is a somewhat iterative method.
+This board has an ATmega324pb which has three timers (Timer1, Timer3, Timer4) that have input capture (ICP) hardware all running from the same crystal. The main idea is to calibrate flow meters with a gravimetric method, so that means it needs to capture flow meter events (pulses) so they can be calibrated with a volume (corrected by weight). This method is also the preferred way to calibrate [provers]. ICP1 connects with the flow meter which produces pulses as a unit of volume flows (e.g., a magnet on a spinning turbine triggering a sensor). ICP3 is used to measure a start event and ICP4 a stop event. ICP3 and ICP4 inputs each have a one-shot pulse extender. Gravimetric proving is reasonably natural with a flow meter alone but may also benefit from ideas seen in flow labs. A diversion needs to switch the flow from the unmeasured side to the measurement side like a bistable switch. Usually, the measurement side fills a bucket (or ilk) that will be weighted. The one-shot that feds ICP3 on the ATmega324pb is also a circuit that starts the diversion instantly and gives the interrupt service routine (ISR) some time to latch the diversion. The one-shot pulse extender on ICP4 can override the diversion latch to send the flow away from the bucket. The ISR that ICP4 runs can then disable the latch that holds the diversion so it will stay off after the ICP4 one-shot ends. The result is that flow is immediately diverted from the instant START occurs to the instant STOP occurs. One helpful thing to do is slow the flow near the start and stop events, but that requires the magic of a computer (and SBC like an R-Pi) which needs to estimate when those events occur relative to the flow meter pulse count and thus require a somewhat iterative technique.
 
 [prover]: http://asgmt.com/wp-content/uploads/2016/02/011_.pdf
 
@@ -71,6 +71,15 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
 ![Status](./status_icon.png "Gravimetric Status")
 
 ```
+        ^3  Done: 
+            WIP: 
+            Todo: Design, Layout (#=done), BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
+            *during review the Design may change without changing the revision.
+            long term goal is to switch to the new AVR DA's
+            after devl and testing serial and I2C lib's for the DA's start this update
+            change m324pb to AVR128DA48 
+            change m328pb to AVR128DA32
+
         ^2  Done: 
             WIP: 
             Todo: Design, Layout (#=done), BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
@@ -79,6 +88,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             Add note on schem near *manager* ISP port "remove alternat power befor programing with ISP"
             Add test points on I2C0 nodes.
             Staggered holes shifted 8mil (~0.2 mm) off-center for bootload and ISP header (see AVR128DA48-Curiosity-Nano).
+            This version may not be built, but the layout will be done.
 
         ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, 
             WIP: Testing,
