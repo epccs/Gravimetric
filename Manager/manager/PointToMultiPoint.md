@@ -3,12 +3,12 @@
 0..15 (Ox00..0xF | 0b00000000..0b00001111)
 
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
-1. not used.
+1. not used. (this will be for access status bits)
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. access shutdown_detect, manager MCU_IO_SHUTDOWN has a weak pull-up and a momentary switch.
+4. not used.
 5. not used.
-6. access status bits.
+6. access status bits. (move to cmd 1)
 7. not used.
 
 
@@ -151,9 +151,9 @@ picocom -b 38400 /dev/ttyUSB0
 The i2c-debug applicaiton will read the address on i2c which will cause the manager to send a RPU_NORMAL_MODE signal on the DTR pair and end the p2p connection, to stay in p2p the bus address must not be read.
 
 
-## Cmd 16 from a Raspberry Pi set p2p mode
+## Cmd 3 from a Raspberry Pi set p2p mode
 
-An R-Pi host can do it with SMBus, lets try with two RPUpi boards.
+An R-Pi host can change the the bootload address and then set the point to point mode with SMBus. 
 
 ``` 
 python3
@@ -162,20 +162,20 @@ bus = smbus.SMBus(1)
 #write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
 #read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
 # what is the bootload address
-bus.write_i2c_block_data(42, 2, [255])
+bus.write_i2c_block_data(42, 2, [0])
 bus.read_i2c_block_data(42, 2, 2)
 [2, 48]
 # what is my address
-bus.write_i2c_block_data(42, 0, [255])
+bus.write_i2c_block_data(42, 0, [0])
 bus.read_i2c_block_data(42, 0, 2)
 [0, 50]
 # set the bootload address to my address
 bus.write_i2c_block_data(42, 2, [ord('2')])
 bus.read_i2c_block_data(42, 2, 2)
 [2, 50]
-# clear the host lockout status bit so serial from this host can work
-bus.write_i2c_block_data(42, 6, [0])
-print(bus.read_i2c_block_data(42, 6, 2))
+# clear the host lockout status bit so serial from this host can use serial
+bus.write_i2c_block_data(42, 1, [0])
+print(bus.read_i2c_block_data(42, 1, 2))
 [6, 0]
 exit()
 # load the blinkLED application which does not read the bus address
@@ -207,39 +207,9 @@ picocom -b 38400 /dev/ttyAMA0
 At this time, the point to point mode persists, I will sort out more details when they are needed.
 
 
-## Cmd 4 from the application controller /w i2c-debug access host shutdown detected.
+## Cmd 4 is not used.
 
-The application controller can check if the host got a manual halt command (e.g., if the shutdown button got pressed). Reading will clear the shutdown_detected flag that was used to keep the LED_BUILTIN from blinking.
-
-``` 
-picocom -b 38400 /dev/ttyAMA0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 4,0
-{"txBuffer[2]":[{"data":"0x4"},{"data":"0x0"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x4"},{"data":"0x1"}]}
-/1/ibuff 4,0
-{"txBuffer[2]":[{"data":"0x4"},{"data":"0x0"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x4"},{"data":"0x0"}]}
-``` 
-
-The above interaction with a remote host was over the multi-drop serial. The second reading shows that shutdown_detected cleared.
-
-``` 
-/1/ibuff 4,1
-{"txBuffer[2]":[{"data":"0x4"},{"data":"0x1"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x4"},{"data":"0x0"}]}
-/1/ibuff 4,0
-{"txBuffer[2]":[{"data":"0x4"},{"data":"0x0"}]}
-/1/iread? 2
-{"rxBuffer":[{"data":"0x4"},{"data":"0x1"}]}
-``` 
-
-The data byte == 1 will cause shutdown and set the detected flag after SHUTDOWN_TIME time has elapsed.
-
+Will be repurposed.
 
 ## Cmd 5 is not used.
 

@@ -36,12 +36,12 @@ SOFTWARE.
 #include "../lib/timers_bsd.h"
 #include "../lib/uart0_bsd.h"
 #include "../lib/io_enum_bsd.h"
+#include "host_shutdown_manager.h"
 #include "rpubus_manager_state.h"
 
 unsigned long blink_started_at;
 unsigned long lockout_started_at;
 unsigned long bootloader_started_at;
-unsigned long shutdown_started_at;
 
 uint8_t bootloader_started;
 uint8_t host_active;
@@ -101,8 +101,10 @@ void connect_normal_mode(void)
 // blink if the host is active, fast blink if status_byt, slow blink in lockout
 void blink_on_activate(void)
 {
-    if (shutdown_detected) // do not blink,  power usage needs to be very stable to tell if the host has haulted. 
+    // do not blink when host is being shutdown, e.g. states between up and down
+    if ( (hostshutdown_state > HOSTSHUTDOWN_STATE_UP) && (hostshutdown_state < HOSTSHUTDOWN_STATE_DOWN) )  
     {
+        ioWrite(MCU_IO_MGR_SCK_LED,LOGIC_LEVEL_HIGH); // turn off the LED
         return;
     }
     
@@ -180,37 +182,4 @@ void check_lockout(void)
         host_active = 1;
         lockout_active =0;
     }
-}
-
-
-void check_shutdown(void)
-{
-    if (shutdown_started)
-    {
-        unsigned long kRuntime = elapsed(&shutdown_started_at);
-        
-        if ( kRuntime > SHUTDOWN_TIME)
-        {
-            ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
-            ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // trun on a weak pullup 
-            shutdown_started = 0; // set with I2C command 5
-            shutdown_detected = 1; // clear when reading with I2C command 4
-        }
-    }
-    else
-        if (!shutdown_detected) 
-        { 
-            // I2C cmd set shutdown_started =1 and set shutdown_detected = 0
-            // but if it is a manual event it can have a debounce time
-            if( !ioRead(MCU_IO_SHUTDOWN) ) 
-            {
-                ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
-                ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
-                ioDir(MCU_IO_MGR_SCK_LED, DIRECTION_OUTPUT);
-                ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
-                shutdown_detected = 0; // set after SHUTDOWN_TIME timer runs
-                shutdown_started = 1; // it is cleared after SHUTDOWN_TIME timer runs
-                shutdown_started_at = milliseconds();
-            }
-        }
 }

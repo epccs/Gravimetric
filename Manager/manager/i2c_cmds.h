@@ -18,7 +18,7 @@ extern void fnMgrAddrQuietly(uint8_t*); // 0 for SMBus
 // not used //1
 extern void fnBootldAddr(uint8_t*); // 2
 extern void fnArduinMode(uint8_t*);  // 3
-extern void fnShtdnDtct(uint8_t*); // 4
+// not used  // 4
 // not used  // 5
 extern void fnStatus(uint8_t*); // 6
 // not used // 7

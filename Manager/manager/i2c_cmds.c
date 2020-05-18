@@ -59,7 +59,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnMgrAddr, fnNull, fnBootldAddr, fnArduinMode, fnShtdnDtct, fnNull, fnStatus, fnNull},
+        {fnMgrAddr, fnNull, fnBootldAddr, fnArduinMode, fnNull, fnNull, fnStatus, fnNull},
         {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
@@ -207,54 +207,15 @@ void fnArduinMode(uint8_t* i2cBuffer)
     i2cBuffer[1] = arduino_mode; // ignore everything but the command
 }
 
-// I2C command to access shutdown_detect and start a shutdown (data byte == 1) 
-void fnShtdnDtct(uint8_t* i2cBuffer)
-{
-    uint8_t tmp_shutdown = i2cBuffer[1];
-
-    // when ICP1 pin is pulled down the host (e.g. R-Pi Zero) should hault
-    i2cBuffer[1] = shutdown_detected;
-    // reading clears this flag that was set in check_shutdown() but it is up to the I2C master to do somthing about it.
-    shutdown_detected = 0;
-
-    // pull MCU_IO_SHUTDOWN low to hault the host
-    if (tmp_shutdown == 1)
-    {
-        ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
-        ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
-        ioDir(MCU_IO_MGR_SCK_LED, DIRECTION_OUTPUT);
-        ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
-        shutdown_started = 1; // it is cleared in check_shutdown()
-        shutdown_detected = 0; // it is set in check_shutdown()
-        shutdown_started_at = milliseconds();
-    }
-}
-
 // I2C command to access manager STATUS
 void fnStatus(uint8_t* i2cBuffer)
 {
     uint8_t tmp_status = i2cBuffer[1];
-
     i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
-    /* remove bit 4, 5, and 6
-    if (ioRead(MCU_IO_ALT_EN)) 
-        i2cBuffer[1] += (1<<4); // include bit 4 if alternat power is enabled
-    if (ioRead(MCU_IO_PIPWR_EN)) 
-        i2cBuffer[1] += (1<<5); // include bit 5 if sbc has power
-    if (daynight_state==DAYNIGHT_STATE_FAIL) i2cBuffer[1] += (1<<6); //  include bit 6 if daynight state has failed
-    */
 
     // if update bit 7 is set then change the status bits and related things
     if (tmp_status & 0x80)
     {
-        /*
-        // bit 4 is not used, it was used to enable_alternate but that is done with fnPowerMgr
-        if ( ( i2cBuffer[1] & (1<<5) ) && !shutdown_started && !shutdown_detected )
-        {
-            ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH); //restart SBC 
-        } 
-        if ( ( i2cBuffer[1] & (1<<6) ) ) daynight_state = DAYNIGHT_STATE_START; // restart
-        */
         status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
     }
 }

@@ -193,7 +193,6 @@ int main(void)
             check_Bootload_Time();
             check_DTR();
             check_lockout();
-            check_shutdown();
         }
         save_rpu_addr_state();
         check_uart();

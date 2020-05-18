@@ -25,6 +25,7 @@
 (done) remvoe status bit 5 (report SBC power)
 (done) remove status bit 6 (report daynight state machine fail)
 (done) if manager resets application then clear enable_bm_callback_address and daynight_callback_address
+(done) remove shutdown_detect since the shutdown manager will be controling it
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
@@ -136,12 +137,12 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 [Point To Multi-Point]: ./PointToMultiPoint.md
 
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
-1. not used.
+1. not used. (this will be for access status bits)
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. access shutdown_detect, manager MCU_IO_SHUTDOWN has a weak pull-up and a momentary switch.
+4. not used.
 5. not used.
-6. access status bits.
+6. access status bits. (move to cmd 1)
 7. not used.
 
 [PV and Battery] Management commands 16..31 (Ox10..0x1F | 0b00010000..0b00011111)

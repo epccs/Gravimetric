@@ -24,7 +24,6 @@
 extern unsigned long blink_started_at;
 extern unsigned long lockout_started_at;
 extern unsigned long bootloader_started_at;
-extern unsigned long shutdown_started_at;
 
 extern uint8_t bootloader_started;
 extern uint8_t host_active;
@@ -59,6 +58,5 @@ extern void connect_normal_mode(void);
 extern void blink_on_activate(void);
 extern void check_Bootload_Time(void);
 extern void check_lockout(void);
-extern void check_shutdown(void);
 
 #endif // RPUbus_manager_state_H 
