@@ -26,6 +26,10 @@
 (done) remove status bit 6 (report daynight state machine fail)
 (done) if manager resets application then clear enable_bm_callback_address and daynight_callback_address
 (done) remove shutdown_detect since the shutdown manager will be controling it
+(done) move status cmd 6 to cmd 1 which is not used
+i2c cmd 4 used to set Host Shutdown i2c callback
+i2c cmd 5 used to access shutdown_halt_curr_limit
+i2c cmd 6 used to access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
@@ -137,12 +141,12 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 [Point To Multi-Point]: ./PointToMultiPoint.md
 
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
-1. not used. (this will be for access status bits)
+1. access status bits.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. not used.
-5. not used.
-6. access status bits. (move to cmd 1)
+4. not used. set Host Shutdown i2c callback (set shutdown_callback_address, report hostshutdown_state cmd).
+5. not used. Access shutdown_halt_curr_limit (uint16). I2C data: cmd,rd-wr,high-byte,low-byte.
+6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
 7. not used.
 
 [PV and Battery] Management commands 16..31 (Ox10..0x1F | 0b00010000..0b00011111)

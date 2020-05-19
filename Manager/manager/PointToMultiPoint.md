@@ -3,12 +3,12 @@
 0..15 (Ox00..0xF | 0b00000000..0b00001111)
 
 0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
-1. not used. (this will be for access status bits)
+1. access status bits.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. not used.
-5. not used.
-6. access status bits. (move to cmd 1)
+4. not used. set Host Shutdown i2c callback (set shutdown_callback_address, report hostshutdown_state cmd).
+5. not used. Access shutdown_halt_curr_limit (uint16). I2C data: cmd,rd-wr,high-byte,low-byte.
+6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
 7. not used.
 
 
@@ -72,9 +72,63 @@ print(bus.read_i2c_block_data(42, 0, 2))
 ``` 
 
 
-## Cmd 1 is not used
+## Cmd 1 from a controller /w i2c-debug access status bits
 
-Will be repurposed.
+The application controller can access the status of the manager. 
+
+status bits: 
+
+0. DTR (management pair) readback timeout
+1. twi slave transmit fail
+2. DTR readback not match
+3. host lockout
+4. not used.
+5. not used.
+6. not used.
+7. Update bit, if set change the other bits.
+
+``` 
+#picocom -b 38400 /dev/ttyUSB0
+picocom -b 38400 /dev/ttyAMA0
+/1/iaddr 41
+{"master_address":"0x29"}
+/1/ibuff 1,0
+{"txBuffer[2]":[{"data":"0x1"},{"data":"0x0"}]}
+/1/iread? 2
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x1"},{"data":"0x8"}]}
+``` 
+
+
+## Cmd 1 from a Raspberry Pi access status bits
+
+The local host can read status bits.
+
+``` 
+python3
+import smbus
+bus = smbus.SMBus(1)
+#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
+#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
+bus.write_i2c_block_data(42, 1, [0])
+print(bus.read_i2c_block_data(42, 1, 2))
+[1, 8]
+``` 
+
+Bit 3 is set so the host lockout is set until that has been cleared.
+
+``` 
+bus.write_i2c_block_data(42, 1, [0x80])
+print(bus.read_i2c_block_data(42, 1, 2))
+[6, 0]
+exit()
+picocom -b 38400 /dev/ttyAMA0
+...
+Terminal ready
+/1/id?
+# C-a, C-x.
+``` 
+
+The Raspberry Pi has cleared the host lockout bit (3) and can now bootload a target (or do p2p) on the multi-drop serial bus.
 
 
 ## Cmd 2 from the application controller /w i2c-debug access the bootload address (48..122) sent when serial handshake RTS toggless.
@@ -153,7 +207,7 @@ The i2c-debug applicaiton will read the address on i2c which will cause the mana
 
 ## Cmd 3 from a Raspberry Pi set p2p mode
 
-An R-Pi host can change the the bootload address and then set the point to point mode with SMBus. 
+An R-Pi host can change the the bootload address with SMBus. The bootload addres is also used for the point to point mode. 
 
 ``` 
 python3
@@ -161,19 +215,19 @@ import smbus
 bus = smbus.SMBus(1)
 #write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
 #read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
-# what is the bootload address
+# what is the bootload address I will send
 bus.write_i2c_block_data(42, 2, [0])
 bus.read_i2c_block_data(42, 2, 2)
 [2, 48]
-# what is my address
+# that is ascii '0', but wait what is my address
 bus.write_i2c_block_data(42, 0, [0])
 bus.read_i2c_block_data(42, 0, 2)
 [0, 50]
-# set the bootload address to my address
+# that is ascii '2', so to bootlaod my address
 bus.write_i2c_block_data(42, 2, [ord('2')])
 bus.read_i2c_block_data(42, 2, 2)
 [2, 50]
-# clear the host lockout status bit so serial from this host can use serial
+# also clear the host lockout status bit so serial /dev/ttyAMA0 from this host can bootload
 bus.write_i2c_block_data(42, 1, [0])
 print(bus.read_i2c_block_data(42, 1, 2))
 [6, 0]
@@ -216,61 +270,7 @@ Will be repurposed.
 Will be repurposed.
 
 
-## Cmd 6 from a controller /w i2c-debug access status bits
+## Cmd 6 is not used.
 
-The application controller can access the status of the manager. 
-
-status bits: 
-
-0. DTR (management pair) readback timeout
-1. twi slave transmit fail
-2. DTR readback not match
-3. host lockout
-4. not used.
-5. not used.
-6. not used.
-7. Update bit, if set change the other bits.
-
-``` 
-#picocom -b 38400 /dev/ttyUSB0
-picocom -b 38400 /dev/ttyAMA0
-/1/iaddr 41
-{"master_address":"0x29"}
-/1/ibuff 6,0
-{"txBuffer[2]":[{"data":"0x6"},{"data":"0x0"}]}
-/1/iread? 2
-{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x6"},{"data":"0x8"}]}
-``` 
-
-
-## Cmd 6 from a Raspberry Pi access status bits
-
-The local host can read status bits.
-
-``` 
-python3
-import smbus
-bus = smbus.SMBus(1)
-#write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
-#read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
-bus.write_i2c_block_data(42, 6, [0])
-print(bus.read_i2c_block_data(42, 6, 2))
-[6, 8]
-``` 
-
-Bit 3 is set so the host lockout is set until that has been cleared.
-
-``` 
-bus.write_i2c_block_data(42, 6, [0x80])
-print(bus.read_i2c_block_data(42, 6, 2))
-[6, 0]
-exit()
-picocom -b 38400 /dev/ttyAMA0
-...
-Terminal ready
-/1/id?
-# C-a, C-x.
-``` 
-
-The Raspberry Pi has cleared the host lockout bit (3) and can now bootload a target on the multi-drop serial bus.
+repurpose
 

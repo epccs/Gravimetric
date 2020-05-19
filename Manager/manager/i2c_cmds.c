@@ -59,7 +59,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnMgrAddr, fnNull, fnBootldAddr, fnArduinMode, fnNull, fnNull, fnStatus, fnNull},
+        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnNull, fnNull, fnNull, fnNull},
         {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
