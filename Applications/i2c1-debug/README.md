@@ -4,7 +4,7 @@
 
 2-wire Serial Interface (TWI, a.k.a. I2C) uses pins with SDA1 and SCL1 functions. 
 
-The peripheral control software twi0_bsd.c depends on avr-libc and avr-gcc. It provides interrupt-driven asynchronous I2C functions that can operate without blocking. It can also work with an interleaving slave receive buffer for SMBus block transactions that appear to eliminate problems involving clock stretching (e.g., for R-Pi Zero). This application uses the I2C0 hardeare.
+The peripheral control software twi1_bsd.c depends on avr-libc and avr-gcc. It provides interrupt-driven asynchronous I2C functions that can operate without blocking. It can also work with an interleaving slave receive buffer for SMBus block transactions that appear to eliminate problems involving clock stretching (e.g., for R-Pi Zero). This application uses the I2C1 hardeare.
 
 On Gravimetric, I2C1 is connected to the user access port.
 
@@ -22,17 +22,17 @@ bus = smbus.SMBus(1)
 #write_i2c_block_data(I2C_ADDR, I2C_COMMAND, DATA)
 #read_i2c_block_data(I2C_ADDR, I2C_COMMAND, NUM_OF_BYTES)
 # what is my address
-bus.write_i2c_block_data(42, 0, [255])
+bus.write_i2c_block_data(42, 0, [0])
 print("'"+chr(bus.read_i2c_block_data(42, 0, 2)[1])+"'" )
 '2'
 # I want to bootload address '1'
 bus.write_i2c_block_data(42, 3, [ord('1')])
 print("'"+chr(bus.read_i2c_block_data(42, 3, 2)[1])+"'" )
 '1'
-# clear the host lockout status bit so nRTS from my R-Pi on '2' will triger the bootloader on '1'
-bus.write_i2c_block_data(42, 7, [0])
-print(bus.read_i2c_block_data(42,7, 2))
-[7, 0]
+# clear the host lockout status bit so nRTS from my R-Pi will triger the bootloader on '1'
+bus.write_i2c_block_data(42, 1, [0x80])
+print(bus.read_i2c_block_data(42,1, 2))
+[1, 0]
 exit()
 ```
 
@@ -136,6 +136,7 @@ Attempt to become master and write the txBuffer bytes to I2C address. The txBuff
 ``` 
 
 Welp what did you expect? Nothing is on the bus.
+
 
 ## /0/i1read? \[1..32\]
 

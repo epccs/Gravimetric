@@ -102,7 +102,7 @@ void connect_normal_mode(void)
 void blink_on_activate(void)
 {
     // do not blink when host is being shutdown, e.g. states between up and down
-    if ( (hostshutdown_state > HOSTSHUTDOWN_STATE_UP) && (hostshutdown_state < HOSTSHUTDOWN_STATE_DOWN) )  
+    if ( (shutdown_state > HOSTSHUTDOWN_STATE_UP) && (shutdown_state < HOSTSHUTDOWN_STATE_DOWN) )  
     {
         ioWrite(MCU_IO_MGR_SCK_LED,LOGIC_LEVEL_HIGH); // turn off the LED
         return;

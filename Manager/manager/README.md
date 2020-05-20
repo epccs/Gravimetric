@@ -144,7 +144,7 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 1. access status bits.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. not used. set Host Shutdown i2c callback (set shutdown_callback_address, report hostshutdown_state cmd).
+4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
 5. not used. Access shutdown_halt_curr_limit (uint16). I2C data: cmd,rd-wr,high-byte,low-byte.
 6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
 7. not used.

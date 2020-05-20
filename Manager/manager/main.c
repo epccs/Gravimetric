@@ -57,6 +57,8 @@ SOFTWARE.
 
 void setup(void) 
 {
+    ioWrite(MCU_IO_PIPWR_EN, LOGIC_LEVEL_LOW); // power down the SBC
+    ioDir(MCU_IO_PIPWR_EN, DIRECTION_OUTPUT);
     ioDir(MCU_IO_MGR_SCK_LED, DIRECTION_OUTPUT);
     ioWrite(MCU_IO_MGR_SCK_LED, LOGIC_LEVEL_HIGH);
     ioDir(MCU_IO_HOST_nRTS, DIRECTION_INPUT);
@@ -77,8 +79,6 @@ void setup(void)
     ioWrite(MCU_IO_DTR_nRE, LOGIC_LEVEL_LOW); 
     ioDir(MCU_IO_MGR_nSS, DIRECTION_OUTPUT); // nSS is input to a Open collector buffer used to pull to MCU nRESET low
     ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_HIGH); 
-    ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
-    ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // trun on a weak pullup
     ioDir(MCU_IO_ALT_EN, DIRECTION_OUTPUT);
     ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
 
@@ -163,7 +163,13 @@ void setup(void)
     {
         LoadCalFromEEPROM( (ADC_ENUM_t) cal_index);
     }
-    
+
+    // DOWN the host, an R-Pi will not have started booting yet
+    // push the shutdown button for two sec to start the R-Pi host
+    // MCU_IO_PIPWR_EN is set at top of this (setup()) function
+    ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
+    ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up so I can manualy start the SBC
+    shutdown_state = HOSTSHUTDOWN_STATE_DOWN;
 
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 

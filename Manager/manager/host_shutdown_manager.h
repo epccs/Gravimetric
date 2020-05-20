@@ -17,7 +17,7 @@ typedef enum HOSTSHUTDOWN_STATE_enum {
     HOSTSHUTDOWN_STATE_FAIL // somthing went wrong, the managers PIPWR_EN pin will be pulled low which may have damage the SD card.
 } HOSTSHUTDOWN_STATE_t;
 
-extern HOSTSHUTDOWN_STATE_t hostshutdown_state;
+extern HOSTSHUTDOWN_STATE_t shutdown_state;
 
 extern unsigned long shutdown_started_at; // time when BCM6 was pulled low
 extern unsigned long shutdown_halt_chk_at; // time when current on PWR_I got bellow the expected level

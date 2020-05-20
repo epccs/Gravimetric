@@ -6,7 +6,7 @@
 1. access status bits.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. not used. set Host Shutdown i2c callback (set shutdown_callback_address, report hostshutdown_state cmd).
+4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
 5. not used. Access shutdown_halt_curr_limit (uint16). I2C data: cmd,rd-wr,high-byte,low-byte.
 6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
 7. not used.
@@ -261,9 +261,14 @@ picocom -b 38400 /dev/ttyAMA0
 At this time, the point to point mode persists, I will sort out more details when they are needed.
 
 
-## Cmd 4 is not used.
+## Cmd 4 from a controller /w i2c-debug set Host Shutdown
 
-Will be repurposed.
+Set Host Shutdown i2c callback and command (e.g., shutdown_callback_address and shutdown_state_callback_cmd).
+
+If the host is DOWN setting the callback address will bring the host UP. If the host is UP clearing the callback address will shutdown the host.
+
+The application needs to run an i2c slave receiver that expects to receive the command shutdown state updates, if you set cmd to zero no updates are sent. 
+
 
 ## Cmd 5 is not used.
 

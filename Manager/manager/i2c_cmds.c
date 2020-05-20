@@ -44,10 +44,12 @@ SOFTWARE.
 #include "i2c_cmds.h"
 #include "adc_burst.h"
 #include "references.h"
-#include "battery_manager.h"
-#include "battery_limits.h"
 #include "daynight_limits.h"
 #include "daynight_state.h"
+#include "battery_manager.h"
+#include "battery_limits.h"
+#include "host_shutdown_manager.h"
+#include "host_shutdown_limits.h"
 #include "calibration_limits.h"
 
 uint8_t i2c0Buffer[I2C_BUFFER_LENGTH];
@@ -172,6 +174,19 @@ void fnMgrAddrQuietly(uint8_t* i2cBuffer)
     }
 }
 
+// I2C command to access manager STATUS
+void fnStatus(uint8_t* i2cBuffer)
+{
+    uint8_t tmp_status = i2cBuffer[1];
+    i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
+
+    // if update bit 7 is set then change the status bits and related things
+    if (tmp_status & 0x80)
+    {
+        status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
+    }
+}
+
 // I2C command to access bootload address sent when HOST_nRTS toggles
 void fnBootldAddr(uint8_t* i2cBuffer)
 {
@@ -207,16 +222,25 @@ void fnArduinMode(uint8_t* i2cBuffer)
     i2cBuffer[1] = arduino_mode; // ignore everything but the command
 }
 
-// I2C command to access manager STATUS
-void fnStatus(uint8_t* i2cBuffer)
+// I2C command to enable host shutdown manager and set a i2c callback address for batmgr_state when command command byte is > zero.
+// The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
+void fnHostShutdwnMgr(uint8_t* i2cBuffer)
 {
-    uint8_t tmp_status = i2cBuffer[1];
-    i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
-
-    // if update bit 7 is set then change the status bits and related things
-    if (tmp_status & 0x80)
+    shutdown_callback_address = i2cBuffer[1]; // non-zero will power the host and act as the i2c slave address used for callback
+    shutdown_state_callback_cmd = i2cBuffer[2]; // however the callback will only happen if this value is > zero
+    if (shutdown_callback_address) 
     {
-        status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
+        if (shutdown_state == HOSTSHUTDOWN_STATE_DOWN)
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_RESTART;
+        }
+    }
+    else
+    {
+        if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
+        }
     }
 }
 
