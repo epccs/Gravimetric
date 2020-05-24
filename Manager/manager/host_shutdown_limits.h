@@ -37,9 +37,9 @@ typedef enum HOSTSHUTDOWN_LIM_enum {
 } HOSTSHUTDOWN_LIM_t;
 
 extern HOSTSHUTDOWN_LIM_t shutdown_limit_loaded;
-extern int shutdown_halt_curr_limit;
+extern int shutdown_halt_curr_limit; // befor host shutdown is done PWR_I current must be bellow this limit.
 extern unsigned long shutdown_halt_ttl_limit; // time to wait for PWR_I to be bellow shutdown_halt_curr_limit and then stable for wearleveling
-extern unsigned long shutdown_delay_limit; // time to wait after halt current is valid, but befor checking wearleveling for stable readings.
+extern unsigned long shutdown_delay_limit; // time to wait after droping bellow shutdown_halt_curr_limit, but befor checking wearleveling for stable readings.
 extern unsigned long shutdown_wearleveling_limit; // time PWR_I must be stable for this long
 
 extern uint8_t IsValidShtDwnHaltCurr(int *);

@@ -61,7 +61,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnNull, fnNull, fnNull, fnNull},
+        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnCurrLim, fnHostShutdwnTimeLim, fnNull},
         {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
@@ -224,6 +224,9 @@ void fnArduinMode(uint8_t* i2cBuffer)
 
 // I2C command to enable host shutdown manager and set a i2c callback address for batmgr_state when command command byte is > zero.
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
+// I2C: byte[0] = 4, 
+//      byte[1] = shutdown_callback_address, 
+//      byte[2] = shutdown_state_callback_cmd.
 void fnHostShutdwnMgr(uint8_t* i2cBuffer)
 {
     shutdown_callback_address = i2cBuffer[1]; // non-zero will power the host and act as the i2c slave address used for callback
@@ -244,6 +247,111 @@ void fnHostShutdwnMgr(uint8_t* i2cBuffer)
     }
 }
 
+// I2C command to access shutdown_halt_curr_limit
+// befor host shutdown is done PWR_I current must be bellow this limit.
+// I2C: byte[0] = 5, 
+//      byte[1] = bit 7 clear is read/bit 7 set is write, 
+//      byte[2] = shutdown_halt_curr_limit:high_byte, 
+//      byte[3] = shutdown_halt_curr_limit:low_byte.
+void fnHostShutdwnCurrLim(uint8_t* i2cBuffer)
+{
+    uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    // shutdown_halt_curr_limit is an int e.g., two bytes
+    // save the new value
+    int new = 0;
+    new += ((int)i2cBuffer[2])<<8; // high_byte
+    new += ((int)i2cBuffer[3]); // low_byte
+
+    // swap the return value with shutdown_halt_curr_limit that is in use
+    i2cBuffer[2] =  ( (0xFF00 & shutdown_halt_curr_limit) >>8 ); 
+    i2cBuffer[3] =  ( (0x00FF & shutdown_halt_curr_limit) ); 
+
+    // keep the new value and mark shutdown_limit_loaded to save in EEPROM
+    if (write || IsValidShtDwnHaltCurr(&new))
+    {
+        shutdown_halt_curr_limit = new;
+        shutdown_limit_loaded = HOSTSHUTDOWN_LIM_HALT_CURR_TOSAVE; // main loop will save to eeprom
+    }
+}
+
+// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
+// shutdown_halt_ttl_limit
+// befor host shutdown is done PWR_I current must be bellow this limit.
+// I2C: byte[0] = 6, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
+//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
+//      byte[3] = bits 23..16,
+//      byte[4] = bits 15..8,
+//      byte[5] = bits 7..0,
+void fnHostShutdwnTimeLim(uint8_t* i2cBuffer)
+{
+    uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    uint8_t offset = i2cBuffer[1] & 0x7F; // 0 is halt_ttl_limit, 1 is delay_limit...
+    // shutdown_halt_curr_limit is an int e.g., two bytes
+    // save the new value
+    uint32_t new = 0;
+    new += ((uint32_t)i2cBuffer[2])<<24; // high_byte
+    new += ((uint32_t)i2cBuffer[3])<<16; // bits 23..16
+    new += ((uint32_t)i2cBuffer[4])<<8; // bits 15..8
+    new += ((uint32_t)i2cBuffer[5]); // low_byte
+
+    uint32_t old = 0;
+    switch (offset)
+    {
+    case 0:
+        old = shutdown_halt_ttl_limit;
+        break;
+    case 1:
+        old = shutdown_delay_limit;
+        break;
+    case 2:
+        old = shutdown_wearleveling_limit;
+        break;
+
+    default:
+        break;
+    }
+
+    // swap the return value with the value that is in use
+    i2cBuffer[2] =  ( (0xFF000000 & old) >>24 ); 
+    i2cBuffer[3] =  ( (0x00FF0000 & old) >>16 ); 
+    i2cBuffer[4] =  ( (0x0000FF00 & old) >>8 ); 
+    i2cBuffer[5] =  ( (0x000000FF & old) ); 
+
+
+    // keep the new value and mark shutdown_limit_loaded to save in EEPROM
+    if (write)
+    {
+        switch (offset)
+        {
+        case 0:
+            if (WriteEEShtDwnHaltTTL(&new))
+            {
+                shutdown_halt_ttl_limit = new;
+                shutdown_limit_loaded = HOSTSHUTDOWN_LIM_HALT_TTL_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+        case 1:
+            if (WriteEEShtDwnDelay(&new))
+            {
+                shutdown_delay_limit = new;
+                shutdown_limit_loaded = HOSTSHUTDOWN_LIM_DELAY_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+        case 2:
+            if (WriteEEShtDwnWearleveling(&new))
+            {
+                shutdown_wearleveling_limit = new;
+                shutdown_limit_loaded = HOSTSHUTDOWN_LIM_WEARLEVELING_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+
+        default:
+            break;
+        }
+    }
+}
 
 /********* PV and Battery Management ***********/
 

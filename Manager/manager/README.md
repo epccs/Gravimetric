@@ -27,9 +27,9 @@
 (done) if manager resets application then clear enable_bm_callback_address and daynight_callback_address
 (done) remove shutdown_detect since the shutdown manager will be controling it
 (done) move status cmd 6 to cmd 1 which is not used
-i2c cmd 4 used to set Host Shutdown i2c callback
-i2c cmd 5 used to access shutdown_halt_curr_limit
-i2c cmd 6 used to access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit
+(done) i2c cmd 4 used to set Host Shutdown i2c callback
+(done) i2c cmd 5 used to access shutdown_halt_curr_limit
+(done) i2c cmd 6 used to access shutdown[_halt_ttl_limit|delay_limit|wearleveling_limit]
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
@@ -145,7 +145,7 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
 4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
-5. not used. Access shutdown_halt_curr_limit (uint16). I2C data: cmd,rd-wr,high-byte,low-byte.
+5. access shutdown_halt_curr_limit (uint16). 
 6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
 7. not used.
 

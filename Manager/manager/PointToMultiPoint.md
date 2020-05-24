@@ -7,7 +7,7 @@
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
 4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
-5. not used. Access shutdown_halt_curr_limit (uint16). I2C data: cmd,rd-wr,high-byte,low-byte.
+5. access shutdown_halt_curr_limit (uint16). 
 6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
 7. not used.
 
@@ -261,21 +261,48 @@ picocom -b 38400 /dev/ttyAMA0
 At this time, the point to point mode persists, I will sort out more details when they are needed.
 
 
-## Cmd 4 from a controller /w i2c-debug set Host Shutdown
+## Cmd 4 from a controller /w i2c-debug set Host Shutdown.
 
-Set Host Shutdown i2c callback and command (e.g., shutdown_callback_address and shutdown_state_callback_cmd).
+``` C
+// I2C command to enable host shutdown manager and set a i2c callback address for batmgr_state when command command byte is > zero.
+// The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
+// I2C: byte[0] = 4, 
+//      byte[1] = shutdown_callback_address, 
+//      byte[2] = shutdown_state_callback_cmd.
+```
 
 If the host is DOWN setting the callback address will bring the host UP. If the host is UP clearing the callback address will shutdown the host.
 
-The application needs to run an i2c slave receiver that expects to receive the command shutdown state updates, if you set cmd to zero no updates are sent. 
+The application needs to run an i2c slave receiver to accept the shutdown state events, if the callback_cmd is zero no events are sent. 
 
 
-## Cmd 5 is not used.
+## Cmd 5 from a controller /w i2c-debug access Host Shutdown shutdown_halt_curr_limit.
 
-Will be repurposed.
+``` C
+// I2C command to access shutdown_halt_curr_limit
+// befor host shutdown is done PWR_I current must be bellow this limit.
+// I2C: byte[0] = 5, 
+//      byte[1] = bit 7 clear is read/bit 7 set is write, 
+//      byte[2] = shutdown_halt_curr_limit:high_byte, 
+//      byte[3] = shutdown_halt_curr_limit:low_byte.
+```
 
 
-## Cmd 6 is not used.
+## Cmd 6 from a controller /w i2c-debug access Host Shutdown shutdown[_halt_ttl_limit|delay_limit|wearleveling_limit].
+
+``` C
+// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
+// shutdown_halt_ttl_limit
+// befor host shutdown is done PWR_I current must be bellow this limit.
+// I2C: byte[0] = 6, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
+//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
+//      byte[3] = bits 23..16,
+//      byte[4] = bits 15..8,
+//      byte[5] = bits 7..0,
+```
+
+## Cmd 7 is not used.
 
 repurpose
-

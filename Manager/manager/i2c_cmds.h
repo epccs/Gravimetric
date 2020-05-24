@@ -15,12 +15,12 @@ extern void transmit_i2c_event(void);
 // Prototypes for point 2 multipoint commands
 extern void fnMgrAddr(uint8_t*); // 0 for I2C
 extern void fnMgrAddrQuietly(uint8_t*); // 0 for SMBus
-// not used //1
+extern void fnStatus(uint8_t*); // 1
 extern void fnBootldAddr(uint8_t*); // 2
 extern void fnArduinMode(uint8_t*);  // 3
-// not used  // 4
-// not used  // 5
-extern void fnStatus(uint8_t*); // 6
+extern void fnHostShutdwnMgr(uint8_t*); // 4
+extern void fnHostShutdwnCurrLim(uint8_t*); // 5
+extern void fnHostShutdwnTimeLim(uint8_t*); // 6 
 // not used // 7
 
 // Prototypes for PV and Battery Management
