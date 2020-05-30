@@ -40,7 +40,7 @@ SOFTWARE.
 
 HOSTSHUTDOWN_LIM_t shutdown_limit_loaded;
 int shutdown_halt_curr_limit;
-unsigned long shutdown_halt_ttl_limit;
+unsigned long shutdown_ttl_limit;
 unsigned long shutdown_delay_limit;
 unsigned long shutdown_wearleveling_limit;
 
@@ -111,7 +111,7 @@ uint8_t WriteEEShtDwnHaltTTL()
 {
     if ( eeprom_is_ready() )
     {
-        eeprom_update_dword( (uint32_t *)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_HALT_TTL), (uint32_t)shutdown_halt_ttl_limit);
+        eeprom_update_dword( (uint32_t *)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_HALT_TTL), (uint32_t)shutdown_ttl_limit);
         return 1;
     }
     else
@@ -152,18 +152,18 @@ uint8_t WriteEEShtDwnWearleveling()
 uint8_t LoadShtDwnLimitsFromEEPROM() 
 {
     int tmp_shutdown_halt_curr_limit = eeprom_read_word((uint16_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_HALTCURR_LIMIT));
-    unsigned long temp_shutdown_halt_ttl_limit = eeprom_read_dword((uint32_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_HALT_TTL));
+    unsigned long temp_shutdown_ttl_limit = eeprom_read_dword((uint32_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_HALT_TTL));
     unsigned long temp_shutdown_delay_limit = eeprom_read_dword((uint32_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_DELAY));
     unsigned long temp_shutdown_wearleveling_limit = eeprom_read_dword((uint32_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_WEARLEVELING));
     uint8_t use_defauts = 0;
     if (IsValidShtDwnHaltCurr(&tmp_shutdown_halt_curr_limit)) use_defauts = 1; 
-    if (IsValidShtDwnHaltTTL(&temp_shutdown_halt_ttl_limit)) use_defauts = 1;
+    if (IsValidShtDwnHaltTTL(&temp_shutdown_ttl_limit)) use_defauts = 1;
     if (IsValidShtDwnDelay(&temp_shutdown_delay_limit)) use_defauts = 1; 
     if (IsValidShtDwnWearleveling(&temp_shutdown_wearleveling_limit)) use_defauts = 1; 
     if (!use_defauts)
     {
         shutdown_halt_curr_limit = tmp_shutdown_halt_curr_limit; 
-        shutdown_halt_ttl_limit = temp_shutdown_halt_ttl_limit;
+        shutdown_ttl_limit = temp_shutdown_ttl_limit;
         shutdown_delay_limit = temp_shutdown_delay_limit;
         shutdown_wearleveling_limit = temp_shutdown_wearleveling_limit;
         shutdown_limit_loaded = HOSTSHUTDOWN_LIM_LOADED;
@@ -173,7 +173,7 @@ uint8_t LoadShtDwnLimitsFromEEPROM()
     {
         // default values are for a Raspberry Pi Zero, 12V8 LA battery, and 5V referance
         shutdown_halt_curr_limit = 63; // a halt R-Pi Z and applicaion has less than 90mA on PWR_I with 12V8: 0.09/((5.0/1024.0)/(0.068*50.0))
-        shutdown_halt_ttl_limit = 60000UL; // the R-Pi Z can take some time to halt 60 seconds is default.
+        shutdown_ttl_limit = 60000UL; // the R-Pi Z can take some time to halt 60 seconds is default.
         shutdown_delay_limit = 10000UL; // give the SD card 10 seconds to do wearleveling.
         shutdown_wearleveling_limit = 100UL; // if PWR_I is stable for .1 seconds, accept that to mean wearleveling is done, note this is not proof it is more like hope.
         shutdown_limit_loaded = HOSTSHUTDOWN_LIM_DEFAULT;
@@ -199,7 +199,7 @@ void ShtDwnLimitsFromI2CtoEE(void)
         }
         break;
     case HOSTSHUTDOWN_LIM_HALT_TTL_TOSAVE:
-        if ( IsValidShtDwnHaltTTL(&shutdown_halt_ttl_limit) )
+        if ( IsValidShtDwnHaltTTL(&shutdown_ttl_limit) )
         {
             if (WriteEEShtDwnHaltTTL())
             {

@@ -31,7 +31,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnNull, fnDayNightState, fnDayWork, fnNightWork, fnBatMgrState, fnNull, fnNull, fnNull}
+        {fnNull, fnDayNightState, fnDayWork, fnNightWork, fnBatMgrState, fnHostShutdownState, fnNull, fnNull}
     };
 
     // i2c will echo's back what was sent (plus modifications) with transmit event
@@ -95,6 +95,7 @@ static PointerToCallback twi0_onDayNightState = twi0_callback_default;
 static PointerToCallback twi0_onDayWork = twi0_callback_default;
 static PointerToCallback twi0_onNightWork = twi0_callback_default;
 static PointerToCallback twi0_onBatMgrState = twi0_callback_default;
+static PointerToCallback twi0_onHostShutdownState = twi0_callback_default;
 
 // I2C command returning the managers daynight_state
 void fnDayNightState(uint8_t* i2cBuffer)
@@ -122,6 +123,13 @@ void fnBatMgrState(uint8_t* i2cBuffer)
 {
     uint8_t data = i2cBuffer[1];
     twi0_onBatMgrState(data);
+}
+
+// I2C command returning the host shutdown state (hs_state)
+void fnHostShutdownState(uint8_t* i2cBuffer)
+{
+    uint8_t data = i2cBuffer[1];
+    twi0_onHostShutdownState(data);
 }
 
 /* Dummy function */
@@ -187,3 +195,17 @@ void twi0_registerOnBatMgrStateCallback( void (*function)(uint8_t data) )
     }
 }
 
+
+// record callback to use durring a Host Shutdown State change 
+// a NULL pointer will use the default callback
+void twi0_registerOnHostShutdownStateCallback( void (*function)(uint8_t data) )
+{
+    if (function == ((void *)0) )
+    {
+        twi0_onHostShutdownState = twi0_callback_default;
+    }
+    else
+    {
+        twi0_onHostShutdownState = function;
+    }
+}

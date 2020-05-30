@@ -275,7 +275,7 @@ void fnHostShutdwnCurrLim(uint8_t* i2cBuffer)
 }
 
 // I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
-// shutdown_halt_ttl_limit
+// shutdown_ttl_limit
 // befor host shutdown is done PWR_I current must be bellow this limit.
 // I2C: byte[0] = 6, 
 //      byte[1] = bit 7 is read/write 
@@ -300,7 +300,7 @@ void fnHostShutdwnTimeLim(uint8_t* i2cBuffer)
     switch (offset)
     {
     case 0:
-        old = shutdown_halt_ttl_limit;
+        old = shutdown_ttl_limit;
         break;
     case 1:
         old = shutdown_delay_limit;
@@ -328,7 +328,7 @@ void fnHostShutdwnTimeLim(uint8_t* i2cBuffer)
         case 0:
             if (WriteEEShtDwnHaltTTL(&new))
             {
-                shutdown_halt_ttl_limit = new;
+                shutdown_ttl_limit = new;
                 shutdown_limit_loaded = HOSTSHUTDOWN_LIM_HALT_TTL_TOSAVE; // main loop will save to eeprom
             } 
             break;

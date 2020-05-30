@@ -28,7 +28,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "battery.h"
 
 static unsigned long battery_serial_print_started_at;
-volatile BATTERYMGR_STATE_t batmgr_state;
+volatile BATTERYMGR_STATE_t batmgr_state; // battery manager state
 uint8_t bm_callback_addr; 
 
 // /0/bm

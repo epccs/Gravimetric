@@ -8,7 +8,7 @@
 3. access arduino_mode.
 4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
 5. access shutdown_halt_curr_limit (uint16). 
-6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
+6. access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
 7. not used.
 
 

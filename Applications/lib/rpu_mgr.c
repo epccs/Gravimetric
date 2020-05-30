@@ -60,15 +60,25 @@ uint8_t i2c_address_; // master address this slave
 #define INT_CMD {0x15,0x00,0x00}
 #define INT_CMD_SIZE 3
 
-// set daynight callback address 43, state cmd 1, day evnt 2, night evnt 3.
-// e.g., 23 is used to set daynight state machine callbacks. 
+// commands 5 
+// have the manger access a read/write array of int. 
+// shutdown_halt_curr_limit
+#define INT_RW_ARRY_CMD_SIZE 4
+
+// set daynight callback address 49, state cmd 1, day evnt 2, night evnt 3.
+// e.g., manager cmd 23 is used to set daynight state machine callbacks. 
 #define DAYNIGHT_CALLBK_CMD {0x17,0x31,0x1,0x2,0x3}
 #define DAYNIGHT_CALLBK_CMD_SIZE 5
 
-// set battery callback address 43, state cmd 4
-// e.g., 16 is used to set daynight state machine callbacks. 
+// set battery callback address 49, state cmd 4
+// e.g., manager cmd 16 is used to set battery state machine callbacks. 
 #define BATTERY_CALLBK_CMD {0x10,0x31,0x4}
 #define BATTERY_CALLBK_CMD_SIZE 3
+
+// set host shutdown callback address 49, state cmd 5
+// e.g., manager cmd 4 is used to set host shutdown state machine callbacks. 
+#define HOSTSHUTDOWN_CALLBK_CMD {0x4,0x31,0x5}
+#define HOSTSHUTDOWN_CALLBK_CMD_SIZE 3
 
 // commands 32 will have the manger do an 
 // analogRead and pass that to the application
@@ -78,8 +88,12 @@ uint8_t i2c_address_; // master address this slave
 // commands 52, 53 and 54  have the manger set and report an
 // unsigned long. The evening|morning|millis_now debouce 
 // out of range values are ignored
-#define ULONGINT_CMD {0x34,0x00,0x00,0x00,0x00}
 #define ULONGINT_CMD_SIZE 5
+
+// commands 6 
+// have the manger access a read/write array of unsigned long. 
+// shutdown_[halt_ttl_limit,delay_limit,wearleveling_limit]
+#define UL_RW_ARRY_CMD_SIZE 6
 
 // command 38 can have the manger set and report an
 // float. Cmd 38 is followed by a select byte, use 0 for EXTERNAL_AVCC and 
@@ -247,7 +261,7 @@ uint8_t i2c_read_status(void)
 }
 
 // enable daynight callbacks from manager
-// 23 .. cmd 0x17 plus four bytes 
+// 23 .. cmd plus four bytes 
 //       byte 1 is the slave address for manager to send envents
 //       byte 2 is command to receive daynight_state changes
 //       byte 3 is command to receive day work event
@@ -275,7 +289,7 @@ void i2c_daynight_cmd(uint8_t my_callback_addr)
 }
 
 // enable battery callback from manager
-// 16 .. cmd 0x17 plus two bytes 
+// 16 .. cmd plus two bytes 
 //       byte 1 is the slave address for manager to send envents
 //       byte 2 is command to receive batmgr_state changes
 void i2c_battery_cmd(uint8_t my_callback_addr)
@@ -299,6 +313,33 @@ void i2c_battery_cmd(uint8_t my_callback_addr)
         return;
     }
 }
+
+// host shutdown callback from manager
+// 4 .. cmd plus two bytes 
+//      byte 1 is the slave address for manager to send envents
+//      byte 2 is command to receive hs_state changes
+void i2c_shutdown_cmd(uint8_t my_callback_addr)
+{ 
+    uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
+    uint8_t txBuffer[HOSTSHUTDOWN_CALLBK_CMD_SIZE] = HOSTSHUTDOWN_CALLBK_CMD;
+    uint8_t length = HOSTSHUTDOWN_CALLBK_CMD_SIZE;
+    txBuffer[1] = my_callback_addr; // a slave callback address of zero will shutdown host, and end callbacks
+    mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
+    if (mgr_twiErrorCode)
+    {
+        return; // failed
+    }
+    
+    // above writes data to slave, this reads data from slave
+    uint8_t rxBuffer[HOSTSHUTDOWN_CALLBK_CMD_SIZE];
+    uint8_t bytes_read = twi0_masterBlockingRead(i2c_address, rxBuffer, length, TWI0_PROTOCALL_STOP);
+    if ( bytes_read != length )
+    {
+        mgr_twiErrorCode = 5;
+        return;
+    }
+}
+
 
 // management commands to access managers unsigned long prameters e.g.,
 // 20 .. CHARGE_BATTERY_PWM 
@@ -331,6 +372,79 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with, TWI0
         rxBuffer_[3] = 0;
         rxBuffer_[4] = 0;
         rxBuffer_[5] = 0;
+        *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
+    }
+    else 
+    {
+        uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
+        if( (*loop_state == TWI0_LOOP_STATE_DONE) )
+        {
+            // twi0_masterWriteRead error code is in bits 5..7
+            if(bytes_read & 0xE0)
+            {
+                mgr_twiErrorCode = twi0_masterAsyncWrite_status(); // bytes_read>>5
+                value = 0; // UL does not have NaN
+            }
+            else
+            {
+                value = ((unsigned long)(rxBuffer_[1]))<<24;
+                value += ((unsigned long)(rxBuffer_[2]))<<16;
+                value += ((unsigned long)(rxBuffer_[3]))<<8;
+                value +=  (unsigned long)rxBuffer_[4];
+            }
+        }
+    }
+    return value;
+}
+
+// management commands that take r/w+offset byte and use it to access an array of unsigned long prameters's e.g.,
+//  6 .. SHUTDOWN_UL_CMD and [SHUTDOWN_TTL_OFFSET, SHUTDOWN_DELAY_OFFSET, SHUTDOWN_WEARLEVEL_OFFSET]
+unsigned long i2c_ul_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, unsigned long update_with, TWI0_LOOP_STATE_t *loop_state)
+{
+    if ( (command != SHUTDOWN_UL_CMD) ) 
+    {
+        mgr_twiErrorCode = 6;
+        *loop_state = TWI0_LOOP_STATE_DONE;
+        return 0;
+    }
+
+    uint8_t offset = rw_offset & 0x7F;
+    if ( (command == SHUTDOWN_UL_CMD)) 
+    {
+        switch (offset)
+        {
+        case SHUTDOWN_TTL_OFFSET:
+        case SHUTDOWN_DELAY_OFFSET:
+        case SHUTDOWN_WEARLEVEL_OFFSET:
+            break;
+        
+        default:
+            mgr_twiErrorCode = 6;
+            *loop_state = TWI0_LOOP_STATE_DONE;
+            return 0;
+        }
+    }
+
+    unsigned long value = 0;
+    if (*loop_state == TWI0_LOOP_STATE_INIT)
+    {
+        i2c_address_ = I2C_ADDR_OF_BUS_MGR; //0x29
+        bytes_to_write_ = UL_RW_ARRY_CMD_SIZE;
+        txBuffer_[0] = command; // replace the command byte
+        txBuffer_[1] = rw_offset; // replace the read/write+offset byte
+        txBuffer_[2] = (uint8_t)((update_with & 0xFF000000UL)>>24);
+        txBuffer_[3] = (uint8_t)((update_with & 0xFF0000UL)>>16);
+        txBuffer_[4] = (uint8_t)((update_with & 0xFF00UL)>>8);
+        txBuffer_[5] = (uint8_t)(update_with & 0xFFUL);
+        txBuffer_[6] = 0;
+        bytes_to_read_ = UL_RW_ARRY_CMD_SIZE;
+        rxBuffer_[0] = 0;
+        rxBuffer_[1] = 0;
+        rxBuffer_[2] = 0;
+        rxBuffer_[3] = 0;
+        rxBuffer_[4] = 0;
+        rxBuffer_[5] = 0;
+        rxBuffer_[6] = 0;
         *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
     }
     else 
@@ -391,6 +505,64 @@ int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop
         rxBuffer_[1] = 0;
         rxBuffer_[2] = 0;
         rxBuffer_[3] = 0;
+        *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
+    }
+    else 
+    {
+        uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
+        if( (*loop_state == TWI0_LOOP_STATE_DONE) )
+        {
+            // twi0_masterWriteRead error code is in bits 5..7
+            if(bytes_read & 0xE0)
+            {
+                mgr_twiErrorCode = twi0_masterAsyncWrite_status(); //bytes_read>>5
+                value = 0; // int does not have NaN
+            }
+            else
+            {
+                value = ((int)(rxBuffer_[1]))<<8;
+                value +=  (int)rxBuffer_[2];
+            }
+        }
+    }
+    return value;
+}
+
+
+// management commands that take r/w+offset byte and use it to access an array of int's  e.g.,
+//  5 .. SHUTDOWN_INT_CMD and SHUTDOWN_HALT_CURR_OFFSET
+int i2c_int_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, int update_with, TWI0_LOOP_STATE_t *loop_state)
+{
+    if ( (command != SHUTDOWN_INT_CMD) ) 
+    {
+        mgr_twiErrorCode = 6;
+        *loop_state = TWI0_LOOP_STATE_DONE;
+        return 0;
+    }
+
+    if ( (command == SHUTDOWN_INT_CMD) && ((rw_offset & 0x7F) != SHUTDOWN_HALT_CURR_OFFSET) ) 
+    {
+        mgr_twiErrorCode = 6;
+        *loop_state = TWI0_LOOP_STATE_DONE;
+        return 0;
+    }
+
+    int value = 0;
+    if (*loop_state == TWI0_LOOP_STATE_INIT)
+    {
+        i2c_address_ = I2C_ADDR_OF_BUS_MGR; //0x29
+        bytes_to_write_ = INT_RW_ARRY_CMD_SIZE;
+        txBuffer_[0] = command; // replace the command byte
+        txBuffer_[1] = rw_offset; // replace the read/write+offset byte
+        txBuffer_[2] = (uint8_t)((update_with & 0xFF00)>>8);
+        txBuffer_[3] = (uint8_t)(update_with & 0xFF);
+        txBuffer_[4] = 0;
+        bytes_to_read_ = INT_RW_ARRY_CMD_SIZE;
+        rxBuffer_[0] = 0;
+        rxBuffer_[1] = 0;
+        rxBuffer_[2] = 0;
+        rxBuffer_[3] = 0;
+        rxBuffer_[4] = 0;
         *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
     }
     else 

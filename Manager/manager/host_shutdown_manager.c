@@ -121,7 +121,7 @@ void check_if_host_should_be_on(void)
         break;
 
     case HOSTSHUTDOWN_STATE_BM_CHK: // the battery manager enable was saved and is now disable, wait for CURR on PWR_I
-        if (kRuntime > shutdown_halt_ttl_limit) // time out
+        if (kRuntime > shutdown_ttl_limit) // time out
         {
             shutdown_state = HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP;
             if (shutdown_callback_address && shutdown_state_callback_cmd)

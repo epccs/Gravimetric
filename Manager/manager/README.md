@@ -1,5 +1,6 @@
 # To Do
 
+```
 (done) change cmd 2 and 3 to use one cmd 2 to access the bootload address
 (done) change Adc application to use manager data: channels (ALT_I, ALT_V,PWR_I,PWR_V), referance, and calibration.
 (done) change cmd 4 and 5 to use one cmd 4 to access shutdown of host
@@ -30,9 +31,11 @@
 (done) i2c cmd 4 used to set Host Shutdown i2c callback
 (done) i2c cmd 5 used to access shutdown_halt_curr_limit
 (done) i2c cmd 6 used to access shutdown[_halt_ttl_limit|delay_limit|wearleveling_limit]
+(wip) shutdown application to check shutdown state machine
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 20 is for absorption time, check it with battery.
+```
 
 
 # Manager
@@ -146,7 +149,7 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 3. access arduino_mode.
 4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
 5. access shutdown_halt_curr_limit (uint16). 
-6. not used. Access shutdown_halt_ttl_limit, shutdown_delay_limit, shutdown_wearleveling_limit(uint32). I2C data: cmd,rd-wr+offset[0..2],bits[31..24],bits[23..16],bits[15..8],bits[7..0].
+6. access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit] (uint32).
 7. not used.
 
 [PV and Battery] Management commands 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
