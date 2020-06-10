@@ -94,22 +94,29 @@ void ProcessCmd()
     {
         BatMngHighLimit(); // set battery manager battery_high_limit
     }
-
     if ( (strcmp_P( command, PSTR("/hs")) == 0) && ( (arg_count == 0 ) ) )
     {
-        EnableBatMngCntl(); 
+        EnableShutdownCntl(); 
     }
-    if ( (strcmp_P( command, PSTR("/bmcntl?")) == 0) && ( (arg_count == 0 ) ) )
+    if ( (strcmp_P( command, PSTR("/hscntl?")) == 0) && ( (arg_count == 0 ) ) )
     {
-        ReportBatMngCntl(5000UL);  
+        ReportShutdownCntl(5000UL);  
     }
-    if ( (strcmp_P( command, PSTR("/bmlow?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    if ( (strcmp_P( command, PSTR("/hshaltcurr?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        BatMngLowLimit();  // set battery manager battery_low_limit
+        ShutdownHaltCurrLimit();
     }
-    if ( (strcmp_P( command, PSTR("/bmhigh?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    if ( (strcmp_P( command, PSTR("/hsttl?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
     {
-        BatMngHighLimit(); // set battery manager battery_high_limit
+        ShutdownTTLimit();
+    }
+    if ( (strcmp_P( command, PSTR("/hsdelay?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        ShutdownDelayLimit();
+    }
+    if ( (strcmp_P( command, PSTR("/hswearlv?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        ShutdownWearlevelingLimit();
     }
 }
 

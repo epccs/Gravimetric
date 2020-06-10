@@ -165,7 +165,8 @@ void setup(void)
     }
 
     // DOWN the host, an R-Pi will not have started booting yet
-    // push the shutdown button for two sec to start the R-Pi host
+    // so I can overide the default state (which is UP).
+    // Push the shutdown button for two sec to start the R-Pi host
     // MCU_IO_PIPWR_EN is set at top of this (setup()) function
     ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
     ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up so I can manualy start the SBC

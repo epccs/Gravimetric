@@ -40,6 +40,8 @@ SOFTWARE.
 #include "../lib/twi0_bsd.h"
 #include "../lib/io_enum_bsd.h"
 #include "i2c_callback.h"
+#include "adc_burst.h"
+#include "battery_manager.h"
 #include "daynight_limits.h"
 #include "daynight_state.h"
 
@@ -53,6 +55,11 @@ DAYNIGHT_STATE_t daynight_state;
 uint8_t daynight_work;
 
 unsigned long dayTmrStarted;
+
+unsigned long accumulate_alt_mega_ti_at_night;
+unsigned long accumulate_pwr_mega_ti_at_night;
+unsigned long accumulate_alt_mega_ti_at_day;
+unsigned long accumulate_pwr_mega_ti_at_day;
 
 uint8_t daynight_callback_address;
 uint8_t daynight_state_callback_cmd;
@@ -189,7 +196,8 @@ void check_daynight(void)
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
             i2c_callback(daynight_callback_address, night_work_callback_cmd, DAYNIGHT_STATE_NIGHTWORK, &loop_state); // night_work_callback remote
         }
-        // timer is running
+        accumulate_alt_mega_ti_at_night = accumulate_alt_mega_ti;
+        accumulate_pwr_mega_ti_at_night = accumulate_pwr_mega_ti;
         return;
     }
 
@@ -259,7 +267,9 @@ void check_daynight(void)
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
             i2c_callback(daynight_callback_address, day_work_callback_cmd, DAYNIGHT_STATE_DAYWORK, &loop_state); // day_work_callback remote
         }
-        // timer is running
+        alt_pwm_accum_charge_time = 0; // clear charge time
+        accumulate_alt_mega_ti_at_day = accumulate_alt_mega_ti;
+        accumulate_pwr_mega_ti_at_day = accumulate_pwr_mega_ti;
         return;
     }
 

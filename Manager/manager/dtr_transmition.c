@@ -40,6 +40,7 @@ SOFTWARE.
 #include "rpubus_manager_state.h"
 #include "daynight_state.h"
 #include "battery_manager.h"
+#include "host_shutdown_manager.h"
 #include "dtr_transmition.h"
 
 
@@ -267,7 +268,8 @@ void check_uart(void)
 
                     // start the bootloader
                     ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_LOW);   // nSS goes through a open collector buffer to nRESET
-                    enable_bm_callback_address = 0;
+                    battery_state_callback_cmd = 0; // turn off i2c battery manager callback but keep battery manager running 
+                    shutdown_state_callback_cmd = 0; // turn off i2c host shutdown callback but do not DOWN the host 
                     daynight_callback_address = 0;
                     target_reset_started_at = milliseconds();
                     my_mcu_is_target_and_i_have_it_reset = 1;

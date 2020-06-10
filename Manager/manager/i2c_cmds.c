@@ -361,11 +361,6 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
 { 
     enable_bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
     battery_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero
-    if (enable_bm_callback_address) 
-    {
-        alt_pwm_accum_charge_time = 0; // clear charge time when enabled
-        batmgr_state = BATTERYMGR_STATE_START;
-    }
 }
 
 // I2C command to access Battery charge low limit (int)
@@ -417,7 +412,7 @@ void fnBatChrgHighLim(uint8_t* i2cBuffer)
 void fnRdBatChrgTime(uint8_t* i2cBuffer)
 {
     // there are four bytes in an unsigned long
-    unsigned long my_copy = alt_pwm_accum_charge_time; //updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+    unsigned long my_copy = alt_pwm_accum_charge_time; // updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
 
     i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
     i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 

@@ -3,7 +3,9 @@
 ##ToDo
 
 ```
-?
+(done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
+sd_state not reporting
+hs_timer report elapsed_time_since_shutdownStarted is not yet available from manager
 ```
 
 
@@ -61,6 +63,7 @@ Now connect with picocom (or ilk).
 
 ``` 
 #exit is C-a, C-x
+# from an R-Pi
 picocom -b 38400 /dev/ttyAMA0
 # with bootload port
 picocom -b 38400 /dev/ttyUSB0
@@ -84,7 +87,7 @@ identify
 
 ``` 
 /1/id?
-tbd
+{"id":{"name":"Shutdown","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
 
@@ -97,7 +100,7 @@ This will toggle the host shutdown control.
 {"hs_en":"UP"}
 ```
 
-It reprots UP but what is does is set the callback address and cmd values that will send events to the appliction slave address so thay can be reported with the next command. 
+It reprots UP but does not callback the sd_state. 
 
 
 ##  /0/hscntl?
@@ -106,7 +109,9 @@ Reports host shutdown control values.
 
 ``` 
 /1/hscntl?
-{"hs_state":"0x2","hs_halt_curr":"63","adc_pwr_i":"10","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100"}
+{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"22","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
 
 ``` 
 

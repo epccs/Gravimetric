@@ -37,11 +37,11 @@ void EnableShutdownCntl(void)
 {
     if ( (command_done == 10) )
     {
-        if (hs_callback_addr) 
+        if (hs_callback_addr) // is UP
         {
             hs_callback_addr = 0; // a zero will shutdown the host if it is UP
         }
-        else
+        else // is DOWN
         {
             hs_callback_addr = I2C0_APP_ADDR;
         }
@@ -172,7 +172,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
     }
 } 
 
-// /0/hshaltcurr? [value]
+// /0/hshaltcurr? [1..1024]
 // Befor host shutdown is done PWR_I current must be bellow this limit.
 void ShutdownHaltCurrLimit(void)
 {

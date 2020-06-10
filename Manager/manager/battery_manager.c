@@ -157,6 +157,7 @@ void check_battery_manager(void)
                 if (ioRead(MCU_IO_ALT_EN) && (kRuntime > ontime))
                 {
                     ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
+                    alt_pwm_accum_charge_time += kRuntime; // accumulate PWM charge time
                 }
 
                 // new pwm period
