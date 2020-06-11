@@ -12,7 +12,8 @@ typedef enum HOSTSHUTDOWN_STATE_enum {
     HOSTSHUTDOWN_STATE_WEARLEVELING, // when PWR_I ADC readings are stable for a period of time it may indicate that wear leveling is done (have a few grains of salt whith that). Unfortunately, wear leveling is not in the SD spec so there is not a proper way to ensure it has finished. 
     HOSTSHUTDOWN_STATE_BM_RESUME, // the battery manager status is recovered, so it will start charging if it was enabled.
     HOSTSHUTDOWN_STATE_DOWN, // the host is powerd off e.g., the managers PIPWR_EN pin has been pulled low.
-    HOSTSHUTDOWN_STATE_RESTART, // restart the SBC
+    HOSTSHUTDOWN_STATE_RESTART, // restart the SBC and lockout manual shutdown switch
+    HOSTSHUTDOWN_STATE_RESTART_DLY, // wait for 60 sec then enable manual shutdown switch
     HOSTSHUTDOWN_STATE_FAIL // somthing went wrong, the managers PIPWR_EN pin will be pulled low which may have damage the SD card.
 } HOSTSHUTDOWN_STATE_t;
 

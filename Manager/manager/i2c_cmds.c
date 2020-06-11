@@ -236,6 +236,9 @@ void fnHostShutdwnMgr(uint8_t* i2cBuffer)
         if (shutdown_state == HOSTSHUTDOWN_STATE_DOWN)
         {
             shutdown_state = HOSTSHUTDOWN_STATE_RESTART;
+            ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
+            ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up
+            // the host will start after the switch has been open for some time (two secondes) 
         }
     }
     else

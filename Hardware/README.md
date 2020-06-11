@@ -88,6 +88,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             Add note on schem near *manager* ISP port "remove alternat power befor programing with ISP"
             Add test points on I2C0 nodes.
             Staggered holes shifted 8mil (~0.2 mm) off-center for bootload and ISP header (see AVR128DA48-Curiosity-Nano).
+            Shutdown switch resistor needs moved so manager can overide switch while host is doing power UP.
             This version may not be built, but the layout will be done.
 
         ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, 

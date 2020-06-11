@@ -64,7 +64,7 @@ int last_pwr_i;
 // shutdown_callback_address must be set for application to get events
 void check_if_host_should_be_on(void)
 {
-    // TWI waiting to finish (ignore daynight changes while TWI is waiting)
+    // TWI waiting to finish (ignore changes while TWI is waiting)
     if (i2c_callback_waiting(&loop_state)) return; 
     
     // if somthing else is using twi then my loop_state will allow getting to this, but I want to skip the state machine
@@ -77,20 +77,28 @@ void check_if_host_should_be_on(void)
     unsigned long kRuntime = elapsed(&shutdown_kRuntime);
     switch (shutdown_state)
     {
-    case HOSTSHUTDOWN_STATE_UP: // If manager was held in reset the host would power up. The default state is a running host. 
-        if (!ioRead(MCU_IO_SHUTDOWN)) // If the manual button is pushed it will pull this pin low.
+    case HOSTSHUTDOWN_STATE_UP: // If manager is held in reset the host will power up. This default state is a running host. 
+        if (!ioRead(MCU_IO_SHUTDOWN)) // If the manual button is pushed for two seconds pull this pin low.
         {
-            ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
-            ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
-            shutdown_kRuntime = milliseconds();
-            shutdown_state = HOSTSHUTDOWN_STATE_HALT;
-            if (shutdown_callback_address && shutdown_state_callback_cmd)
+            if (kRuntime > 2000UL) 
             {
-                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
+                ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
+                shutdown_kRuntime = milliseconds();
+                shutdown_state = HOSTSHUTDOWN_STATE_HALT;
+                if (shutdown_callback_address && shutdown_state_callback_cmd)
+                {
+                    if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                    i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                }
             }
         }
+        else
+        {
+            shutdown_kRuntime = milliseconds(); // if manual switch is open reset the timer
+        }
         break;
+
 
     case HOSTSHUTDOWN_STATE_SW_HALT: // this is set by an I2C or UART command it is not be reported by callback
         ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
@@ -222,13 +230,15 @@ void check_if_host_should_be_on(void)
         break;
 
     case HOSTSHUTDOWN_STATE_RESTART: // restart when the shutdown switch is clear
-        if (ioRead(MCU_IO_SHUTDOWN)) // If the manual button is open for two seconds restart the SBC.
+        if (ioRead(MCU_IO_SHUTDOWN)) // If the manual button is open for two seconds power the SBC.
         {
             if (kRuntime > 2000UL) 
             {
-                shutdown_state = HOSTSHUTDOWN_STATE_UP;
+                shutdown_state = HOSTSHUTDOWN_STATE_RESTART_DLY;
                 ioDir(MCU_IO_PIPWR_EN, DIRECTION_INPUT);
                 ioWrite(MCU_IO_PIPWR_EN, LOGIC_LEVEL_HIGH); // power up the SBC
+                ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
+                ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // lockout manual shutdown switch
                 if (shutdown_callback_address && shutdown_state_callback_cmd)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -238,7 +248,21 @@ void check_if_host_should_be_on(void)
         }
         else
         {
-            shutdown_kRuntime = milliseconds();
+            shutdown_kRuntime = milliseconds(); // if manual switch is pushed reset the timer
+        }
+        break;
+
+    case HOSTSHUTDOWN_STATE_RESTART_DLY: // delay after restart so the host is UP
+        if (kRuntime > 60000UL) 
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_UP;
+            ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
+            ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable manual shutdown switch (with weak pull up)
+            if (shutdown_callback_address && shutdown_state_callback_cmd)
+            {
+                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+            }
         }
         break;
 

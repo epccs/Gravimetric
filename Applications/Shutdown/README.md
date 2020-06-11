@@ -4,7 +4,7 @@
 
 ```
 (done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
-sd_state not reporting
+sd_state is not reporting during DOWN, I want another value used to set UP and DOWN.
 hs_timer report elapsed_time_since_shutdownStarted is not yet available from manager
 ```
 
@@ -108,12 +108,23 @@ It reprots UP but does not callback the sd_state.
 Reports host shutdown control values. 
 
 ``` 
+/1/hs
+{"hs_en":"UP"}
 /1/hscntl?
-{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
-{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"22","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
-{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
-
+{"sd_state":"0xB","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"255","adc_pwr_i":"22","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+...
+{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"24","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"36","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+/1/hs
+{"hs_en":"DOWN"}
+/1/hscntl?
+{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"34","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+...
 ``` 
+
+error: sd_state is not reporting during DOWN, I want another value used to set UP and DOWN.
 
 
 ##  /0/hshaltcurr? \[0..1023\]

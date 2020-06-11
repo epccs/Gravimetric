@@ -32,7 +32,7 @@
 (done) i2c cmd 5 used to access shutdown_halt_curr_limit
 (done) i2c cmd 6 used to access shutdown[_halt_ttl_limit|delay_limit|wearleveling_limit]
 (wip) alt_pwm_accum_charge_time is not accumulating
-sd_state is not reporting
+sd_state is not reporting during DOWN, I want another value used to set UP and DOWN.
 (wip) shutdown application to check shutdown state machine
 (wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night 
 halt the host at battery_halt_limit

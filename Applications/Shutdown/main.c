@@ -156,8 +156,8 @@ void register_manager_callbacks(void)
     twi0_registerOnDayNightStateCallback(daynight_state_event);
     twi0_registerOnDayWorkCallback(day_work_event);
     twi0_registerOnNightWorkCallback(night_work_event);
-    twi0_registerOnBatMgrStateCallback(battery_state_event); // register but not enabled in setup (done in battery.c)
-    twi0_registerOnHostShutdownStateCallback(host_shutdown_state_event); // register but not enabled in setup (done in shutdown.c)
+    twi0_registerOnBatMgrStateCallback(battery_state_event); // registered but not enabled in setup (done in battery.c)
+    twi0_registerOnHostShutdownStateCallback(host_shutdown_state_event); // registered but not enabled in setup (done in shutdown.c)
 }
 
 void setup(void) 
@@ -188,8 +188,8 @@ void setup(void)
 
     /* Initialize I2C */
     twi0_slaveAddress(I2C0_APP_ADDR);
-    twi0_registerSlaveTxCallback(transmit_i2c_event); // called when manager wants data returned (and I need to transmit it)
-    twi0_registerSlaveRxCallback(receive_i2c_event); // called when manager has an event to send (and I need to receive data)
+    twi0_registerSlaveTxCallback(transmit_i2c_event); // called when i2c manager wants data returned (I echo what was sent)
+    twi0_registerSlaveRxCallback(receive_i2c_event); // called when i2c manager has an event to send (I receive into the rpu_mgr_callback's )
     twi0_init(100000UL, TWI0_PINS_PULLUP);
 
     // Enable global interrupts to start TIMER0 and UART ISR's
@@ -238,7 +238,7 @@ void setup(void)
     // register manager callbacks
     // then enable the manager as i2c master to send updates to the application
     register_manager_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR);
+    i2c_daynight_cmd(I2C0_APP_ADDR); // set the managers day night state machine callback to use my slave address 
 }
 
 void blink_mgr_status(void)

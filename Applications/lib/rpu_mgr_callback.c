@@ -89,6 +89,7 @@ void twi0_callback_default(uint8_t data)
     return;
 }
 
+// a receive_i2c_event feeds these callback functions that to be defined by the applicaiton
 typedef void (*PointerToCallback)(uint8_t data);
 
 static PointerToCallback twi0_onDayNightState = twi0_callback_default;
@@ -129,7 +130,7 @@ void fnBatMgrState(uint8_t* i2cBuffer)
 void fnHostShutdownState(uint8_t* i2cBuffer)
 {
     uint8_t data = i2cBuffer[1];
-    twi0_onHostShutdownState(data);
+    twi0_onHostShutdownState(data); // run the registered callback (the default callback does nothing)
 }
 
 /* Dummy function */
