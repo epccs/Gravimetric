@@ -268,10 +268,11 @@ At this time, the point to point mode persists, I will sort out more details whe
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 // I2C: byte[0] = 4, 
 //      byte[1] = shutdown_callback_address, 
-//      byte[2] = shutdown_state_callback_cmd.
+//      byte[2] = shutdown_state_callback_cmd,
+//      byte[3] = bring host UP[1..255] / take host DOWN[0].
 ```
 
-If the host is DOWN setting the callback address will bring the host UP. If the host is UP clearing the callback address will shutdown the host.
+If the host is DOWN the third byte value of 1..254 will bring the host UP. If the host is UP the third byte value of 0 will shutdown the host.
 
 The application needs to run an i2c slave receiver to accept the shutdown state events, if the callback_cmd is zero no events are sent. 
 

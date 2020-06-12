@@ -119,7 +119,7 @@ void check_if_host_should_be_on(void)
             enable_bm_callback_address = 0;
             shutdown_started_at = shutdown_kRuntime;
             shutdown_kRuntime = milliseconds(); // start time to live timer
-            shutdown_state = HOSTSHUTDOWN_STATE_BM_CHK;
+            shutdown_state = HOSTSHUTDOWN_STATE_CURR_CHK;
             if (shutdown_callback_address && shutdown_state_callback_cmd)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -128,7 +128,7 @@ void check_if_host_should_be_on(void)
         }
         break;
 
-    case HOSTSHUTDOWN_STATE_BM_CHK: // the battery manager enable was saved and is now disable, wait for CURR on PWR_I
+    case HOSTSHUTDOWN_STATE_CURR_CHK: // the battery manager was disable, now wait for CURR on PWR_I
         if (kRuntime > shutdown_ttl_limit) // time out
         {
             shutdown_state = HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP;

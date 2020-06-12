@@ -29,7 +29,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 
 static unsigned long hs_serial_print_started_at;
 volatile HOSTSHUTDOWN_STATE_t hs_state;
-uint8_t hs_callback_addr;
+uint8_t hs_up;
 
 // /0/hs
 // enable the host shutdown and set the callback so it can tell me what it is doing.
@@ -37,22 +37,22 @@ void EnableShutdownCntl(void)
 {
     if ( (command_done == 10) )
     {
-        if (hs_callback_addr) // is UP
+        if (hs_up) // is UP
         {
-            hs_callback_addr = 0; // a zero will shutdown the host if it is UP
+            hs_up = 0; // take the host DOWN
         }
         else // is DOWN
         {
-            hs_callback_addr = I2C0_APP_ADDR;
+            hs_up = 1; // bring the host UP
         }
         
-        i2c_shutdown_cmd(hs_callback_addr);
+        i2c_shutdown_cmd(I2C0_APP_ADDR, hs_up);
         printf_P(PSTR("{\"hs_en\":"));
         command_done = 11;
     }
     else if ( (command_done == 11) )
     {
-        if (hs_callback_addr)
+        if (hs_up)
         {
             printf_P(PSTR("\"UP\""));
         }

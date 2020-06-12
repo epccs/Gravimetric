@@ -5,8 +5,8 @@
 typedef enum HOSTSHUTDOWN_STATE_enum {
     HOSTSHUTDOWN_STATE_UP, // this host is assumed to be UP and running 
     HOSTSHUTDOWN_STATE_SW_HALT, // software cmd starts with this to pull down the shutdown pin (BCM6) and cause a hault.
-    HOSTSHUTDOWN_STATE_HALT, // a manual switch operation or after software
-    HOSTSHUTDOWN_STATE_BM_CHK, // the battery manager enable was saved and is now disable, wait for CURR on PWR_I
+    HOSTSHUTDOWN_STATE_HALT, // a manual switch operation or after software halt, next disable battery manager
+    HOSTSHUTDOWN_STATE_CURR_CHK, // wait for CURR on PWR_I, then restore battery manager
     HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP, // If the hault current is not seen after a timeout then fail 
     HOSTSHUTDOWN_STATE_AT_HALT_CURR, // now PWR_I is bellow the expected level, it is differnt for each model of R-Pi
     HOSTSHUTDOWN_STATE_DELAY, // once the hault has been verifed, this state is a delay in miliseconds befor removing power

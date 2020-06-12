@@ -13,17 +13,17 @@
 
 ## Cmd 16 from a controller /w i2c-debug to enable battery manager
 
-Send a byte to enable the battery manager, its value is also a callback address. The second byte is used as the command number to send the battery manager state machine events from the manager (i2c master) to the application (i2c slave).
+Enable the battery manager. The first byte is a callback address (e.g., the slave address to use). The second byte is used as a command number to receive the battery manager state machine events that are sent to the application. The last byte is used to enable = 1..255 / disable = 0 the battery manager. 
 
 ``` 
 # I am using the bootload interface 
 picocom -b 38400 /dev/ttyUSB0
 /1/iaddr 41
 {"address":"0x29"}
-/1/ibuff 16,0,0
-{"txBuffer[3]":[{"data":"0x12"},{"data":"0x0"},{"data":"0x0"}]}
-/1/iread? 3
-{"rxBuffer":[{"data":"0x12"},{"data":"0x1"},{"data":"0x76"}]}
+/1/ibuff 16,49,0,1
+{"txBuffer[3]":[{"data":"0x10"},{"data":"0x31"},{"data":"0x4"},{"data":"0x1"}]}
+/1/iread? 4
+{"rxBuffer":[{"data":"0x10"},{"data":"0x31"},{"data":"0x4"},{"data":"0x1"}]}
 ```
 
 

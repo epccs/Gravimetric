@@ -323,11 +323,15 @@ int main(void)
 
     while(1) 
     { 
-        // use LED to show manager status
-        blink_mgr_status();
+        // do not change current flow when wearleveling
+        if (hs_state != HOSTSHUTDOWN_STATE_WEARLEVELING)
+        {
+            // use LED to show manager status
+            blink_mgr_status();
 
-        // use LED to show daynight_state
-        blink_daynight_state();
+            // use LED to show daynight_state
+            blink_daynight_state();
+        }
 
         // delay between ADC burst
         adc_burst();

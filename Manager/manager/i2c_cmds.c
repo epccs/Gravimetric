@@ -226,24 +226,24 @@ void fnArduinMode(uint8_t* i2cBuffer)
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 // I2C: byte[0] = 4, 
 //      byte[1] = shutdown_callback_address, 
-//      byte[2] = shutdown_state_callback_cmd.
+//      byte[2] = shutdown_state_callback_cmd,
+//      byte[3] = bring host UP[1..255] / take host DOWN[0].
 void fnHostShutdwnMgr(uint8_t* i2cBuffer)
 {
-    shutdown_callback_address = i2cBuffer[1]; // non-zero will power the host and act as the i2c slave address used for callback
+    shutdown_callback_address = i2cBuffer[1]; // non-zero is the i2c slave address used for callback
     shutdown_state_callback_cmd = i2cBuffer[2]; // however the callback will only happen if this value is > zero
-    if (shutdown_callback_address) 
+    if (i2cBuffer[3]) // bring host UP
     {
-        if (shutdown_state == HOSTSHUTDOWN_STATE_DOWN)
+        if (shutdown_state == HOSTSHUTDOWN_STATE_DOWN)  // host must be down to bring up
         {
             shutdown_state = HOSTSHUTDOWN_STATE_RESTART;
             ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
             ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up
-            // the host will start after the switch has been open for some time (two secondes) 
         }
     }
-    else
+    else // take host DOWN
     {
-        if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
+        if (shutdown_state == HOSTSHUTDOWN_STATE_UP) // host must be up to take down
         {
             shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
         }

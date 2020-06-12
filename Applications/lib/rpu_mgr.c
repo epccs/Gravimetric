@@ -70,15 +70,15 @@ uint8_t i2c_address_; // master address this slave
 #define DAYNIGHT_CALLBK_CMD {0x17,0x31,0x1,0x2,0x3}
 #define DAYNIGHT_CALLBK_CMD_SIZE 5
 
-// set battery callback address 49, state cmd 4
+// set battery callback address 49, state cmd 16
 // e.g., manager cmd 16 is used to set battery state machine callbacks. 
 #define BATTERY_CALLBK_CMD {0x10,0x31,0x4}
 #define BATTERY_CALLBK_CMD_SIZE 3
 
-// set host shutdown callback address 49, state cmd 5
+// set host shutdown callback address 49, state cmd 4
 // e.g., manager cmd 4 is used to set host shutdown state machine callbacks. 
-#define HOSTSHUTDOWN_CALLBK_CMD {0x4,0x31,0x5}
-#define HOSTSHUTDOWN_CALLBK_CMD_SIZE 3
+#define HOSTSHUTDOWN_CALLBK_CMD {0x4,0x31,0x5,0x0}
+#define HOSTSHUTDOWN_CALLBK_CMD_SIZE 4
 
 // commands 32 will have the manger do an 
 // analogRead and pass that to the application
@@ -318,12 +318,14 @@ void i2c_battery_cmd(uint8_t my_callback_addr)
 // 4 .. cmd plus two bytes 
 //      byte 1 is the slave address for manager to send envents
 //      byte 2 is command to receive hs_state changes
-void i2c_shutdown_cmd(uint8_t my_callback_addr)
+//      byte 3 will bring host UP[1..255] or take host DOWN[0].
+void i2c_shutdown_cmd(uint8_t my_callback_addr, uint8_t up)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[HOSTSHUTDOWN_CALLBK_CMD_SIZE] = HOSTSHUTDOWN_CALLBK_CMD;
     uint8_t length = HOSTSHUTDOWN_CALLBK_CMD_SIZE;
     txBuffer[1] = my_callback_addr; // a slave callback address of zero will shutdown host, and end callbacks
+    txBuffer[3] = up;
     mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (mgr_twiErrorCode)
     {

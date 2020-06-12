@@ -4,11 +4,11 @@ From <https://github.com/epccs/Gravimetric/>
 
 ## Overview
 
-This board has an application micro-controller (ATmega324pb) with hardware set up for measuring some event times using ICP1 (flow pulse), ICP3 (start), and ICP4 (stop). It has two serial (UART) channels for user application, and a third serial connected to the RPUbus. There are some current source outputs and some inputs that can measure ADC or do digital IO. 
+This board has an application micro-controller (ATmega324pb) with hardware set up for measuring some event times using ICP1 (flow pulse), ICP3 (start), and ICP4 (stop). It has two serial (UART) channels for user application, and a third serial connected to the multi-drop line for hosts to interface with. There are some current source outputs and some inputs that can measure with ADC or do digital IO. 
 
-The board is a general-purpose controller in most ways, but there are a few areas aimed at the gravimetric calibration of flow measurement instruments. ICP1 is for measuring time events from flow meters (e.g., pulses). ICP3 is for a start event and ICP4 a stop event; ICP3 and ICP4 have one-shot pulse extenders.  Diversion control is a specialized circuit on this board; it starts when the ICP3 capture event occurs and ends with the ICP4 capture event. The ICP3 capture ISR needs to enable CS_DIVERSION, and the ICP4 capture ISR should disable CS_DIVERSION  for the diversion control to work correctly. Two serial inputs are available to connect a load cell amplifier (e.g., bit-bang an HX711 or serial with a calibrated scale) and a volume prover's inputs (e.g., bit-bang launch and ready or is there a prover with serial). I2C is prepared to interface with a high-resolution ADC (but let's get the onboard stuff working first).
+The board is a general-purpose controller in most ways, but there are a few areas aimed at the gravimetric calibration of flow measurement instruments. ICP1 is for measuring time events from flow meters (e.g., pulses). ICP3 is for a start event and ICP4 a stop event; ICP3 and ICP4 have one-shot pulse extenders.  Diversion control is a specialized circuit on this board; it starts when the ICP3 capture event occurs and ends with the ICP4 capture event. The ICP3 capture input will need its ISR to enable CS_DIVERSION, and the ICP4 capture ISR should disable CS_DIVERSION  for the diversion control to work correctly. Two serial inputs are available to connect a load cell amplifier (e.g., bit-bang an HX711 or serial with a calibrated scale) and a volume prover's inputs (e.g., bit-bang launch and ready or if a prover has serial). I2C is available to interface with a high-resolution ADC (but let's get the onboard stuff working first).
 
-I have integrated the RPUpi shield and removed shield headers; it has a 20x2 header pinout for a Raspberry Pi SBC, which has I2C (SMBus) to the 238pb manager, SPI to the 324pb controller, and of course a host-side interface to the RPUbus. The programming tools for the controller fit on the Raspberry Pi Zero, and that is adequate for flow calibration or as a flow computer. Many other options are present, including the new Pi4 if the SBC requires more computational or networking ability.  
+In previous boards, headers for a shield (e.g., RPUpi) were provided, but removing those headers and placing the multi-drop serial manager has been done on this board. A 20x2 pinout for a Raspberry Pi SBC header is on the board but not populated. The R-Pi pins for I2C (SMBus) are connected to the manager, and SPI are connected to the application controller. The auxiliary power input is now controlled by the manager and a state machine (battery manager). The auxiliary power input is also used to operate a day-night stage machine, which requires a solar panel. A host shutdown switch is used to operate a state machine that removes power (also controlled by the manager) from the SBC (hopefully without corrupting the SD card). The hope is that the application can now ignore some things that in the past needed to be considered.
 
 
 ## Status
@@ -26,9 +26,9 @@ Licenses have mostly changed from LGPL to BSD, but some work remains.
 
 ## Example
 
-Is this comparable to a PLC? Probably not, in general, a PLC should run a set of well tested binary instructions that are ideally impossible to crash, but that does not stop it from causing severe damage to what it controls. Executing binary instructions is different; the binary executable can misconfigure the electronics as well as all the bad things a PLC can. The upshot of using machine code is the application is less limited by what was built into the PLC firmware, but make no mistake the training wheels are off, so use this sort of hardware at your own risk.
+Do not think of this as a PLC. A PLC runs a will tested program that emulates things that historically served to control processes and tasks. Programs that run on this board are written in C (I do not recommend C++ here). The program needs careful reviewing and compiled into binary instructions that operate the processor during testing. I recommend testing software parts as a minimally functional application, make no mistake the training wheels are off, so use this hardware at your own risk.
 
-UART zero on the application MCU is used for a multi-drop serial bus that links multiple units to the serial hardware on one or more Single Board Computers (SBC). The link does not have a network footprint but does allow firmware uploads and general-purpose serial communication. The 40 pin header is for a Raspberry Pi, but other SBC's also work (I do not test them). The RJ45 connectors are for the multi-drop serial bus (not ethernet) and allow the SBC to access the other boards. 
+UART0 on the application controller is used for a multi-drop serial bus that the serial hardware on a Single Board Computer (SBC) can interface with. The serial link allows firmware uploads and general-purpose communication but does not have a network footprint. The 40 pin header is for a Raspberry Pi, but other SBC's should also work (I do not test them). The RJ45 connectors are for the multi-drop serial bus daisy chain connection with terminations at the ends. 
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "Gravimetric MultiDrop")
 
@@ -37,7 +37,7 @@ Diverting a calibration fluid onto a scale during a precisely measured time whil
 
 ## AVR toolchain
 
-This board uses the AVR toolchain. I use the one from Microchip on Debian, Ubuntu,  Raspbian, Windows with WSL. With the toolchain installed, the AVR application can compile localy. 
+This board uses the AVR toolchain. I use the one from Microchip that has been packaged for Debian (it is also on Ubuntu, Raspbian, and Windows with WSL). With the toolchain installed, the AVR application can compile localy. 
 
 The frequently used files for this board are in the /lib folder. Each example application has its files and a Makefile in a separate folder. The toolchain is also available as packages. 
 
@@ -52,4 +52,4 @@ git clone https://github.com/epccs/Gravimetric
 * [avr-libc](https://packages.ubuntu.com/search?keywords=avr-libc)
 * [avrdude](https://packages.ubuntu.com/search?keywords=avrdude)
 
-The software is a guide; it is in C because that works for me. 
+The software is a guide; it is in C. 
