@@ -238,7 +238,10 @@ void setup(void)
     // register manager callbacks
     // then enable the manager as i2c master to send updates to the application
     register_manager_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR); // set the managers day night state machine callback to use my slave address 
+    i2c_daynight_cmd(I2C0_APP_ADDR); // set the managers day night state machine callback to use my slave address
+
+    // the host is likely DOWN and hs_state is not yet getting callbacks so I guess init it for now
+    hs_state = HOSTSHUTDOWN_STATE_DOWN;
 }
 
 void blink_mgr_status(void)

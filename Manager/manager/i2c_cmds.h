@@ -20,7 +20,7 @@ extern void fnBootldAddr(uint8_t*); // 2
 extern void fnArduinMode(uint8_t*);  // 3
 extern void fnHostShutdwnMgr(uint8_t*); // 4
 extern void fnHostShutdwnCurrLim(uint8_t*); // 5
-extern void fnHostShutdwnTimeLim(uint8_t*); // 6 
+extern void fnHostShutdwnULAccess(uint8_t*); // 6 
 // not used // 7
 
 // Prototypes for PV and Battery Management

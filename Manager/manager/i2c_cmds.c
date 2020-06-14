@@ -61,7 +61,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnCurrLim, fnHostShutdwnTimeLim, fnNull},
+        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnCurrLim, fnHostShutdwnULAccess, fnNull},
         {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
@@ -259,57 +259,96 @@ void fnHostShutdwnMgr(uint8_t* i2cBuffer)
 void fnHostShutdwnCurrLim(uint8_t* i2cBuffer)
 {
     uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    uint8_t offset = i2cBuffer[1] & 0x7F; // 0 is shutdown_halt_curr_limit
     // shutdown_halt_curr_limit is an int e.g., two bytes
-    // save the new value
-    int new = 0;
-    new += ((int)i2cBuffer[2])<<8; // high_byte
-    new += ((int)i2cBuffer[3]); // low_byte
+    // save the new_value
+    int new_value = 0;
+    new_value += ((int)i2cBuffer[2])<<8; // high_byte
+    new_value += ((int)i2cBuffer[3]); // low_byte
+
+    int old_value = 0;
+    switch (offset)
+    {
+    case 0:
+        old_value = shutdown_halt_curr_limit;
+        break;
+    case 1:
+        old_value = 1023; // a test value to return
+        break;
+
+    default:
+        break;
+    }
+
 
     // swap the return value with shutdown_halt_curr_limit that is in use
-    i2cBuffer[2] =  ( (0xFF00 & shutdown_halt_curr_limit) >>8 ); 
-    i2cBuffer[3] =  ( (0x00FF & shutdown_halt_curr_limit) ); 
+    i2cBuffer[2] =  ( (0xFF00 & old_value) >>8 ); 
+    i2cBuffer[3] =  ( (0x00FF & old_value) ); 
 
-    // keep the new value and mark shutdown_limit_loaded to save in EEPROM
-    if (write || IsValidShtDwnHaltCurr(&new))
+    // keep the new_value and mark shutdown_limit_loaded to save in EEPROM
+    if (write)
     {
-        shutdown_halt_curr_limit = new;
-        shutdown_limit_loaded = HOSTSHUTDOWN_LIM_HALT_CURR_TOSAVE; // main loop will save to eeprom
+        switch (offset)
+        {
+        case 0:
+            if (IsValidShtDwnHaltCurr(&new_value))
+            {
+                shutdown_halt_curr_limit = new_value;
+                shutdown_limit_loaded = HOSTSHUTDOWN_LIM_HALT_CURR_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+
+        default:
+            break;
+        }
     }
 }
 
-// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
+// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
 // shutdown_ttl_limit
 // befor host shutdown is done PWR_I current must be bellow this limit.
 // I2C: byte[0] = 6, 
 //      byte[1] = bit 7 is read/write 
-//                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
-//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
+//                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at],
+//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit...],
 //      byte[3] = bits 23..16,
 //      byte[4] = bits 15..8,
 //      byte[5] = bits 7..0,
-void fnHostShutdwnTimeLim(uint8_t* i2cBuffer)
+void fnHostShutdwnULAccess(uint8_t* i2cBuffer)
 {
     uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
     uint8_t offset = i2cBuffer[1] & 0x7F; // 0 is halt_ttl_limit, 1 is delay_limit...
-    // shutdown_halt_curr_limit is an int e.g., two bytes
-    // save the new value
-    uint32_t new = 0;
-    new += ((uint32_t)i2cBuffer[2])<<24; // high_byte
-    new += ((uint32_t)i2cBuffer[3])<<16; // bits 23..16
-    new += ((uint32_t)i2cBuffer[4])<<8; // bits 15..8
-    new += ((uint32_t)i2cBuffer[5]); // low_byte
 
-    uint32_t old = 0;
+    // save the new_value
+    uint32_t new_value = 0;
+    new_value += ((uint32_t)i2cBuffer[2])<<24; // high_byte
+    new_value += ((uint32_t)i2cBuffer[3])<<16; // bits 23..16
+    new_value += ((uint32_t)i2cBuffer[4])<<8; // bits 15..8
+    new_value += ((uint32_t)i2cBuffer[5]); // low_byte
+
+    uint32_t old_value = 0;
     switch (offset)
     {
     case 0:
-        old = shutdown_ttl_limit;
+        old_value = shutdown_ttl_limit;
         break;
     case 1:
-        old = shutdown_delay_limit;
+        old_value = shutdown_delay_limit;
         break;
     case 2:
-        old = shutdown_wearleveling_limit;
+        old_value = shutdown_wearleveling_limit;
+        break;
+    case 3:
+        old_value = elapsed(&shutdown_kRuntime);
+        break;
+    case 4:
+        old_value = elapsed(&shutdown_started_at);
+        break;
+    case 5:
+        old_value = elapsed(&shutdown_halt_chk_at);
+        break;
+    case 6:
+        old_value = elapsed(&shutdown_wearleveling_done_at);
         break;
 
     default:
@@ -317,35 +356,36 @@ void fnHostShutdwnTimeLim(uint8_t* i2cBuffer)
     }
 
     // swap the return value with the value that is in use
-    i2cBuffer[2] =  ( (0xFF000000 & old) >>24 ); 
-    i2cBuffer[3] =  ( (0x00FF0000 & old) >>16 ); 
-    i2cBuffer[4] =  ( (0x0000FF00 & old) >>8 ); 
-    i2cBuffer[5] =  ( (0x000000FF & old) ); 
+    i2cBuffer[2] =  ( (0xFF000000 & old_value) >>24 ); 
+    i2cBuffer[3] =  ( (0x00FF0000 & old_value) >>16 ); 
+    i2cBuffer[4] =  ( (0x0000FF00 & old_value) >>8 ); 
+    i2cBuffer[5] =  ( (0x000000FF & old_value) ); 
 
 
-    // keep the new value and mark shutdown_limit_loaded to save in EEPROM
+    // keep the new_value and mark shutdown_limit_loaded to save in EEPROM
+    // do not keep shutdown_[kRuntime|started_at|halt_chk_at|wearleveling_done_at]
     if (write)
     {
         switch (offset)
         {
         case 0:
-            if (WriteEEShtDwnHaltTTL(&new))
+            if (WriteEEShtDwnHaltTTL(&new_value))
             {
-                shutdown_ttl_limit = new;
+                shutdown_ttl_limit = new_value;
                 shutdown_limit_loaded = HOSTSHUTDOWN_LIM_HALT_TTL_TOSAVE; // main loop will save to eeprom
             } 
             break;
         case 1:
-            if (WriteEEShtDwnDelay(&new))
+            if (WriteEEShtDwnDelay(&new_value))
             {
-                shutdown_delay_limit = new;
+                shutdown_delay_limit = new_value;
                 shutdown_limit_loaded = HOSTSHUTDOWN_LIM_DELAY_TOSAVE; // main loop will save to eeprom
             } 
             break;
         case 2:
-            if (WriteEEShtDwnWearleveling(&new))
+            if (WriteEEShtDwnWearleveling(&new_value))
             {
-                shutdown_wearleveling_limit = new;
+                shutdown_wearleveling_limit = new_value;
                 shutdown_limit_loaded = HOSTSHUTDOWN_LIM_WEARLEVELING_TOSAVE; // main loop will save to eeprom
             } 
             break;
@@ -371,19 +411,19 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
 void fnBatChrgLowLim(uint8_t* i2cBuffer)
 {
     // battery_low_limit is an int e.g., two bytes
-    // save the new value
-    int new = 0;
-    new += ((int)i2cBuffer[1])<<8;
-    new += ((int)i2cBuffer[2]);
+    // save the new_value
+    int new_value = 0;
+    new_value += ((int)i2cBuffer[1])<<8;
+    new_value += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & battery_low_limit) >>8 ); 
     i2cBuffer[2] =  ( (0x00FF & battery_low_limit) ); 
 
-    // keep the new value and mark it to save in EEPROM
-    if (IsValidBatLowLimFor12V(&new) || IsValidBatLowLimFor24V(&new))
+    // keep the new_value and mark it to save in EEPROM
+    if (IsValidBatLowLimFor12V(&new_value) || IsValidBatLowLimFor24V(&new_value))
     {
-        battery_low_limit = new;
+        battery_low_limit = new_value;
         bat_limit_loaded = BAT_LIM_LOW_TOSAVE; // main loop will save to eeprom
     }
 }
@@ -394,19 +434,19 @@ void fnBatChrgLowLim(uint8_t* i2cBuffer)
 void fnBatChrgHighLim(uint8_t* i2cBuffer)
 {
     // battery_high_limit is a int e.g., two bytes
-    // save the new value
-    int new = 0;
-    new += ((int)i2cBuffer[1])<<8;
-    new += ((int)i2cBuffer[2]);
+    // save the new_value
+    int new_value = 0;
+    new_value += ((int)i2cBuffer[1])<<8;
+    new_value += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & battery_high_limit) >>8 ); 
     i2cBuffer[2] =  ( (0x00FF & battery_high_limit) ); 
 
-    // keep the new value and mark it to save in EEPROM
-    if (IsValidBatHighLimFor12V(&new) || IsValidBatHighLimFor24V(&new))
+    // keep the new_value and mark it to save in EEPROM
+    if (IsValidBatHighLimFor12V(&new_value) || IsValidBatHighLimFor24V(&new_value))
     {
-        battery_high_limit = new;
+        battery_high_limit = new_value;
         bat_limit_loaded = BAT_LIM_HIGH_TOSAVE; // main loop will save to eeprom
     }
 }
@@ -427,19 +467,19 @@ void fnRdBatChrgTime(uint8_t* i2cBuffer)
 void fnMorningThreshold(uint8_t* i2cBuffer)
 {
     // daynight_morning_threshold is a uint16_t e.g., two bytes
-    // save the new value
-    int new = 0;
-    new += ((int)i2cBuffer[1])<<8;
-    new += ((int)i2cBuffer[2]);
+    // save the new_value
+    int new_value = 0;
+    new_value += ((int)i2cBuffer[1])<<8;
+    new_value += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & daynight_morning_threshold) >>8 );
     i2cBuffer[2] =  ( (0x00FF & daynight_morning_threshold) ); 
 
-    // keep the new value and mark it to save in EEPROM
-    if ( IsValidMorningThresholdFor12V(&new) || IsValidMorningThresholdFor24V(&new) )
+    // keep the new_value and mark it to save in EEPROM
+    if ( IsValidMorningThresholdFor12V(&new_value) || IsValidMorningThresholdFor24V(&new_value) )
     {
-        daynight_morning_threshold = new;
+        daynight_morning_threshold = new_value;
         daynight_values_loaded = DAYNIGHT_MORNING_THRESHOLD_TOSAVE; // main loop will save to eeprom
     }
 }
@@ -448,19 +488,19 @@ void fnMorningThreshold(uint8_t* i2cBuffer)
 void fnEveningThreshold(uint8_t* i2cBuffer)
 {
     // daynight_evening_threshold is a uint16_t e.g., two bytes
-    // save the new value
-    int new = 0;
-    new += ((int)i2cBuffer[1])<<8;
-    new += ((int)i2cBuffer[2]);
+    // save the new_value
+    int new_value = 0;
+    new_value += ((int)i2cBuffer[1])<<8;
+    new_value += ((int)i2cBuffer[2]);
 
     // swap the return value
     i2cBuffer[1] =  ( (0xFF00 & daynight_evening_threshold) >>8 ); 
     i2cBuffer[2] =  ( (0x00FF & daynight_evening_threshold) ); 
 
-    // keep the new value and mark it to save in EEPROM
-    if ( (IsValidEveningThresholdFor12V(&new) || IsValidEveningThresholdFor24V(&new)) )
+    // keep the new_value and mark it to save in EEPROM
+    if ( (IsValidEveningThresholdFor12V(&new_value) || IsValidEveningThresholdFor24V(&new_value)) )
     {
-        daynight_evening_threshold = new;
+        daynight_evening_threshold = new_value;
         daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom
     }
 }
@@ -506,7 +546,7 @@ void fnAnalogRead(uint8_t* i2cBuffer)
 // select the channel with ADC_ENUM_t value in byte after command
 // swap the next four I2C buffer bytes with the calMap[convert_channel_to_cal_map_index(channel)].calibration float
 // set cal_loaded so main loop will save it to EEPROM if valid or
-// recover EEPROM (or default) value if new was not valid
+// recover EEPROM (or default) value if new_value was not valid
 void fnCalibrationRead(uint8_t* i2cBuffer)
 {
     uint8_t is_adc_enum_with_writebit = i2cBuffer[1];
@@ -520,24 +560,24 @@ void fnCalibrationRead(uint8_t* i2cBuffer)
         float temp_calibration = calMap[adc_enum].calibration;
         memcpy(&old, &temp_calibration, sizeof old);
 
-        uint32_t new = 0;
-        new += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
+        uint32_t new_value = 0;
+        new_value += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
         i2cBuffer[2] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
 
-        new += ((uint32_t)i2cBuffer[3])<<16;
+        new_value += ((uint32_t)i2cBuffer[3])<<16;
         i2cBuffer[3] =  ( (0x00FF0000UL & old) >>16 ); 
 
-        new += ((uint32_t)i2cBuffer[4])<<8;
+        new_value += ((uint32_t)i2cBuffer[4])<<8;
         i2cBuffer[4] =  ( (0x0000FF00UL & old) >>8 ); 
 
-        new += ((uint32_t)i2cBuffer[5]);
+        new_value += ((uint32_t)i2cBuffer[5]);
         i2cBuffer[5] =  ( (0x000000FFUL & old) ); 
 
-        // new is ready
-        if (is_adc_enum_with_writebit & CAL_CHANNEL_WRITEBIT) // keep new in SRAM if writebit is set
+        // new_value is ready
+        if (is_adc_enum_with_writebit & CAL_CHANNEL_WRITEBIT) // keep new_value in SRAM if writebit is set
         {
             // copy bytes into the memory footprint used for our tempary float
-            memcpy(&temp_calibration, &new, sizeof temp_calibration);
+            memcpy(&temp_calibration, &new_value, sizeof temp_calibration);
             calMap[adc_enum].calibration = temp_calibration;
 
             // CAL_0_TOSAVE << channelToCalMap[channel].cal_map 
@@ -590,7 +630,7 @@ void fnRdTimedAccum(uint8_t* i2cBuffer)
 // byte after command is used to select 
 // swap the next four I2C buffer bytes with the refMap[select].reference float
 // set ref_loaded so main loop will save it to EEPROM if valid or
-// recover EEPROM (or default) value if new was not valid
+// recover EEPROM (or default) value if new_value was not valid
 void fnReferance(uint8_t* i2cBuffer)
 {
     uint8_t is_referance_with_writebit = i2cBuffer[1];
@@ -604,24 +644,24 @@ void fnReferance(uint8_t* i2cBuffer)
         float temp_referance = refMap[referance].reference;
         memcpy(&old, &temp_referance, sizeof old);
 
-        uint32_t new = 0;
-        new += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
+        uint32_t new_value = 0;
+        new_value += ((uint32_t)i2cBuffer[2])<<24; // cast, multiply by 2**24, and sum 
         i2cBuffer[2] = ( (0xFF000000UL & old) >>24 ); // swap the return value with the old byte
 
-        new += ((uint32_t)i2cBuffer[3])<<16;
+        new_value += ((uint32_t)i2cBuffer[3])<<16;
         i2cBuffer[3] =  ( (0x00FF0000UL & old) >>16 ); 
 
-        new += ((uint32_t)i2cBuffer[4])<<8;
+        new_value += ((uint32_t)i2cBuffer[4])<<8;
         i2cBuffer[4] =  ( (0x0000FF00UL & old) >>8 ); 
 
-        new += ((uint32_t)i2cBuffer[5]);
+        new_value += ((uint32_t)i2cBuffer[5]);
         i2cBuffer[5] =  ( (0x000000FFUL & old) ); 
 
-        // new is ready
-        if (is_referance_with_writebit & REF_SELECT_WRITEBIT) // keep new in SRAM if writebit is set
+        // new_value is ready
+        if (is_referance_with_writebit & REF_SELECT_WRITEBIT) // keep new_value in SRAM if writebit is set
         {
             // copy bytes into the memory footprint used for our tempary float
-            memcpy(&temp_referance, &new, sizeof temp_referance);
+            memcpy(&temp_referance, &new_value, sizeof temp_referance);
             refMap[referance].reference = temp_referance;
 
             // if referance is 1 then REF_0_TOSAVE << 1 gives REF_1_TOSAVE 
@@ -744,12 +784,12 @@ void fnWtXcvrCntlInTestMode(uint8_t* i2cBuffer)
 void fnMorningDebounce(uint8_t* i2cBuffer)
 {
     // daynight_morning_debounce is a unsigned long and has four bytes
-    // save the new value
-    uint32_t new = 0;
-    new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    new += ((uint32_t)i2cBuffer[2])<<16;
-    new += ((uint32_t)i2cBuffer[3])<<8;
-    new += ((uint32_t)i2cBuffer[4]);
+    // save the new_value
+    uint32_t new_value = 0;
+    new_value += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
+    new_value += ((uint32_t)i2cBuffer[2])<<16;
+    new_value += ((uint32_t)i2cBuffer[3])<<8;
+    new_value += ((uint32_t)i2cBuffer[4]);
 
     // swap the return value
     i2cBuffer[1] = ( (0xFF000000UL & daynight_morning_debounce) >>24 ); 
@@ -757,10 +797,10 @@ void fnMorningDebounce(uint8_t* i2cBuffer)
     i2cBuffer[3] =  ( (0x0000FF00UL & daynight_morning_debounce) >>8 ); 
     i2cBuffer[4] =  ( (0x000000FFUL & daynight_morning_debounce) ); 
 
-    // keep the new value and mark it to save in EEPROM
-    if (IsValidMorningDebounce(&new))
+    // keep the new_value and mark it to save in EEPROM
+    if (IsValidMorningDebounce(&new_value))
     {
-        daynight_morning_debounce = new;
+        daynight_morning_debounce = new_value;
         daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
     }
 }
@@ -769,12 +809,12 @@ void fnMorningDebounce(uint8_t* i2cBuffer)
 void fnEveningDebounce(uint8_t* i2cBuffer)
 {
     // daynight_evening_debounce is a unsigned long and has four bytes
-    // save the new value
-    uint32_t new = 0;
-    new += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    new += ((uint32_t)i2cBuffer[2])<<16;
-    new += ((uint32_t)i2cBuffer[3])<<8;
-    new += ((uint32_t)i2cBuffer[4]);
+    // save the new_value
+    uint32_t new_value = 0;
+    new_value += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
+    new_value += ((uint32_t)i2cBuffer[2])<<16;
+    new_value += ((uint32_t)i2cBuffer[3])<<8;
+    new_value += ((uint32_t)i2cBuffer[4]);
 
     // swap the return value
     i2cBuffer[1] = ( (0xFF000000UL & daynight_evening_debounce) >>24 ); // swap the return value with the old byte
@@ -782,10 +822,10 @@ void fnEveningDebounce(uint8_t* i2cBuffer)
     i2cBuffer[3] =  ( (0x0000FF00UL & daynight_evening_debounce) >>8 ); 
     i2cBuffer[4] =  ( (0x000000FFUL & daynight_evening_debounce) ); 
 
-    // keep the new value and mark it to save in EEPROM
-    if (IsValidEveningDebounce(&new))
+    // keep the new_value and mark it to save in EEPROM
+    if (IsValidEveningDebounce(&new_value))
     {
-        daynight_evening_debounce = new;
+        daynight_evening_debounce = new_value;
         daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
     }
 }

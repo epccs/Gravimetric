@@ -8,7 +8,7 @@
 3. access arduino_mode.
 4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
 5. access shutdown_halt_curr_limit (uint16). 
-6. access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
+6. access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
 7. not used.
 
 
@@ -288,17 +288,43 @@ The application needs to run an i2c slave receiver to accept the shutdown state 
 //      byte[3] = shutdown_halt_curr_limit:low_byte.
 ```
 
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 5,0,0,0
+{"txBuffer[4]":[{"data":"0x5"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 4
+{"txBuffer":"wrt_success","rxBuffer":"rd_success","rxBuffer":[{"data":"0x5"},{"data":"0x0"},{"data":"0x0"},{"data":"0x3F"}]}
+``` 
 
-## Cmd 6 from a controller /w i2c-debug access Host Shutdown shutdown[_halt_ttl_limit|delay_limit|wearleveling_limit].
+read data from manager is the shutdown_halt_curr_limit (default is 63).
+
+
+## Cmd 6 from a controller /w i2c-debug access Host Shutdown uint32 values.
+
+shutdown_halt_ttl_limit is time to wait for PWR_I to be bellow shutdown_halt_curr_limit and then stable for wearleveling.
+
+shutdown_delay_limit is time to wait after droping bellow shutdown_halt_curr_limit, but befor checking wearleveling for stable readings.
+
+shutdown_wearleveling_limit is time PWR_I must be stable for
+
+shutdown_kRuntime is the general purpose elapsed timer used during some state changes
+
+shutdown_started_at is elapsed time since BCM6 was pulled low
+
+shutdown_halt_chk_at is elapsed time since current on PWR_I got bellow the expected level
+
+shutdown_wearleveling_done_at is time elapsed since current on PWR_I got stable
 
 ``` C
-// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
+// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
 // shutdown_halt_ttl_limit
 // befor host shutdown is done PWR_I current must be bellow this limit.
 // I2C: byte[0] = 6, 
 //      byte[1] = bit 7 is read/write 
-//                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
-//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit],
+//                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at],
+//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit...],
 //      byte[3] = bits 23..16,
 //      byte[4] = bits 15..8,
 //      byte[5] = bits 7..0,

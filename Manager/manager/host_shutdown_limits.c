@@ -156,10 +156,11 @@ uint8_t LoadShtDwnLimitsFromEEPROM()
     unsigned long temp_shutdown_delay_limit = eeprom_read_dword((uint32_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_DELAY));
     unsigned long temp_shutdown_wearleveling_limit = eeprom_read_dword((uint32_t*)(EE_HOSTSHUTDOWN_LIMIT_ADDR+EE_HOSTSHUTDOWN_LIM_WEARLEVELING));
     uint8_t use_defauts = 0;
-    if (IsValidShtDwnHaltCurr(&tmp_shutdown_halt_curr_limit)) use_defauts = 1; 
-    if (IsValidShtDwnHaltTTL(&temp_shutdown_ttl_limit)) use_defauts = 1;
-    if (IsValidShtDwnDelay(&temp_shutdown_delay_limit)) use_defauts = 1; 
-    if (IsValidShtDwnWearleveling(&temp_shutdown_wearleveling_limit)) use_defauts = 1; 
+    // opps, I did not have "not" (!) in front of each test and was loading uninitialized EEPROM into the values rather than using the defaults. 
+    if (!IsValidShtDwnHaltCurr(&tmp_shutdown_halt_curr_limit)) use_defauts = 1; 
+    if (!IsValidShtDwnHaltTTL(&temp_shutdown_ttl_limit)) use_defauts = 1;
+    if (!IsValidShtDwnDelay(&temp_shutdown_delay_limit)) use_defauts = 1; 
+    if (!IsValidShtDwnWearleveling(&temp_shutdown_wearleveling_limit)) use_defauts = 1; 
     if (!use_defauts)
     {
         shutdown_halt_curr_limit = tmp_shutdown_halt_curr_limit; 

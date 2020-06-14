@@ -137,9 +137,17 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            i2c_ul_access_cmd(CHARGE_BATTERY_PWM,0,&loop_state);
+            local_copy = i2c_ul_access_cmd(CHARGE_BATTERY_PWM,0,&loop_state);
         }
-        printf_P(PSTR("\"pwm_timer\":\"%lu\","),local_copy); // alt_pwm_accum_charge_time
+        printf_P(PSTR("\"pwm_timer\":"));  // alt_pwm_accum_charge_time
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%lu\","),local_copy);
+        }
         command_done = 17;
     }
     else if ( (command_done == 17) ) 
@@ -148,9 +156,17 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            i2c_ul_access_cmd(DAYNIGHT_TIMER,0,&loop_state);
+            local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0,&loop_state);
         }
-        printf_P(PSTR("\"dn_timer\":\"%lu\""),local_copy); // elapsed_time_since_dayTmrStarted
+        printf_P(PSTR("\"dn_timer\":")); // elapsed_time_since_dayTmrStarted
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%lu\","),local_copy);
+        }
         command_done = 24;
     }
     else if ( (command_done == 24) ) 

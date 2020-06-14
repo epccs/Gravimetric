@@ -67,7 +67,7 @@ void handle_smbus_receive(void)
         // table of pointers to functions that are selected by the i2c cmmand byte
         static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
         {
-            {fnMgrAddrQuietly, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnCurrLim, fnHostShutdwnTimeLim, fnNull},
+            {fnMgrAddrQuietly, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnCurrLim, fnHostShutdwnULAccess, fnNull},
             {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
             {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
             {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}

@@ -31,10 +31,10 @@
 (done) i2c cmd 4 used to set Host Shutdown i2c callback
 (done) i2c cmd 5 used to access shutdown_halt_curr_limit
 (done) i2c cmd 6 used to access shutdown[_halt_ttl_limit|delay_limit|wearleveling_limit]
+(done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the limit values.
 (wip) alt_pwm_accum_charge_time is not accumulating
-sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN
 (wip) shutdown application to check shutdown state machine
-(wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night 
+(wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night
 cmd 16 (bm enable), add a byte to enable/disable
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 

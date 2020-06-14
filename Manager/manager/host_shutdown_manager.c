@@ -47,9 +47,9 @@ SOFTWARE.
 HOSTSHUTDOWN_STATE_t shutdown_state;
 
 unsigned long shutdown_kRuntime;
-unsigned long shutdown_started_at; // time when BCM6 was pulled low
-unsigned long shutdown_halt_chk_at; // time when current on PWR_I got bellow the expected level
-unsigned long shutdown_wearleveling_done_at; // time when current on PWR_I got stable
+unsigned long shutdown_started_at;
+unsigned long shutdown_halt_chk_at;
+unsigned long shutdown_wearleveling_done_at; 
 
 uint8_t shutdown_callback_address;
 uint8_t shutdown_state_callback_cmd;
@@ -117,8 +117,8 @@ void check_if_host_should_be_on(void)
         {
             resume_bm_enable = enable_bm_callback_address;
             enable_bm_callback_address = 0;
-            shutdown_started_at = shutdown_kRuntime;
-            shutdown_kRuntime = milliseconds(); // start time to live timer
+            shutdown_started_at = milliseconds(); // save the time at which shutdown started
+            shutdown_kRuntime = milliseconds(); // start timer again for TTL
             shutdown_state = HOSTSHUTDOWN_STATE_CURR_CHK;
             if (shutdown_callback_address && shutdown_state_callback_cmd)
             {
@@ -129,18 +129,9 @@ void check_if_host_should_be_on(void)
         break;
 
     case HOSTSHUTDOWN_STATE_CURR_CHK: // the battery manager was disable, now wait for CURR on PWR_I
-        if (kRuntime > shutdown_ttl_limit) // time out
-        {
-            shutdown_state = HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP;
-            if (shutdown_callback_address && shutdown_state_callback_cmd)
-            {
-                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
-            }
-        }
         if (pwr_i < shutdown_halt_curr_limit)
         {
-            shutdown_halt_chk_at = milliseconds(); // time when current on PWR_I got bellow the expected level
+            shutdown_halt_chk_at = milliseconds(); // save time when current on PWR_I was bellow the expected level
             shutdown_state = HOSTSHUTDOWN_STATE_AT_HALT_CURR;
             if (shutdown_callback_address && shutdown_state_callback_cmd)
             {
@@ -148,6 +139,18 @@ void check_if_host_should_be_on(void)
                 i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
             }
         }
+        else 
+            {
+                if (kRuntime > shutdown_ttl_limit) // time out
+                {
+                    shutdown_state = HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP;
+                    if (shutdown_callback_address && shutdown_state_callback_cmd)
+                    {
+                        if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                        i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                    }
+                }
+            }
         break;
 
     case HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP: // If the hault current is not seen after a timeout then what?

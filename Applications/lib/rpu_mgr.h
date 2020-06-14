@@ -47,6 +47,10 @@ float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, 
 #define SHUTDOWN_TTL_OFFSET 0
 #define SHUTDOWN_DELAY_OFFSET 1
 #define SHUTDOWN_WEARLEVEL_OFFSET 2
+#define SHUTDOWN_KRUNTIME 3
+#define SHUTDOWN_STARTED_AT 4
+#define SHUTDOWN_HALT_CHK_AT 5
+#define SHUTDOWN_WEARLVL_DONE_AT 6
 
 // values used for i2c_int_access_cmd
 #define CHARGE_BATTERY_LOW 18

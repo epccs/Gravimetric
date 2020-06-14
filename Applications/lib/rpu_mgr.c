@@ -378,13 +378,12 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with, TWI0
     }
     else 
     {
-        uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
+        twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
         if( (*loop_state == TWI0_LOOP_STATE_DONE) )
         {
-            // twi0_masterWriteRead error code is in bits 5..7
-            if(bytes_read & 0xE0)
+            mgr_twiErrorCode = twi0_masterAsyncWrite_status();
+            if(mgr_twiErrorCode)
             {
-                mgr_twiErrorCode = twi0_masterAsyncWrite_status(); // bytes_read>>5
                 value = 0; // UL does not have NaN
             }
             else
@@ -462,10 +461,10 @@ unsigned long i2c_ul_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, unsign
             }
             else
             {
-                value = ((unsigned long)(rxBuffer_[1]))<<24;
-                value += ((unsigned long)(rxBuffer_[2]))<<16;
-                value += ((unsigned long)(rxBuffer_[3]))<<8;
-                value +=  (unsigned long)rxBuffer_[4];
+                value = ((unsigned long)(rxBuffer_[2]))<<24;
+                value += ((unsigned long)(rxBuffer_[3]))<<16;
+                value += ((unsigned long)(rxBuffer_[4]))<<8;
+                value +=  (unsigned long)rxBuffer_[5];
             }
         }
     }
@@ -569,19 +568,14 @@ int i2c_int_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, int update_with
     }
     else 
     {
-        uint8_t bytes_read = twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
+        twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
         if( (*loop_state == TWI0_LOOP_STATE_DONE) )
         {
-            // twi0_masterWriteRead error code is in bits 5..7
-            if(bytes_read & 0xE0)
+            mgr_twiErrorCode = twi0_masterAsyncWrite_status();
+            if(!mgr_twiErrorCode)
             {
-                mgr_twiErrorCode = twi0_masterAsyncWrite_status(); //bytes_read>>5
-                value = 0; // int does not have NaN
-            }
-            else
-            {
-                value = ((int)(rxBuffer_[1]))<<8;
-                value +=  (int)rxBuffer_[2];
+                value = ((int)(rxBuffer_[2]))<<8;
+                value +=  (int)rxBuffer_[3];
             }
         }
     }

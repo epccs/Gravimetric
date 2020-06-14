@@ -20,6 +20,7 @@ typedef enum HOSTSHUTDOWN_STATE_enum {
 
 extern HOSTSHUTDOWN_STATE_t shutdown_state;
 
+extern unsigned long shutdown_kRuntime; // shutdown timer
 extern unsigned long shutdown_started_at; // time when BCM6 was pulled low
 extern unsigned long shutdown_halt_chk_at; // time when current on PWR_I got bellow the expected level
 extern unsigned long shutdown_wearleveling_done_at; // when current on PWR_I got stable for a period

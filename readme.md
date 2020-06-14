@@ -26,9 +26,9 @@ Licenses have mostly changed from LGPL to BSD, but some work remains.
 
 ## Example
 
-Do not think of this as a PLC. A PLC runs a will tested program that emulates things that historically served to control processes and tasks. Programs that run on this board are written in C (I do not recommend C++ here). The program needs careful reviewing and compiled into binary instructions that operate the processor during testing. I recommend testing software parts as a minimally functional application, make no mistake the training wheels are off, so use this hardware at your own risk.
+Do not think of this as a PLC. A PLC runs a well-tested interpreter that emulates things (e.g., a logic sequence that may be done with a hardwired circuit) that historically served to implement control processes. The firmware that runs on this board is written in C or assembly (I do not recommend C++). The program needs careful reviewing and compiled into the binary instructions that operate the processor. I recommend dividing the software into parts that are as minimally functional as possible for testing. Testing and ensuring correctness is the user's responsibility.
 
-UART0 on the application controller is used for a multi-drop serial bus that the serial hardware on a Single Board Computer (SBC) can interface with. The serial link allows firmware uploads and general-purpose communication but does not have a network footprint. The 40 pin header is for a Raspberry Pi, but other SBC's should also work (I do not test them). The RJ45 connectors are for the multi-drop serial bus daisy chain connection with terminations at the ends. 
+The first UART on the application controller is used for a multi-drop serial bus that is interfaced with the serial hardware on a Single Board Computer (SBC). That serial link allows firmware uploads and general-purpose communication but for security goals, it does not cross network (IP) boundaries. The 40 pin header for a Raspberry Pi uses pins 8 and 10 for RX and TX, other SBC's should also work (I do not test them). The RJ45 connectors are for the multi-drop serial bus daisy chain connection with terminations at the ends. 
 
 ![MultiDrop](./Hardware/Documents/MultiDrop.png "Gravimetric MultiDrop")
 

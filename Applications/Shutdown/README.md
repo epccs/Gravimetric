@@ -4,8 +4,8 @@
 
 ```
 (done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
-sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN
-hs_timer report elapsed_time_since_shutdownStarted is not yet available from manager
+(done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the values.
+hs_timer is not available from manager yet.
 ```
 
 
@@ -105,26 +105,29 @@ It reprots UP but does not callback the sd_state.
 
 ##  /0/hscntl?
 
-Reports host shutdown control values. 
+Report host shutdown control values. 
 
 ``` 
 /1/hs
 {"hs_en":"UP"}
 /1/hscntl?
-{"sd_state":"0xB","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
-{"sd_state":"0xB","hs_halt_curr":"255","adc_pwr_i":"22","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 ...
-{"sd_state":"0xB","hs_halt_curr":"255","adc_pwr_i":"38","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
-{"sd_state":"0x0","hs_halt_curr":"255","adc_pwr_i":"24","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0x0","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 /1/hs
 {"hs_en":"DOWN"}
 /1/hscntl?
-{"sd_state":"0x3","hs_halt_curr":"255","adc_pwr_i":"34","hs_ttl":"16777215","hs_delay":"33554431","hs_wearlv":"50331647","hs_timer":"0"}
-
+{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 ...
 ``` 
 
-error: sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN
+problem: hs_timer is not reporting
+
+sd_state: 0 is UP, 6 is DELAY, 9 is DOWN
 
 
 ##  /0/hshaltcurr? \[0..1023\]
