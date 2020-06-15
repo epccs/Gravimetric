@@ -291,7 +291,7 @@ void i2c_daynight_cmd(uint8_t my_callback_addr)
 // enable battery callback from manager
 // 16 .. cmd plus two bytes 
 //       byte 1 is the slave address for manager to send envents
-//       byte 2 is command to receive batmgr_state changes
+//       byte 2 is command to receive bm_state changes
 void i2c_battery_cmd(uint8_t my_callback_addr)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;

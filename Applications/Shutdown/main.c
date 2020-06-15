@@ -143,7 +143,7 @@ void night_work_event(uint8_t data)
 
 void battery_state_event(uint8_t batmgr_state_from_mgr)
 {
-    batmgr_state = (BATTERYMGR_STATE_t)batmgr_state_from_mgr;
+    bm_state = (BATTERYMGR_STATE_t)batmgr_state_from_mgr;
 }
 
 void host_shutdown_state_event(uint8_t hs_state_from_mgr)

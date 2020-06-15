@@ -34,7 +34,7 @@
 (done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the limit values.
 (done) hs_timer was not available from manager.
 (done) shutdown application to check shutdown state machine
-(wip) alt_pwm_accum_charge_time is not accumulating
+(wip) cmd 20 with alt_pwm_accum_charge_time is not accumulating
 (wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night
 cmd 16 (bm enable), add a byte to enable/disable
 halt the host at battery_halt_limit

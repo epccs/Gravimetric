@@ -119,7 +119,7 @@ void fnNightWork(uint8_t* i2cBuffer)
     twi0_onNightWork(data);
 }
 
-// I2C command returning the battery manager state (batmgr_state)
+// I2C command returning the battery manager state (bm_state)
 void fnBatMgrState(uint8_t* i2cBuffer)
 {
     uint8_t data = i2cBuffer[1];

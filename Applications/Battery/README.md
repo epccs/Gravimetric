@@ -5,7 +5,7 @@
 ```
 (done) pwm mode high time/low time needs to be locked at the start of a period, it has problems otherwise.
 (done) add cli to change battery_low_limit and battery_high_limit
-batmgr_state name change to bm_state
+(done) batmgr_state name change to bm_state
 alt_pwm_accum_charge_time is not accumulating.
 add a battery_halt_limit to halt the host and turn off its power.
 change the low and high limit to be the PWM range

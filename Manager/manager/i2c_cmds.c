@@ -222,7 +222,7 @@ void fnArduinMode(uint8_t* i2cBuffer)
     i2cBuffer[1] = arduino_mode; // ignore everything but the command
 }
 
-// I2C command to enable host shutdown manager and set a i2c callback address for batmgr_state when command command byte is > zero.
+// I2C command to enable host shutdown manager and set a i2c callback address for bm_state when command command byte is > zero.
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 // I2C: byte[0] = 4, 
 //      byte[1] = shutdown_callback_address, 
@@ -398,7 +398,7 @@ void fnHostShutdwnULAccess(uint8_t* i2cBuffer)
 
 /********* PV and Battery Management ***********/
 
-// I2C command to enable battery manager and set a i2c callback address for batmgr_state when command command byte is > zero.
+// I2C command to enable battery manager and set a i2c callback address for bm_state when command command byte is > zero.
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 void fnBatteryMgr(uint8_t* i2cBuffer)
 { 

@@ -28,7 +28,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include "battery.h"
 
 static unsigned long battery_serial_print_started_at;
-volatile BATTERYMGR_STATE_t batmgr_state; // battery manager state
+volatile BATTERYMGR_STATE_t bm_state; // battery manager state
 uint8_t bm_callback_addr; 
 
 // /0/bm
@@ -84,7 +84,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
     }
     if ( (command_done == 11) )
     {
-        printf_P(PSTR("{\"bm_state\":\"0x%X\","),batmgr_state); // print a hex value
+        printf_P(PSTR("{\"bm_state\":\"0x%X\","),bm_state); // print a hex value
         command_done = 12;
     }
     else if ( (command_done == 12) ) 

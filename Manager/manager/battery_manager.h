@@ -10,7 +10,7 @@ typedef enum BATTERYMGR_STATE_enum {
     BATTERYMGR_STATE_FAIL
 } BATTERYMGR_STATE_t;
 
-extern BATTERYMGR_STATE_t batmgr_state;
+extern BATTERYMGR_STATE_t bm_state;
 
 extern unsigned long alt_pwm_accum_charge_time;
 
