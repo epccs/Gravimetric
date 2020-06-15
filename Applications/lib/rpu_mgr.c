@@ -417,6 +417,10 @@ unsigned long i2c_ul_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, unsign
         case SHUTDOWN_TTL_OFFSET:
         case SHUTDOWN_DELAY_OFFSET:
         case SHUTDOWN_WEARLEVEL_OFFSET:
+        case SHUTDOWN_KRUNTIME:
+        case SHUTDOWN_STARTED_AT:
+        case SHUTDOWN_HALT_CHK_AT:
+        case SHUTDOWN_WEARLVL_DONE_AT:
             break;
         
         default:

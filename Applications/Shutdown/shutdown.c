@@ -115,7 +115,15 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         {
             adc_reads = i2c_get_adc_from_manager(ADC_CH_MGR_PWR_I,&loop_state);
         }
-        printf_P(PSTR("\"adc_pwr_i\":\"%u\","),adc_reads);
+        printf_P(PSTR("\"adc_pwr_i\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%u\","),adc_reads);
+        }
         command_done = 14;
     }
     else if ( (command_done == 14) ) 
@@ -126,7 +134,15 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         {
             local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL_OFFSET,0,&loop_state);
         }
-        printf_P(PSTR("\"hs_ttl\":\"%lu\","),local_copy);
+        printf_P(PSTR("\"hs_ttl\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%lu\","),local_copy);
+        }
         command_done = 15;
     }
     else if ( (command_done == 15) ) 
@@ -137,7 +153,15 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         {
             local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY_OFFSET,0,&loop_state);
         }
-        printf_P(PSTR("\"hs_delay\":\"%lu\","),local_copy);
+        printf_P(PSTR("\"hs_delay\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%lu\","),local_copy);
+        }
         command_done = 16;
     }
 
@@ -149,7 +173,15 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         {
             local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL_OFFSET,0,&loop_state);
         }
-        printf_P(PSTR("\"hs_wearlv\":\"%lu\","),local_copy);
+        printf_P(PSTR("\"hs_wearlv\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%lu\","),local_copy);
+        }
         command_done = 17;
     }
     else if ( (command_done == 17) ) 
@@ -160,7 +192,15 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         {
             local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_KRUNTIME,0,&loop_state);
         }
-        printf_P(PSTR("\"hs_timer\":\"%lu\""),local_copy); // general purpose elapsed timer
+        printf_P(PSTR("\"hs_timer\":")); // elapsed timer used by state machine
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\""),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%lu\""),local_copy);
+        }
         command_done = 24;
     }
     else if ( (command_done == 24) ) 

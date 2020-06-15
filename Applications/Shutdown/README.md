@@ -5,7 +5,7 @@
 ```
 (done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
 (done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the values.
-hs_timer is not available from manager yet.
+(done) hs_timer was not available from manager.
 ```
 
 
@@ -108,26 +108,28 @@ It reprots UP but does not callback the sd_state.
 Report host shutdown control values. 
 
 ``` 
+/1/hscntl?
+{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"35","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"26","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"1"}
 /1/hs
 {"hs_en":"UP"}
 /1/hscntl?
-{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
-{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"37","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"10983"}
+{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"15982"}
 ...
-{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
-{"sd_state":"0x0","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"24","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"55972"}
+{"sd_state":"0x0","hs_halt_curr":"63","adc_pwr_i":"36","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 /1/hs
 {"hs_en":"DOWN"}
 /1/hscntl?
-{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
-{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"1229"}
+{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"6229"}
+{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 {"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 ...
 ``` 
 
-problem: hs_timer is not reporting
-
-sd_state: 0 is UP, 6 is DELAY, 9 is DOWN
+sd_state: 0x0 is UP, 0x6 is DELAY, 0x9 is DOWN, 0xB is RESTART_DLY.
 
 
 ##  /0/hshaltcurr? \[0..1023\]
@@ -136,9 +138,9 @@ This will access shutdown_halt_curr_limit on manager. Befor host shutdown is don
 
 ``` 
 /1/hshaltcurr?
-
-/1/hshaltcurr? 373
-
+{"hs_halt_curr":"63"}
+/1/hshaltcurr? 64
+{"hs_halt_curr":"64"}
 ```
 
 
@@ -148,9 +150,9 @@ This will access shutdown_ttl_limit on manager. Time to wait for PWR_I to be bel
 
 ``` 
 /1/hsttl?
-
-/1/hsttl? 399
-
+{"hs_ttl":"60000"}
+/1/hsttl? 60001
+{"hs_ttl":"60001"}
 ```
 
 
@@ -160,9 +162,9 @@ This will access shutdown_delay_limit on manager. Time to wait after droping bel
 
 ``` 
 /1/hsdelay?
-
-/1/hsdelay? 399
-
+{"hs_delay":"10000"}
+/1/hsdelay? 10001
+{"hs_delay":"10001"}
 ```
 
 
@@ -172,7 +174,8 @@ This will access shutdown_wearleveling_limit on manager. Time PWR_I must be stab
 
 ``` 
 /1/hswearlv?
-
-/1/hswearlv? 399
-
+{"hs_wearlv":"100"}
+/1/hswearlv? 101
+{"hs_wearlv":"101"}
 ```
+
