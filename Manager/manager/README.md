@@ -34,6 +34,10 @@
 (done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the limit values.
 (done) hs_timer was not available from manager.
 (done) shutdown application to check shutdown state machine
+(done) move battery limits in EEPROM
+(done) cmd 17 access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
+(done) remove cmd 18 since cmd 17 does battery_low_limit
+(done) remove cmd 19 since cmd 17 does battery_high_limit
 (wip) cmd 20 with alt_pwm_accum_charge_time is not accumulating
 (wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night
 cmd 16 (bm enable), add a byte to enable/disable
@@ -162,9 +166,9 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 [PV and Battery]: ./PVandBattery.md
 
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
-17. not used.
-18. Access battery_low_limit (int16_t)
-19. Access battery_high_limit (int16_t)
+17. Access battery manager uint16 values.
+18. not used
+19. not used
 20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
 21. morning_threshold (int16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (int16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
@@ -256,8 +260,6 @@ ref_extern_avcc     UINT32      32
 ref_intern_1v1      UINT32      36
 "RPUid\0"           ARRAY       40
 md_serial_addr      UINT8       50
-bat_h_limit         UINT16      60
-bat_l_limit         UINT16      62
 morning_threshold   UINT16      70
 evening_threshold   UINT16      72
 morning_debounce    UINT32      74
@@ -278,6 +280,9 @@ shutdown_halt_curr  UINT16      130
 shutdown_ttl        UINT32      132
 shutdown_delay      UINT32      136
 shutdown_wearlevel  UINT32      140
+bat_high_limit      UINT16      150
+bat_low_limit       UINT16      152
+bat_host_limit      UINT16      154
 ```
 
 Some values are reserved (*)

@@ -35,12 +35,15 @@ SOFTWARE.
 #include <ctype.h>
 #include <avr/pgmspace.h>
 #include <util/atomic.h>
-#include <avr/eeprom.h> 
+#include <avr/eeprom.h>
+#include "../lib/adc_bsd.h"
+#include "../lib/io_enum_bsd.h"
 #include "battery_limits.h"
 
 BAT_LIM_t bat_limit_loaded;
 int battery_high_limit;
 int battery_low_limit;
+int battery_host_limit;
 
 uint8_t IsValidBatHighLimFor12V(int *value) 
 {
@@ -57,6 +60,18 @@ uint8_t IsValidBatHighLimFor12V(int *value)
 uint8_t IsValidBatLowLimFor12V(int *value) 
 {
     if ( ((*value > BAT12_LIMIT_LOW_MIN) && (*value < BAT12_LIMIT_LOW_MAX)) )
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+uint8_t IsValidBatHostLimFor12V(int *value) 
+{
+    if ( ((*value > BAT12_LIMIT_HOST_MIN) && (*value < BAT12_LIMIT_HOST_MAX)) )
     {
         return 1;
     }
@@ -90,16 +105,10 @@ uint8_t IsValidBatLowLimFor24V(int *value)
     }
 }
 
-// wrtite battery high limit (when charging turns off) to EEPROM
-uint8_t WriteEEBatHighLim() 
+uint8_t IsValidBatHostLimFor24V(int *value) 
 {
-    uint16_t tmp_battery_high_limit= eeprom_read_word((uint16_t*)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HIGH)); 
-    if ( eeprom_is_ready() )
+    if ( ((*value > BAT24_LIMIT_HOST_MIN) && (*value < BAT24_LIMIT_HOST_MAX)) )
     {
-        if (tmp_battery_high_limit != battery_high_limit)
-        {
-            eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HIGH), (uint16_t)battery_high_limit);
-        }
         return 1;
     }
     else
@@ -108,16 +117,40 @@ uint8_t WriteEEBatHighLim()
     }
 }
 
-// wrtite battery low limit (when charging turns on) to EEPROM
-uint8_t WriteEEBatLowLim() 
+// wrtite battery high limit (when charging and PWM turns off) to EEPROM
+uint8_t WriteEEBatHighLim() 
 {
-    uint16_t tmp_battery_low_limit= eeprom_read_word((uint16_t*)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW)); 
     if ( eeprom_is_ready() )
     {
-        if (tmp_battery_low_limit != battery_low_limit)
-        {
-            eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW), (uint16_t)battery_low_limit);
-        }
+        eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HIGH), (uint16_t)battery_high_limit);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// wrtite battery low limit (when PWM turns on) to EEPROM
+uint8_t WriteEEBatLowLim() 
+{
+    if ( eeprom_is_ready() )
+    {
+        eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW), (uint16_t)battery_low_limit);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+// wrtite battery host limit (when host turns off) to EEPROM
+uint8_t WriteEEBatHostLim() 
+{
+    if ( eeprom_is_ready() )
+    {
+        eeprom_update_word( (uint16_t *)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HOST), (uint16_t)battery_host_limit);
         return 1;
     }
     else
@@ -130,20 +163,43 @@ uint8_t WriteEEBatLowLim()
 uint8_t LoadBatLimitsFromEEPROM() 
 {
     int tmp_battery_high_limit = eeprom_read_word((uint16_t*)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HIGH));
-    int tmp_battery_low_limit= eeprom_read_word((uint16_t*)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW));
-    if ( (IsValidBatHighLimFor12V(&tmp_battery_high_limit) || IsValidBatHighLimFor24V(&tmp_battery_high_limit)) && (IsValidBatLowLimFor12V(&tmp_battery_low_limit) || IsValidBatLowLimFor24V(&tmp_battery_low_limit)) )
+    int tmp_battery_low_limit = eeprom_read_word((uint16_t*)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_LOW));
+    int tmp_battery_host_limit = eeprom_read_word((uint16_t*)(EE_BAT_LIMIT_ADDR+EE_BAT_LIMIT_OFFSET_HOST));
+    uint8_t use_defauts = 0;
+    if ( !(IsValidBatHighLimFor12V(&tmp_battery_high_limit) || IsValidBatHighLimFor24V(&tmp_battery_high_limit)) ) use_defauts = 1;
+    if ( !(IsValidBatLowLimFor12V(&tmp_battery_low_limit) || IsValidBatLowLimFor24V(&tmp_battery_low_limit)) ) use_defauts = 1;
+    if ( !(IsValidBatHostLimFor12V(&tmp_battery_host_limit) || IsValidBatHostLimFor24V(&tmp_battery_host_limit)) ) use_defauts = 1;
+    if (!use_defauts)
     {
         battery_high_limit = (uint16_t)tmp_battery_high_limit; 
-        battery_low_limit = (uint16_t)tmp_battery_low_limit; 
+        battery_low_limit = (uint16_t)tmp_battery_low_limit;
+        battery_host_limit = (uint16_t)tmp_battery_host_limit; 
         bat_limit_loaded = BAT_LIM_LOADED;
         return 1;
     }
     else
     {
-        // default values are for 12V LA measured at PWR_V channel with 5V referance
-        battery_high_limit = 397; // 14.2/(((5.0)/1024.0)*(115.8/15.8))
-        battery_low_limit = 374; // 13.4/(((5.0)/1024.0)*(115.8/15.8))
-        bat_limit_loaded = BAT_LIM_DEFAULT;
+        int battery_value = adc[MCU_IO_PWR_V];
+        if ( ((battery_value > BAT24_LIMIT_LOW_MIN) && (battery_value < BAT24_LIMIT_HIGH_MAX)) ) 
+        {
+            // default values are for 12V LA measured at PWR_V channel with 5V referance
+            battery_high_limit = 794; // 28.4/(((5.0)/1024.0)*(115.8/15.8))
+            battery_low_limit = 469; // 16.8/(((5.0)/1024.0)*(115.8/15.8))
+            battery_host_limit = 615; // 22.0/(((5.0)/1024.0)*(115.8/15.8))
+            bat_limit_loaded = BAT_LIM_DEFAULT;
+        }
+        else if ( ((battery_value > BAT12_LIMIT_LOW_MIN) && (battery_value < BAT12_LIMIT_HIGH_MAX)) )
+        {
+            // default values are for 12V LA measured at PWR_V channel with 5V referance
+            battery_high_limit = 397; // 14.2/(((5.0)/1024.0)*(115.8/15.8))
+            battery_low_limit = 374; // 13.4/(((5.0)/1024.0)*(115.8/15.8))
+            battery_host_limit = 307; // 11.0/(((5.0)/1024.0)*(115.8/15.8))
+            bat_limit_loaded = BAT_LIM_DEFAULT;
+        }
+        else
+        {
+            bat_limit_loaded = BAT_LIM_DELAY_LOAD; // also blocks the bm state machine from running
+        }
         return 0;
     }
 }
@@ -169,6 +225,17 @@ void BatLimitsFromI2CtoEE(void)
             if ( IsValidBatLowLimFor12V(&battery_low_limit) || IsValidBatLowLimFor24V(&battery_low_limit) )
             {
                 if (WriteEEBatLowLim())
+                {
+                    bat_limit_loaded = BAT_LIM_LOADED;
+                    return; // all done
+                }
+            }
+        }
+        if (bat_limit_loaded == BAT_LIM_HOST_TOSAVE)
+        {    
+            if ( IsValidBatHostLimFor12V(&battery_host_limit) || IsValidBatHostLimFor24V(&battery_host_limit) )
+            {
+                if (WriteEEBatHostLim())
                 {
                     bat_limit_loaded = BAT_LIM_LOADED;
                     return; // all done

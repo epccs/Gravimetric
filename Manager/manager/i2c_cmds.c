@@ -61,8 +61,8 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     // table of pointers to functions that are selected by the i2c cmmand byte
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
-        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnCurrLim, fnHostShutdwnULAccess, fnNull},
-        {fnBatteryMgr, fnNull, fnBatChrgLowLim, fnBatChrgHighLim, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+        {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnIntAccess, fnHostShutdwnULAccess, fnNull},
+        {fnBatteryMgr, fnBatteryIntAccess, fnNull, fnNull, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
@@ -256,7 +256,7 @@ void fnHostShutdwnMgr(uint8_t* i2cBuffer)
 //      byte[1] = bit 7 clear is read/bit 7 set is write, 
 //      byte[2] = shutdown_halt_curr_limit:high_byte, 
 //      byte[3] = shutdown_halt_curr_limit:low_byte.
-void fnHostShutdwnCurrLim(uint8_t* i2cBuffer)
+void fnHostShutdwnIntAccess(uint8_t* i2cBuffer)
 {
     uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
     uint8_t offset = i2cBuffer[1] & 0x7F; // 0 is shutdown_halt_curr_limit
@@ -406,48 +406,75 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
     battery_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero
 }
 
-// I2C command to access Battery charge low limit (int)
-// battery manager will start charging with PWM mode when main power is bellow this limit
-void fnBatChrgLowLim(uint8_t* i2cBuffer)
+// I2C command to access battery manager uint16 values.
+// e.g., battery_[high_limit|low_limit|host_limit]
+// I2C: byte[0] = 17, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to battery_[high_limit|low_limit|host_limit],
+//      byte[2] = bits 15..8,
+//      byte[3] = bits 7..0
+void fnBatteryIntAccess(uint8_t* i2cBuffer)
 {
-    // battery_low_limit is an int e.g., two bytes
+    uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    uint8_t offset = i2cBuffer[1] & 0x7F; // offset to the uint16
+    // battery_high_limit and the others are used as an int 
     // save the new_value
     int new_value = 0;
-    new_value += ((int)i2cBuffer[1])<<8;
-    new_value += ((int)i2cBuffer[2]);
+    new_value += ((int)i2cBuffer[2])<<8; // high_byte
+    new_value += ((int)i2cBuffer[3]); // low_byte
 
-    // swap the return value
-    i2cBuffer[1] =  ( (0xFF00 & battery_low_limit) >>8 ); 
-    i2cBuffer[2] =  ( (0x00FF & battery_low_limit) ); 
-
-    // keep the new_value and mark it to save in EEPROM
-    if (IsValidBatLowLimFor12V(&new_value) || IsValidBatLowLimFor24V(&new_value))
+    int old_value = 0;
+    switch (offset)
     {
-        battery_low_limit = new_value;
-        bat_limit_loaded = BAT_LIM_LOW_TOSAVE; // main loop will save to eeprom
+    case 0:
+        old_value = battery_high_limit;
+        break;
+    case 1:
+        old_value = battery_low_limit;
+        break;
+    case 2:
+        old_value = battery_host_limit;
+        break;
+
+    default:
+        break;
     }
-}
 
-// I2C command to access Battery charge high limit (int)
-// battery manager will stop charging when main power is above this limit 
-// PWM ontime is reduced as main power approches this limit
-void fnBatChrgHighLim(uint8_t* i2cBuffer)
-{
-    // battery_high_limit is a int e.g., two bytes
-    // save the new_value
-    int new_value = 0;
-    new_value += ((int)i2cBuffer[1])<<8;
-    new_value += ((int)i2cBuffer[2]);
 
-    // swap the return value
-    i2cBuffer[1] =  ( (0xFF00 & battery_high_limit) >>8 ); 
-    i2cBuffer[2] =  ( (0x00FF & battery_high_limit) ); 
+    // swap the return value with shutdown_halt_curr_limit that is in use
+    i2cBuffer[2] =  ( (0xFF00 & old_value) >>8 ); 
+    i2cBuffer[3] =  ( (0x00FF & old_value) ); 
 
-    // keep the new_value and mark it to save in EEPROM
-    if (IsValidBatHighLimFor12V(&new_value) || IsValidBatHighLimFor24V(&new_value))
+    // keep the new_value and mark shutdown_limit_loaded to save in EEPROM
+    if (write)
     {
-        battery_high_limit = new_value;
-        bat_limit_loaded = BAT_LIM_HIGH_TOSAVE; // main loop will save to eeprom
+        switch (offset)
+        {
+        case 0:
+            if (IsValidBatHighLimFor12V(&new_value) || IsValidBatHighLimFor24V(&new_value))
+            {
+                battery_high_limit = new_value;
+                bat_limit_loaded = BAT_LIM_HIGH_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+        case 1:
+            if (IsValidBatLowLimFor12V(&new_value) || IsValidBatLowLimFor24V(&new_value))
+            {
+                battery_low_limit = new_value;
+                bat_limit_loaded = BAT_LIM_LOW_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+        case 2:
+            if (IsValidBatHostLimFor12V(&new_value) || IsValidBatHostLimFor24V(&new_value))
+            {
+                battery_host_limit = new_value;
+                bat_limit_loaded = BAT_LIM_HOST_TOSAVE; // main loop will save to eeprom
+            } 
+            break;
+
+        default:
+            break;
+        }
     }
 }
 

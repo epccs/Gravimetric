@@ -19,15 +19,15 @@ extern void fnStatus(uint8_t*); // 1
 extern void fnBootldAddr(uint8_t*); // 2
 extern void fnArduinMode(uint8_t*);  // 3
 extern void fnHostShutdwnMgr(uint8_t*); // 4
-extern void fnHostShutdwnCurrLim(uint8_t*); // 5
+extern void fnHostShutdwnIntAccess(uint8_t*); // 5
 extern void fnHostShutdwnULAccess(uint8_t*); // 6 
 // not used // 7
 
 // Prototypes for PV and Battery Management
 extern void fnBatteryMgr(uint8_t*); // 16 
-// not used  // 17
-extern void fnBatChrgLowLim(uint8_t*); // 18
-extern void fnBatChrgHighLim(uint8_t*); // 19
+extern void fnBatteryIntAccess(uint8_t*);  // 17
+// not used // 18
+// not used // 19
 extern void fnRdBatChrgTime(uint8_t*); // 20
 extern void fnMorningThreshold(uint8_t*); // 21
 extern void fnEveningThreshold(uint8_t*); // 22

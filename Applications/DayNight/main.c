@@ -242,33 +242,39 @@ void blink_mgr_status(void)
 void blink_daynight_state(void)
 {
     unsigned long kRuntime = elapsed(&daynight_status_blink_started_at);
-    uint8_t state = daynight_state; // ISR can change this, e.g., volital.
-    if ( ( (state == DAYNIGHT_DAY_STATE) ) && \
-        (kRuntime > (DAYNIGHT_BLINK) ) )
+    switch (daynight_state)
     {
+    case DAYNIGHT_STATE_START:
+    case DAYNIGHT_STATE_DAY:
+    case DAYNIGHT_STATE_DAYWORK:
         ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
-     }
-    if ( ( (state == DAYNIGHT_NIGHT_STATE) ) && \
-        (kRuntime > (DAYNIGHT_BLINK) ) )
-    {
+        break;
+    case DAYNIGHT_STATE_NIGHTWORK:
+    case DAYNIGHT_STATE_NIGHT:
         ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_LOW);
-    }
-    if ( ( (state == DAYNIGHT_EVENING_DEBOUNCE_STATE) || \
-        (state == DAYNIGHT_MORNING_DEBOUNCE_STATE) ) && \
-        (kRuntime > (DAYNIGHT_BLINK/2) ) )
-    {
-        ioToggle(MCU_IO_CS1_EN);
-        
-        // set for next toggle 
-        daynight_status_blink_started_at += DAYNIGHT_BLINK/2; 
-    }
-    if ( ( (state == DAYNIGHT_FAIL_STATE) ) && \
-        (kRuntime > (DAYNIGHT_BLINK/8) ) )
-    {
-        ioToggle(MCU_IO_CS1_EN);
-        
-        // set for next toggle 
-        daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 
+        break;
+    case DAYNIGHT_STATE_EVENING_DEBOUNCE:
+    case DAYNIGHT_STATE_MORNING_DEBOUNCE:
+        if (kRuntime > (DAYNIGHT_BLINK/2) )
+        {
+            ioToggle(MCU_IO_CS1_EN);
+
+            // set for next toggle 
+            daynight_status_blink_started_at += DAYNIGHT_BLINK/2;
+        }
+        break;
+    case DAYNIGHT_STATE_FAIL:
+        if (kRuntime > (DAYNIGHT_BLINK/8) )
+        {
+            ioToggle(MCU_IO_CS1_EN);
+            
+            // set for next toggle 
+            daynight_status_blink_started_at += DAYNIGHT_BLINK/8; 
+        }
+        break;
+
+    default:
+        break;
     }
 }
 

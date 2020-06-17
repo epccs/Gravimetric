@@ -301,7 +301,7 @@ picocom -b 38400 /dev/ttyUSB0
 read data from manager is the shutdown_halt_curr_limit (default is 63).
 
 
-## Cmd 6 from a controller /w i2c-debug access Host Shutdown uint32 values.
+## Cmd 6 from a controller /w i2c-debug to access Host Shutdown uint32 values.
 
 shutdown_halt_ttl_limit is time to wait for PWR_I to be bellow shutdown_halt_curr_limit and then stable for wearleveling.
 
@@ -319,8 +319,6 @@ shutdown_wearleveling_done_at is time elapsed since current on PWR_I got stable
 
 ``` C
 // I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
-// shutdown_halt_ttl_limit
-// befor host shutdown is done PWR_I current must be bellow this limit.
 // I2C: byte[0] = 6, 
 //      byte[1] = bit 7 is read/write 
 //                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at],
