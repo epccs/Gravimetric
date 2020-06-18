@@ -62,7 +62,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnIntAccess, fnHostShutdwnULAccess, fnNull},
-        {fnBatteryMgr, fnBatteryIntAccess, fnNull, fnNull, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+        {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnNull, fnNull, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
@@ -440,8 +440,7 @@ void fnBatteryIntAccess(uint8_t* i2cBuffer)
         break;
     }
 
-
-    // swap the return value with shutdown_halt_curr_limit that is in use
+    // swap the return value with old_value
     i2cBuffer[2] =  ( (0xFF00 & old_value) >>8 ); 
     i2cBuffer[3] =  ( (0x00FF & old_value) ); 
 
@@ -478,16 +477,47 @@ void fnBatteryIntAccess(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to read battery charging time while doing pwm e.g., absorption time
-void fnRdBatChrgTime(uint8_t* i2cBuffer)
+// I2C command to access alt_pwm_accum_charge_time
+// I2C: byte[0] = 18, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to alt_pwm_accum_charge_time,
+//      byte[2] = bits 32..24 of value,
+//      byte[3] = bits 23..16,
+//      byte[4] = bits 15..8,
+//      byte[5] = bits 7..0,
+void fnBatteryULAccess(uint8_t* i2cBuffer)
 {
-    // there are four bytes in an unsigned long
-    unsigned long my_copy = alt_pwm_accum_charge_time; // updates in ISR so copy first (when SMBus is done this is not used as an ISR callback)
+    // uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    uint8_t offset = i2cBuffer[1] & 0x7F; // 0 is halt_ttl_limit, 1 is delay_limit...
 
-    i2cBuffer[1] = ( (0xFF000000UL & my_copy) >>24 ); 
-    i2cBuffer[2] = ( (0x00FF0000UL & my_copy) >>16 ); 
-    i2cBuffer[3] = ( (0x0000FF00UL & my_copy) >>8 ); 
-    i2cBuffer[4] = ( (0x000000FFUL & my_copy) );
+    // save the new_value
+    uint32_t new_value = 0;
+    new_value += ((uint32_t)i2cBuffer[2])<<24; // high_byte
+    new_value += ((uint32_t)i2cBuffer[3])<<16; // bits 23..16
+    new_value += ((uint32_t)i2cBuffer[4])<<8; // bits 15..8
+    new_value += ((uint32_t)i2cBuffer[5]); // low_byte
+
+    uint32_t old_value = 0;
+    switch (offset)
+    {
+    case 0:
+        old_value = alt_pwm_accum_charge_time;
+        break;
+    case 1:
+        old_value = 1023; // test value
+        break;
+
+    default:
+        break;
+    }
+
+    // swap the return value with the old_value
+    i2cBuffer[2] =  ( (0xFF000000 & old_value) >>24 ); 
+    i2cBuffer[3] =  ( (0x00FF0000 & old_value) >>16 ); 
+    i2cBuffer[4] =  ( (0x0000FF00 & old_value) >>8 ); 
+    i2cBuffer[5] =  ( (0x000000FF & old_value) ); 
+
+    // keep nil
 }
 
 // I2C command for day-night Morning Threshold (int)

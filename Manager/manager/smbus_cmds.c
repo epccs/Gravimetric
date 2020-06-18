@@ -68,7 +68,7 @@ void handle_smbus_receive(void)
         static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
         {
             {fnMgrAddrQuietly, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnIntAccess, fnHostShutdwnULAccess, fnNull},
-            {fnBatteryMgr, fnBatteryIntAccess, fnNull, fnNull, fnRdBatChrgTime, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+            {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnNull, fnNull, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
             {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
             {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
         };

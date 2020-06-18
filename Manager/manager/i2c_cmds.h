@@ -26,9 +26,9 @@ extern void fnHostShutdwnULAccess(uint8_t*); // 6
 // Prototypes for PV and Battery Management
 extern void fnBatteryMgr(uint8_t*); // 16 
 extern void fnBatteryIntAccess(uint8_t*);  // 17
-// not used // 18
+extern void fnBatteryULAccess(uint8_t*); // 18
 // not used // 19
-extern void fnRdBatChrgTime(uint8_t*); // 20
+// not used // 20
 extern void fnMorningThreshold(uint8_t*); // 21
 extern void fnEveningThreshold(uint8_t*); // 22
 extern void fnDayNightState(uint8_t*); // 23

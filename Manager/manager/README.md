@@ -35,11 +35,14 @@
 (done) hs_timer was not available from manager.
 (done) shutdown application to check shutdown state machine
 (done) move battery limits in EEPROM
-(done) cmd 17 access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
+(done) cmd 17 (fnBatteryIntAccess) access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 (done) remove cmd 18 since cmd 17 does battery_low_limit
 (done) remove cmd 19 since cmd 17 does battery_high_limit
+(done) cmd 18 (fnBatteryULAccess) access battery manager unsigned long values. alt_pwm_accum_charge_time
+remove cmd 20 since cmd 18 does alt_pwm_accum_charge_time
 (wip) cmd 20 with alt_pwm_accum_charge_time is not accumulating
 (wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night
+report accumulate_alt_mega_ti and accumulate_pwr_mega_ti (fnDayNightULAccess)
 cmd 16 (bm enable), add a byte to enable/disable
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
@@ -157,8 +160,8 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
 4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
-5. access shutdown_halt_curr_limit (uint16). 
-6. access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit] (uint32).
+5. access shutdown manager uint16 values. shutdown_halt_curr_limit
+6. access shutdown manager uint32 values. shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
 7. not used.
 
 [PV and Battery] Management commands 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
@@ -166,10 +169,10 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 [PV and Battery]: ./PVandBattery.md
 
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
-17. Access battery manager uint16 values.
-18. not used
+17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
+18. Access battery manager uint32 values. alt_pwm_accum_charge_time
 19. not used
-20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
+20. not used
 21. morning_threshold (int16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (int16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
 23. Day-Night i2c callback (callback address, report state cmd, day event cmd, night event cmd).

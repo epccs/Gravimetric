@@ -3,10 +3,10 @@
 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
-17. Access battery manager uint16 values.
-18. not used
+17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
+18. Access battery manager uint32 values. alt_pwm_accum_charge_time
 19. not used
-20. Battery absorption (e.g., alt_pwm_accum_charge_time) time (uint32_t)
+20. not used
 21. morning_threshold (int16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
 22. evening_threshold (int16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
 23. Day-Night i2c callback (callback address, report state cmd, day event cmd, night event cmd).
@@ -73,9 +73,36 @@ The defaults are found in battery_limits.h. To convert the value to the correcte
 The data sent was swapped with the default; the second exchange shows the updated value did change.
 
 
-## Cmd 18 is not used.
+## Cmd 18 from the application controller /w i2c-debug to access battery manager uint32 values.
 
-repurpose
+The alt_pwm_accum_charge_time value is the on time accumulated when PWR_V is between battery_high_limit and battery_low_limit.
+
+``` C
+// I2C command to access alt_pwm_accum_charge_time
+// I2C: byte[0] = 18, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to alt_pwm_accum_charge_time,
+//      byte[2] = bits 32..24 of value,
+//      byte[3] = bits 23..16,
+//      byte[4] = bits 15..8,
+//      byte[5] = bits 7..0,
+```
+
+Battery absorption is somewhat indicated by alt_pwm_accum_charge_time, it accumulates milliseconds while alternat power is charging the battery (not the off-time). Four bytes from I2C have the value.
+
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 18,0
+{"txBuffer[2]":[{"data":"0x12"},{"data":"0x0"}]}
+/1/ibuff 0,0,0,0
+{"txBuffer[6]":[{"data":"0x12"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x12"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+``` 
+
+This is not yet working.
 
 
 ## Cmd 19 is not used.
@@ -83,21 +110,9 @@ repurpose
 repurpose
 
 
-## Cmd 20 from the application controller /w i2c-debug running read alt_pwm_accum_charge_time.
+## Cmd 20 is not used.
 
-Battery absorption occures durring alt_pwm_accum_charge_time, it accumulates the millis time while alternat power was used to charge the battery not the off time. Read four bytes from I2C. They are bytes to a UINT32 from a buffered accumulation of millis reading.
-
-``` 
-picocom -b 38400 /dev/ttyUSB0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 20,0,0,0,0
-{"txBuffer[5]":[{"data":"0x14"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x14"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
-``` 
-
-This needs checked with a battery.
+repurpose
 
 
 ## Cmd 21 from a controller /w i2c-debug to access morning_threshold
