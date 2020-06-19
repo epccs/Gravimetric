@@ -52,7 +52,6 @@ SOFTWARE.
 #define DAYNIGHT_TO_LONG 72000000UL
 
 DAYNIGHT_STATE_t daynight_state;
-uint8_t daynight_work;
 
 unsigned long dayTmrStarted;
 
@@ -189,7 +188,6 @@ void check_daynight(void)
     if(daynight_state == DAYNIGHT_STATE_NIGHTWORK) 
     {
         //set the night work bit 7
-        daynight_work = 0x80; // note the day work bit 6 is clear
         daynight_state = DAYNIGHT_STATE_NIGHT;
         if (daynight_callback_address && night_work_callback_cmd)
         {
@@ -260,7 +258,6 @@ void check_daynight(void)
     // work befor day
     if(daynight_state == DAYNIGHT_STATE_DAYWORK) 
     {
-        daynight_work = 0x40; // note the night work bit 7 is clear
         daynight_state = DAYNIGHT_STATE_DAY; // update local
         if (daynight_callback_address && day_work_callback_cmd)
         {

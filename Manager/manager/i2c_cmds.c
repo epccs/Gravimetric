@@ -62,7 +62,7 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnIntAccess, fnHostShutdwnULAccess, fnNull},
-        {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnNull, fnNull, fnMorningThreshold, fnEveningThreshold, fnDayNightState},
+        {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnDayNightMgr, fnDayNightIntAccess, fnNull, fnNull, fnNull},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
         {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
     };
@@ -520,57 +520,82 @@ void fnBatteryULAccess(uint8_t* i2cBuffer)
     // keep nil
 }
 
-// I2C command for day-night Morning Threshold (int)
-void fnMorningThreshold(uint8_t* i2cBuffer)
-{
-    // daynight_morning_threshold is a uint16_t e.g., two bytes
-    // save the new_value
-    int new_value = 0;
-    new_value += ((int)i2cBuffer[1])<<8;
-    new_value += ((int)i2cBuffer[2]);
-
-    // swap the return value
-    i2cBuffer[1] =  ( (0xFF00 & daynight_morning_threshold) >>8 );
-    i2cBuffer[2] =  ( (0x00FF & daynight_morning_threshold) ); 
-
-    // keep the new_value and mark it to save in EEPROM
-    if ( IsValidMorningThresholdFor12V(&new_value) || IsValidMorningThresholdFor24V(&new_value) )
-    {
-        daynight_morning_threshold = new_value;
-        daynight_values_loaded = DAYNIGHT_MORNING_THRESHOLD_TOSAVE; // main loop will save to eeprom
-    }
-}
-
-// I2C command for day-night Evening Threshold (int)
-void fnEveningThreshold(uint8_t* i2cBuffer)
-{
-    // daynight_evening_threshold is a uint16_t e.g., two bytes
-    // save the new_value
-    int new_value = 0;
-    new_value += ((int)i2cBuffer[1])<<8;
-    new_value += ((int)i2cBuffer[2]);
-
-    // swap the return value
-    i2cBuffer[1] =  ( (0xFF00 & daynight_evening_threshold) >>8 ); 
-    i2cBuffer[2] =  ( (0x00FF & daynight_evening_threshold) ); 
-
-    // keep the new_value and mark it to save in EEPROM
-    if ( (IsValidEveningThresholdFor12V(&new_value) || IsValidEveningThresholdFor24V(&new_value)) )
-    {
-        daynight_evening_threshold = new_value;
-        daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom
-    }
-}
-
 // I2C command to set i2c callback address and three commands for daynight_state, day_work, and night_work events.
-// The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
-void fnDayNightState(uint8_t* i2cBuffer)
+// The day-night statemachine acts as an i2c master and addresses the application MCU as a slave to send update events.
+// I2C: byte[0] = 19, 
+//      byte[1] = sets the i2c slave address that the daynight state machine will access
+//      byte[2] = sets the comand number used to send daynight_state updates
+//      byte[3] = sets the comand number used to send day_work events
+//      byte[4] = sets the comand number used to send night_work events
+void fnDayNightMgr(uint8_t* i2cBuffer)
 { 
     daynight_callback_address = i2cBuffer[1];
     daynight_state_callback_cmd = i2cBuffer[2];
     day_work_callback_cmd = i2cBuffer[3];
     night_work_callback_cmd = i2cBuffer[4];
 }
+
+// I2C command to access daynight manager uint16 values.
+// e.g., daynight_[morning_threshold|evening_threshold]
+// I2C: byte[0] = 20, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to daynight_[morning_threshold|evening_threshold],
+//      byte[2] = bits 15..8,
+//      byte[3] = bits 7..0
+void fnDayNightIntAccess(uint8_t* i2cBuffer)
+{
+    uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    uint8_t offset = i2cBuffer[1] & 0x7F; // offset to the uint16
+    // daynight_[morning_threshold|evening_threshold] are used as an int 
+    // save the new_value
+    int new_value = 0;
+    new_value += ((int)i2cBuffer[2])<<8; // high_byte
+    new_value += ((int)i2cBuffer[3]); // low_byte
+
+    int old_value = 0;
+    switch (offset)
+    {
+    case 0:
+        old_value = daynight_morning_threshold;
+        break;
+    case 1:
+        old_value = daynight_evening_threshold;
+        break;
+
+    default:
+        break;
+    }
+
+    // swap the return value with old_value
+    i2cBuffer[2] =  ( (0xFF00 & old_value) >>8 ); 
+    i2cBuffer[3] =  ( (0x00FF & old_value) ); 
+
+    // keep the new_value and mark shutdown_limit_loaded to save in EEPROM
+    if (write)
+    {
+        switch (offset)
+        {
+        case 0:
+            if ( IsValidMorningThresholdFor12V(&new_value) || IsValidMorningThresholdFor24V(&new_value) )
+            {
+                daynight_morning_threshold = new_value;
+                daynight_values_loaded = DAYNIGHT_MORNING_THRESHOLD_TOSAVE; // main loop will save to eeprom
+            }
+            break;
+        case 1:
+            if ( (IsValidEveningThresholdFor12V(&new_value) || IsValidEveningThresholdFor24V(&new_value)) )
+            {
+                daynight_evening_threshold = new_value;
+                daynight_values_loaded = DAYNIGHT_EVENING_THRESHOLD_TOSAVE; // main loop will save to eeprom
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
 
 /********* Analog ***********
   *  ADC_ENUM_t has ADC_ENUM_ALT_I, ADC_ENUM_ALT_V, ADC_ENUM_PWR_I, ADC_ENUM_PWR_V, ADC_ENUM_END

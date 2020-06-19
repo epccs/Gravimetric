@@ -27,11 +27,11 @@ extern void fnHostShutdwnULAccess(uint8_t*); // 6
 extern void fnBatteryMgr(uint8_t*); // 16 
 extern void fnBatteryIntAccess(uint8_t*);  // 17
 extern void fnBatteryULAccess(uint8_t*); // 18
-// not used // 19
-// not used // 20
-extern void fnMorningThreshold(uint8_t*); // 21
-extern void fnEveningThreshold(uint8_t*); // 22
-extern void fnDayNightState(uint8_t*); // 23
+extern void fnDayNightMgr(uint8_t*); // 19
+extern void fnDayNightIntAccess(uint8_t*); // 20
+// not used // 21
+// not used // 22
+// not used // 23
 
 // Prototypes for Analog commands
 extern void fnAnalogRead(uint8_t*); //32

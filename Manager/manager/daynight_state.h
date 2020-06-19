@@ -13,7 +13,6 @@ typedef enum DAYNIGHT_STATE_enum {
 } DAYNIGHT_STATE_t;
 
 extern DAYNIGHT_STATE_t daynight_state; 
-extern uint8_t daynight_work;
 extern unsigned long dayTmrStarted;
 extern uint8_t daynight_callback_address; // set callback address for daynight state machine, zero will stop sending events to application
 extern uint8_t daynight_state_callback_cmd; // command number to use with daynight event updates.

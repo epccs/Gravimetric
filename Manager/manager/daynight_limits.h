@@ -48,10 +48,10 @@ typedef enum DAYNIGHT_enum {
     DAYNIGHT_EVENING_DEBOUNCE_TOSAVE // i2c has set the daynight_evening_debounce, it needs checked and if valid saved into EEPROM
 } DAYNIGHT_t;
 extern DAYNIGHT_t daynight_values_loaded;
-extern int daynight_morning_threshold;
-extern int daynight_evening_threshold;
-extern unsigned long daynight_morning_debounce;
-extern unsigned long daynight_evening_debounce;
+extern int daynight_morning_threshold; // check light on solar pannel e.g., ALT_V > this. Readings are taken when !ALT_EN.
+extern int daynight_evening_threshold; // check light on solar pannel e.g., ALT_V < this. Readings are taken when !ALT_EN.
+extern unsigned long daynight_morning_debounce; // time that ALT_V > daynight_morning_threshold to change to DAY state
+extern unsigned long daynight_evening_debounce; // time that ALT_V < daynight_evening_threshold to change to NIGHT state
 
 extern uint8_t IsValidMorningThresholdFor12V(int *);
 extern uint8_t IsValidEveningThresholdFor12V(int *);

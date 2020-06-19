@@ -39,8 +39,20 @@
 (done) remove cmd 18 since cmd 17 does battery_low_limit
 (done) remove cmd 19 since cmd 17 does battery_high_limit
 (done) cmd 18 (fnBatteryULAccess) access battery manager unsigned long values. alt_pwm_accum_charge_time
-remove cmd 20 since cmd 18 does alt_pwm_accum_charge_time
-(wip) cmd 20 with alt_pwm_accum_charge_time is not accumulating
+(done) remove cmd 20 since cmd 18 does alt_pwm_accum_charge_time
+(done) move cmd 23 to cmd 19 does alt_pwm_accum_charge_time
+(done) cmd 20 (fnDayNightIntAccess) access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
+(done) remove cmd 21 since cmd 20 does daynight_morning_threshold
+(done) remove cmd 22 since cmd 20 does daynight_evening_threshold
+cmd 21 (fnDayNightULAccess) access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|timer]
+remove cmd 52 since cmd 21 does daynight_morning_debounce
+remove cmd 53 since cmd 21 does daynight_evening_debounce
+remove cmd 54 since cmd 21 does daynight_timer (e.g., elapsed(&dayTmrStarted))
+add to cmd 21 accumulate_alt_mega_ti_at_night at offset 3 
+add to cmd 21 accumulate_pwr_mega_ti_at_night at offset 4 
+add to cmd 21 accumulate_alt_mega_ti_at_day at offset 5 
+add to cmd 21 accumulate_pwr_mega_ti_at_day at offset 6 
+(wip) cmd 18 with alt_pwm_accum_charge_time is not accumulating
 (wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night
 report accumulate_alt_mega_ti and accumulate_pwr_mega_ti (fnDayNightULAccess)
 cmd 16 (bm enable), add a byte to enable/disable
@@ -171,11 +183,11 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 18. Access battery manager uint32 values. alt_pwm_accum_charge_time
-19. not used
-20. not used
-21. morning_threshold (int16_t). Day starts when ALT_V is above morning_threshold for morning_debouce time.
-22. evening_threshold (int16_t). Night starts when ALT_V is bellow evening_threshold for evening_debouce time.
-23. Day-Night i2c callback (callback address, report state cmd, day event cmd, night event cmd).
+19. set Day-Night i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
+20. Access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
+21. not used.
+22. not used.
+23. not used.
 
 Note: arduino_mode is point to point.
 
