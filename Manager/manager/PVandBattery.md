@@ -5,9 +5,9 @@
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 18. Access battery manager uint32 values. alt_pwm_accum_charge_time
-19. set Day-Night i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
+19. Set daynight i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
 20. Access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
-21. not used.
+21. Access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|...]
 22. not used.
 23. not used.
 
@@ -183,12 +183,73 @@ There are two ranges (12V and 24V) for solar panels; data that is outside the va
 We set the write bit in the first exchange, where the data sent is swapped with the default (80). The second exchange the updated value (81).
 
 
+## Cmd 21 from the application controller /w i2c-debug to access daynight manager uint32 values.
+
+0. daynight_morning_debounce is time that ALT_V > daynight_morning_threshold to change to DAY state.
+1. daynight_evening_debounce is time that ALT_V < daynight_evening_threshold to change to NIGHT state.
+2. elapsed(daynight_timer) which was time recorded at start of last daynight_state event.
+3. elapsed(daynight_timer_at_night) which was time recorded at night work event.
+4. elapsed(daynight_timer_at_day) which was time recorded at day work event
+5. accumulate_alt_mega_ti_at_night is accumulated timed ALT_I readings (amp hour) recorded at night work event
+6. accumulate_pwr_mega_ti_at_night is accumulated timed PWR_I readings (amp hour) recorded at night work event
+7. accumulate_alt_mega_ti_at_day is accumulated timed ALT_I readings (amp hour) recorded at day work event
+8. accumulate_pwr_mega_ti_at_day is accumulated timed PWR_I readings (amp hour) recorded at day work event
+
+``` C
+// I2C command to access daynight manager uint32 values
+// e.g., daynight_[morning_debounce|evening_debounce],
+//       elapsed daynight_[timer|timer_at_night|timer_at_day],
+//       Amp Hr accumulate_[alt_mega_ti_at_night|pwr_mega_ti_at_night|alt_mega_ti_at_day|pwr_mega_ti_at_day]
+// I2C: byte[0] = 21, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to daynight uint32 value,
+//      byte[2] = bits 32..24 of uint32 value,
+//      byte[3] = bits 23..16,
+//      byte[4] = bits 15..8,
+//      byte[5] = bits 7..0,
+```
+
+Read the daynight_evening_debounce value. Four bytes from I2C have the value.
+
+``` 
+picocom -b 38400 /dev/ttyUSB0
+/1/iaddr 41
+{"address":"0x29"}
+/1/ibuff 21,1
+{"txBuffer[2]":[{"data":"0x15"},{"data":"0x1"}]}
+/1/ibuff 0,0,0,0
+{"txBuffer[6]":[{"data":"0x15"},{"data":"0x1"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x15"},{"data":"0x1"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
+``` 
+
+The four bytes sum to 1,200,000 (e.g., 0*(2**24) + 0x12*(2**16) + 0x4F*(2**8) + 0x80) mSec or 20 min. Send command and an ignored long integer (0) in four bytes to see what the evening_debouce value is.
+
+
+
+Values that are outside the valid range are ignored (8000 to 3,600,000 or 8sec to 60 min). The limits are in daynight_limits.h. 
+
+``` 
+/1/ibuff 21,129
+{"txBuffer[2]":[{"data":"0x15"},{"data":"0x81"}]}
+/1/ibuff 0,0,31,65
+{"txBuffer[6]":[{"data":"0x15"},{"data":"0x81"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x15"},{"data":"0x81"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
+/1/ibuff 21,1
+{"txBuffer[2]":[{"data":"0x15"},{"data":"0x1"}]}
+/1/ibuff 0,0,0,0
+{"txBuffer[6]":[{"data":"0x15"},{"data":"0x1"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
+/1/iread? 6
+{"rxBuffer":[{"data":"0x15"},{"data":"0x1"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
+```
+
+The value 8001 (e.g., 31*(2**8) + 65) sent was swapped with the default (20 min); the second exchange has the updated value (8 sec).
+
+The Amp-Hour values needs documentation to show how to convert them. 
+
+
 ## Cmd 22 is not used.
-
-repurpose
-
-
-## Cmd 23 is not used.
 
 repurpose
 

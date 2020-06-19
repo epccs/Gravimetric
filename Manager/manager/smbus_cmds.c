@@ -68,9 +68,9 @@ void handle_smbus_receive(void)
         static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
         {
             {fnMgrAddrQuietly, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnIntAccess, fnHostShutdwnULAccess, fnNull},
-            {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnDayNightMgr, fnDayNightIntAccess, fnNull, fnNull, fnNull},
+            {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnDayNightMgr, fnDayNightIntAccess, fnDayNightULAccess, fnNull, fnNull},
             {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
-            {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
+            {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
         };
 
         int numBytes = smbus_has_numBytes_to_handle; // place value on stack so it will go away when done.

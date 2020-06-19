@@ -13,7 +13,13 @@ typedef enum DAYNIGHT_STATE_enum {
 } DAYNIGHT_STATE_t;
 
 extern DAYNIGHT_STATE_t daynight_state; 
-extern unsigned long dayTmrStarted;
+extern unsigned long daynight_timer; // time recorded at start of last daynight_state event
+extern unsigned long daynight_timer_at_night; // time recorded at night work event
+extern unsigned long daynight_timer_at_day; // time recorded at day work event
+extern unsigned long accumulate_alt_mega_ti_at_night; // accumulated timed ALT_I readings (amp hour) recorded at night work event
+extern unsigned long accumulate_pwr_mega_ti_at_night; // accumulated timed PWR_I readings (amp hour) recorded at night work event
+extern unsigned long accumulate_alt_mega_ti_at_day; // accumulated timed ALT_I readings (amp hour) recorded at day work event
+extern unsigned long accumulate_pwr_mega_ti_at_day; // accumulated timed PWR_I readings (amp hour) recorded at day work event
 extern uint8_t daynight_callback_address; // set callback address for daynight state machine, zero will stop sending events to application
 extern uint8_t daynight_state_callback_cmd; // command number to use with daynight event updates.
 extern uint8_t day_work_callback_cmd; // command number to use when day event occures, e.g., turn off lights, water garden, power SBC...

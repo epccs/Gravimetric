@@ -44,21 +44,21 @@
 (done) cmd 20 (fnDayNightIntAccess) access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
 (done) remove cmd 21 since cmd 20 does daynight_morning_threshold
 (done) remove cmd 22 since cmd 20 does daynight_evening_threshold
-cmd 21 (fnDayNightULAccess) access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|timer]
-remove cmd 52 since cmd 21 does daynight_morning_debounce
-remove cmd 53 since cmd 21 does daynight_evening_debounce
-remove cmd 54 since cmd 21 does daynight_timer (e.g., elapsed(&dayTmrStarted))
-add to cmd 21 accumulate_alt_mega_ti_at_night at offset 3 
-add to cmd 21 accumulate_pwr_mega_ti_at_night at offset 4 
-add to cmd 21 accumulate_alt_mega_ti_at_day at offset 5 
-add to cmd 21 accumulate_pwr_mega_ti_at_day at offset 6 
+(done) cmd 21 (fnDayNightULAccess) access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|timer]
+(done) remove cmd 52 since cmd 21 does daynight_morning_debounce
+(done) remove cmd 53 since cmd 21 does daynight_evening_debounce
+(done) remove cmd 54 since cmd 21 offset 2 does elapsed daynight_timer
+(done) add to cmd 21 elapsed daynight_timer_at_night at offset 3
+(done) add to cmd 21 elapsed daynight_timer_at_day at offset 4
+(done) add to cmd 21 accumulate_alt_mega_ti_at_night at offset 5 
+(done) add to cmd 21 accumulate_pwr_mega_ti_at_night at offset 6 
+(done) add to cmd 21 accumulate_alt_mega_ti_at_day at offset 7 
+(done) add to cmd 21 accumulate_pwr_mega_ti_at_day at offset 8 
 (wip) cmd 18 with alt_pwm_accum_charge_time is not accumulating
-(wip) save accumulate_alt_mega_ti and accumulate_pwr_mega_ti at start of day and night
-report accumulate_alt_mega_ti and accumulate_pwr_mega_ti (fnDayNightULAccess)
 cmd 16 (bm enable), add a byte to enable/disable
 halt the host at battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
-Cmd 20 is for absorption time, check it with battery.
+Cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery..
 ```
 
 
@@ -183,9 +183,9 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 18. Access battery manager uint32 values. alt_pwm_accum_charge_time
-19. set Day-Night i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
+19. Set daynight i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
 20. Access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
-21. not used.
+21. Access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|...]
 22. not used.
 23. not used.
 
@@ -198,10 +198,10 @@ Note: arduino_mode is point to point.
 
 32. adc[channel] (uint16_t: send channel (ALT_I, ALT_V,PWR_I,PWR_V), return adc reading)
 33. calMap[channelMap.cal_map[channel]] (uint8_t+uint32_t: send channel (ALT_I+CALIBRATION_SET) and float (as uint32_t), return channel and calibration)
-34. not used
-35. not used
+34. not used.
+35. not used.
 36. analogTimedAccumulation for (uint32_t: send channel (ALT_IT,PWR_IT), return reading)
-37. not used
+37. not used.
 38. Analog referance for EXTERNAL_AVCC (uint32_t)
 39. Analog referance for INTERNAL_1V1 (uint32_t)
 
@@ -214,10 +214,10 @@ Note: arduino_mode is point to point.
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
-52. access evening_debouce millis time (uint32_t)
-53. access morning_debouce millis time (uint32_t)
-54. read daynight_timer millis time (uint32_t)
-55. 
+52. not used.
+53. not used.
+54. not used.
+55. not used.
 
 Note: debounce is for day-night state machine (it is not a test thing and may move).
 

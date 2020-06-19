@@ -62,9 +62,9 @@ void receive_i2c_event(uint8_t* inBytes, uint8_t numBytes)
     static void (*pf[GROUP][MGR_CMDS])(uint8_t*) = 
     {
         {fnMgrAddr, fnStatus, fnBootldAddr, fnArduinMode, fnHostShutdwnMgr, fnHostShutdwnIntAccess, fnHostShutdwnULAccess, fnNull},
-        {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnDayNightMgr, fnDayNightIntAccess, fnNull, fnNull, fnNull},
+        {fnBatteryMgr, fnBatteryIntAccess, fnBatteryULAccess, fnDayNightMgr, fnDayNightIntAccess, fnDayNightULAccess, fnNull, fnNull},
         {fnAnalogRead, fnCalibrationRead, fnNull, fnNull, fnRdTimedAccum, fnNull, fnReferance, fnNull},
-        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnMorningDebounce, fnEveningDebounce, fnDayNightTimer, fnNull}
+        {fnStartTestMode, fnEndTestMode, fnRdXcvrCntlInTestMode, fnWtXcvrCntlInTestMode, fnNull, fnNull, fnNull, fnNull}
     };
 
     // i2c will echo's back what was sent (plus modifications) with transmit event
@@ -250,12 +250,12 @@ void fnHostShutdwnMgr(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to access shutdown_halt_curr_limit
-// befor host shutdown is done PWR_I current must be bellow this limit.
+// I2C command to access uint16 values
+// e.g., shutdown_halt_curr_limit
 // I2C: byte[0] = 5, 
 //      byte[1] = bit 7 clear is read/bit 7 set is write, 
-//      byte[2] = shutdown_halt_curr_limit:high_byte, 
-//      byte[3] = shutdown_halt_curr_limit:low_byte.
+//      byte[2] = high_byte of value, 
+//      byte[3] = low_byte o value.
 void fnHostShutdwnIntAccess(uint8_t* i2cBuffer)
 {
     uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
@@ -304,13 +304,12 @@ void fnHostShutdwnIntAccess(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
-// shutdown_ttl_limit
-// befor host shutdown is done PWR_I current must be bellow this limit.
+// I2C command to access shutdown manager uint32 values
+// e.g., shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
 // I2C: byte[0] = 6, 
 //      byte[1] = bit 7 is read/write 
 //                bits 6..0 is offset to shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at],
-//      byte[2] = bits 32..24 of shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit...],
+//      byte[2] = bits 32..24 of uint32 value,
 //      byte[3] = bits 23..16,
 //      byte[4] = bits 15..8,
 //      byte[5] = bits 7..0,
@@ -411,7 +410,7 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
 // I2C: byte[0] = 17, 
 //      byte[1] = bit 7 is read/write 
 //                bits 6..0 is offset to battery_[high_limit|low_limit|host_limit],
-//      byte[2] = bits 15..8,
+//      byte[2] = bits 15..8 of uint16 value,
 //      byte[3] = bits 7..0
 void fnBatteryIntAccess(uint8_t* i2cBuffer)
 {
@@ -477,11 +476,12 @@ void fnBatteryIntAccess(uint8_t* i2cBuffer)
     }
 }
 
-// I2C command to access alt_pwm_accum_charge_time
+// I2C command to access battery manager uint32 values
+// e.g., alt_pwm_accum_charge_time
 // I2C: byte[0] = 18, 
 //      byte[1] = bit 7 is read/write 
 //                bits 6..0 is offset to alt_pwm_accum_charge_time,
-//      byte[2] = bits 32..24 of value,
+//      byte[2] = bits 32..24 of uint32 value,
 //      byte[3] = bits 23..16,
 //      byte[4] = bits 15..8,
 //      byte[5] = bits 7..0,
@@ -595,6 +595,99 @@ void fnDayNightIntAccess(uint8_t* i2cBuffer)
         }
     }
 }
+
+// I2C command to access daynight manager uint32 values
+// e.g., daynight_[morning_debounce|evening_debounce],
+//       elapsed daynight_[timer|timer_at_night|timer_at_day],
+//       Amp Hr accumulate_[alt_mega_ti_at_night|pwr_mega_ti_at_night|alt_mega_ti_at_day|pwr_mega_ti_at_day]
+// I2C: byte[0] = 21, 
+//      byte[1] = bit 7 is read/write 
+//                bits 6..0 is offset to daynight uint32 value,
+//      byte[2] = bits 32..24 of uint32 value,
+//      byte[3] = bits 23..16,
+//      byte[4] = bits 15..8,
+//      byte[5] = bits 7..0,
+void fnDayNightULAccess(uint8_t* i2cBuffer)
+{
+    uint8_t write = i2cBuffer[1] & 0x80; // read if bit 7 is clear, write if bit 7 is set
+    uint8_t offset = i2cBuffer[1] & 0x7F; // 0 is halt_ttl_limit, 1 is delay_limit...
+
+    // save the new_value
+    uint32_t new_value = 0;
+    new_value += ((uint32_t)i2cBuffer[2])<<24; // high_byte
+    new_value += ((uint32_t)i2cBuffer[3])<<16; // bits 23..16
+    new_value += ((uint32_t)i2cBuffer[4])<<8; // bits 15..8
+    new_value += ((uint32_t)i2cBuffer[5]); // low_byte
+
+    uint32_t old_value = 0;
+    switch (offset)
+    {
+    case 0:
+        old_value = daynight_morning_debounce;
+        break;
+    case 1:
+        old_value = daynight_evening_debounce;
+        break;
+    case 2:
+        old_value = elapsed(&daynight_timer);
+        break;
+    case 3:
+        old_value = elapsed(&daynight_timer_at_night);
+        break;
+    case 4:
+        old_value = elapsed(&daynight_timer_at_day);
+        break;
+    case 5:
+        old_value = accumulate_alt_mega_ti_at_night;
+        break;
+    case 6:
+        old_value = accumulate_pwr_mega_ti_at_night;
+        break;
+    case 7:
+        old_value = accumulate_alt_mega_ti_at_day;
+        break;
+    case 8:
+        old_value = accumulate_pwr_mega_ti_at_day;
+        break;
+
+    default:
+        break;
+    }
+
+    // swap the return value with the value that is in use
+    i2cBuffer[2] =  ( (0xFF000000 & old_value) >>24 ); 
+    i2cBuffer[3] =  ( (0x00FF0000 & old_value) >>16 ); 
+    i2cBuffer[4] =  ( (0x0000FF00 & old_value) >>8 ); 
+    i2cBuffer[5] =  ( (0x000000FF & old_value) ); 
+
+
+    // keep the new_value and mark shutdown_limit_loaded to save in EEPROM
+    // do not keep elapsed times
+    if (write)
+    {
+        switch (offset)
+        {
+        case 0:
+            if (IsValidMorningDebounce(&new_value))
+            {
+                daynight_morning_debounce = new_value;
+                daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
+            }
+            break;
+        case 1:
+            if (IsValidEveningDebounce(&new_value))
+            {
+                daynight_evening_debounce = new_value;
+                daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
 
 
 /********* Analog ***********
@@ -860,67 +953,6 @@ void fnWtXcvrCntlInTestMode(uint8_t* i2cBuffer)
     {
         i2cBuffer[1] = 0; 
     }
-}
-
-// I2C command for day-night morning debounce time (unsigned long)
-void fnMorningDebounce(uint8_t* i2cBuffer)
-{
-    // daynight_morning_debounce is a unsigned long and has four bytes
-    // save the new_value
-    uint32_t new_value = 0;
-    new_value += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    new_value += ((uint32_t)i2cBuffer[2])<<16;
-    new_value += ((uint32_t)i2cBuffer[3])<<8;
-    new_value += ((uint32_t)i2cBuffer[4]);
-
-    // swap the return value
-    i2cBuffer[1] = ( (0xFF000000UL & daynight_morning_debounce) >>24 ); 
-    i2cBuffer[2] =  ( (0x00FF0000UL & daynight_morning_debounce) >>16 ); 
-    i2cBuffer[3] =  ( (0x0000FF00UL & daynight_morning_debounce) >>8 ); 
-    i2cBuffer[4] =  ( (0x000000FFUL & daynight_morning_debounce) ); 
-
-    // keep the new_value and mark it to save in EEPROM
-    if (IsValidMorningDebounce(&new_value))
-    {
-        daynight_morning_debounce = new_value;
-        daynight_values_loaded = DAYNIGHT_MORNING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
-    }
-}
-
-// I2C command for day-night evening debounce time (unsigned long)
-void fnEveningDebounce(uint8_t* i2cBuffer)
-{
-    // daynight_evening_debounce is a unsigned long and has four bytes
-    // save the new_value
-    uint32_t new_value = 0;
-    new_value += ((uint32_t)i2cBuffer[1])<<24; // cast, multiply by 2**24, and sum 
-    new_value += ((uint32_t)i2cBuffer[2])<<16;
-    new_value += ((uint32_t)i2cBuffer[3])<<8;
-    new_value += ((uint32_t)i2cBuffer[4]);
-
-    // swap the return value
-    i2cBuffer[1] = ( (0xFF000000UL & daynight_evening_debounce) >>24 ); // swap the return value with the old byte
-    i2cBuffer[2] =  ( (0x00FF0000UL & daynight_evening_debounce) >>16 ); 
-    i2cBuffer[3] =  ( (0x0000FF00UL & daynight_evening_debounce) >>8 ); 
-    i2cBuffer[4] =  ( (0x000000FFUL & daynight_evening_debounce) ); 
-
-    // keep the new_value and mark it to save in EEPROM
-    if (IsValidEveningDebounce(&new_value))
-    {
-        daynight_evening_debounce = new_value;
-        daynight_values_loaded = DAYNIGHT_EVENING_DEBOUNCE_TOSAVE; // main loop will save to eeprom
-    }
-}
-
-// I2C command to read elapsed_time_since_dayTmrStarted
-void fnDayNightTimer(uint8_t* i2cBuffer)
-{
-    unsigned long elapsed_time_since_dayTmrStarted = elapsed(&dayTmrStarted);
-    // there are four bytes in an unsigned long
-    i2cBuffer[1] = ( (0xFF000000UL & elapsed_time_since_dayTmrStarted) >>24 ); 
-    i2cBuffer[2] =  ( (0x00FF0000UL & elapsed_time_since_dayTmrStarted) >>16 ); 
-    i2cBuffer[3] =  ( (0x0000FF00UL & elapsed_time_since_dayTmrStarted) >>8 ); 
-    i2cBuffer[4] =  ( (0x000000FFUL & elapsed_time_since_dayTmrStarted) );
 }
 
 /* Dummy function */

@@ -155,7 +155,7 @@ void setup(void)
 
     // load Day-Night state machine values from EEPROM (or set defaults)
     LoadDayNightValuesFromEEPROM();
-    dayTmrStarted = milliseconds();
+    daynight_timer = milliseconds();
 
     // load Calibrations for for adc channels ALT_I, ALT_V,PWR_I,PWR_V
     cal_loaded = CAL_CLEAR;

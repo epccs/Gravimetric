@@ -6,10 +6,10 @@
 49. recover trancever control bits after test_mode.
 50. read trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, DTR_nRE =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
 51. set trancever control bits durring test_mode, e.g. 0b11101010 is HOST_nRTS = 1, HOST_nCTS =1, TX_nRE = 1, TX_DE =0, DTR_nRE =1, DTR_DE = 0, RX_nRE =1, RX_DE = 0.
-52. access evening_debouce millis time (uint32_t)
-53. access morning_debouce millis time (uint32_t)
-54. read daynight_timer millis time (uint32_t)
-55. 
+52. not used.
+53. not used.
+54. not used.
+55. not used.
 
 Note: evening_debouce and morning_debouce are used for the day-night state machine, the command number may change at some point. 
 
@@ -251,62 +251,18 @@ print(bus.read_i2c_block_data(42, 51, 2))
 ``` 
 
 
-## Cmd 52 from a controller /w i2c-debug to access evening_debouce
+## Cmd 52 is not used.
 
-Send command and an ignored long integer (0) in four bytes to see what the evening_debouce value is.
+repurpose
 
-``` 
-# I am using the bootload interface 
-picocom -b 38400 /dev/ttyUSB0
-/1/iaddr 41
-{"address":"0x29"}
-/1/ibuff 52,0,0,0,0
-{"txBuffer[5]":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
-```
+## Cmd 53 is not used.
 
-The four bytes sum to 1,200,000 (e.g., 0*(2**24) + 0x12*(2**16) + 0x4F*(2**8) + 0x80) mSec or 20 min.
-
-Values that are outside the valid range are ignored (8000 to 3,600,000 or 8sec to 60 min). The limits are in daynight_limits.h. 
-
-``` 
-/1/ibuff 52,0,0,31,65
-{"txBuffer[5]":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
-/1/ibuff 52,0,0,0,0
-{"txBuffer[5]":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
-```
-
-The value 8001 (e.g., 31*(2**8) + 65) sent was swapped with the default (20 min); the second exchange has ignored data that was swapped with the updated value (8 sec).
+repurpose
 
 
-## Cmd 53 from a controller /w i2c-debug to access morning_debouce
+## Cmd 54 is not used.
 
-Same as command 52 (above) but for morning.
-
-``` 
-/1/ibuff 53,0,0,31,65
-{"txBuffer[5]":[{"data":"0x35"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x35"},{"data":"0x0"},{"data":"0x12"},{"data":"0x4F"},{"data":"0x80"}]}
-/1/ibuff 53,0,0,0,0
-{"txBuffer[5]":[{"data":"0x35"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"},{"data":"0x0"}]}
-/1/iread? 5
-{"rxBuffer":[{"data":"0x34"},{"data":"0x0"},{"data":"0x0"},{"data":"0x1F"},{"data":"0x41"}]}
-```
-
-
-## Cmd 54 from a controller /w i2c-debug to read manager daynight millis timer
-
-Read the Day-Night state machine timer, it is used to debounce day and night.
-
-TBD
-
-Started for debuging, but kept for progress reports.
+repurpose
 
 
 

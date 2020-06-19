@@ -29,7 +29,7 @@ extern void fnBatteryIntAccess(uint8_t*);  // 17
 extern void fnBatteryULAccess(uint8_t*); // 18
 extern void fnDayNightMgr(uint8_t*); // 19
 extern void fnDayNightIntAccess(uint8_t*); // 20
-// not used // 21
+extern void fnDayNightULAccess(uint8_t*); // 21
 // not used // 22
 // not used // 23
 
@@ -49,9 +49,9 @@ extern void fnStartTestMode(uint8_t*); //48
 extern void fnEndTestMode(uint8_t*); //49
 extern void fnRdXcvrCntlInTestMode(uint8_t*); //50
 extern void fnWtXcvrCntlInTestMode(uint8_t*); //51
-extern void fnMorningDebounce(uint8_t*); //52
-extern void fnEveningDebounce(uint8_t*); //53
-extern void fnDayNightTimer(uint8_t*); //54
+// not used  //52
+// not used  //53
+// not used  //54
 // not used  //55
 
 /* Dummy function */
