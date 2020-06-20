@@ -48,9 +48,17 @@ void dnReport(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_int_access_cmd(MORNING_THRESHOLD,0,&loop_state);
+            local_copy = i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD,0,&loop_state);
         }
-        printf_P(PSTR("\"mor_threshold\":\"%u\","),local_copy);
+        printf_P(PSTR("\"mor_threshold\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%u\","),local_copy);
+        }
         command_done = 13;
     }
     else if ( (command_done == 13) ) 
@@ -59,9 +67,17 @@ void dnReport(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_int_access_cmd(EVENING_THRESHOLD,0,&loop_state);
+            local_copy = i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD,0,&loop_state);
         }
-        printf_P(PSTR("\"eve_threshold\":\"%u\","),local_copy);
+        printf_P(PSTR("\"eve_threshold\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%u\","),local_copy);
+        }
         command_done = 14;
     }
     else if ( (command_done == 14) ) 
@@ -81,7 +97,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_access_cmd(MORNING_DEBOUNCE,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_MORNING_DEBOUNCE,0,&loop_state);
         }
         printf_P(PSTR("\"mor_debounce\":"));
         if (mgr_twiErrorCode)
@@ -100,7 +116,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_access_cmd(EVENING_DEBOUNCE,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_EVENING_DEBOUNCE,0,&loop_state);
         }
         printf_P(PSTR("\"eve_debounce\":"));
         if (mgr_twiErrorCode)
@@ -119,7 +135,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_ELAPSED_TIMER,0,&loop_state);
         }
         printf_P(PSTR("\"dn_timer\":"));
         if (mgr_twiErrorCode)
@@ -178,18 +194,17 @@ void dnMorningThreshold(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, the old value is returned, but not needed
-            i2c_int_access_cmd(MORNING_THRESHOLD,int_to_send,&loop_state);
+            i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
     }
     if ( (command_done == 12) ) 
     {
-        int int_to_send = 0;
         int int_to_get = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            int_to_get = i2c_int_access_cmd(MORNING_THRESHOLD,int_to_send,&loop_state);
+            int_to_get = i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD,0,&loop_state);
         }
         printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
         initCommandBuffer();
@@ -228,18 +243,17 @@ void dnEveningThreshold(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, the old value is returned, but not needed
-            i2c_int_access_cmd(EVENING_THRESHOLD,int_to_send,&loop_state);
+            i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
     }
     if ( (command_done == 12) ) 
     {
-        int int_to_send = 0;
         int int_to_get = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            int_to_get = i2c_int_access_cmd(EVENING_THRESHOLD,int_to_send,&loop_state);
+            int_to_get = i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD,0,&loop_state);
         }
         printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
         initCommandBuffer();
@@ -296,18 +310,17 @@ void dnMorningDebounce(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, the old value is returned, but not needed
-            i2c_ul_access_cmd(MORNING_DEBOUNCE,ul_to_send,&loop_state);
+            i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_MORNING_DEBOUNCE+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
     }
     if ( (command_done == 12) ) 
     {
-        unsigned long ul_to_send = 0;
         unsigned long ul_to_get = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            ul_to_get = i2c_ul_access_cmd(MORNING_DEBOUNCE,ul_to_send,&loop_state);
+            ul_to_get = i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_MORNING_DEBOUNCE,0,&loop_state);
         }
         printf_P(PSTR("\"%lu\""),ul_to_get);
         if(!ul_to_get)
@@ -369,18 +382,17 @@ void dnEveningDebounce(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, the old value is returned, but not needed
-            i2c_ul_access_cmd(EVENING_DEBOUNCE,ul_to_send,&loop_state);
+            i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_EVENING_DEBOUNCE+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
     }
     if ( (command_done == 12) ) 
     {
-        unsigned long ul_to_send = 0;
         unsigned long ul_to_get = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            ul_to_get = i2c_ul_access_cmd(EVENING_DEBOUNCE,ul_to_send,&loop_state);
+            ul_to_get = i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_EVENING_DEBOUNCE,0,&loop_state);
         }
         printf_P(PSTR("\"%lu\""),ul_to_get);
         if(!ul_to_get)

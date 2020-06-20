@@ -167,20 +167,20 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [Point To Multi-Point]: ./PointToMultiPoint.md
 
-0. access the multi-drop address, range 48..122 (ASCII '0'..'z').
-1. access status bits.
-2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
-3. access arduino_mode.
-4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
-5. access shutdown manager uint16 values. shutdown_halt_curr_limit
-6. access shutdown manager uint32 values. shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
+0. Access the multi-drop address, range 48..122 (ASCII '0'..'z').
+1. Access status bits.
+2. Access the multi-drop bootload address that will be sent when DTR/RTS toggles.
+3. Access arduino_mode.
+4. Set host shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
+5. Access shutdown manager uint16 values. shutdown_halt_curr_limit
+6. Access shutdown manager uint32 values. shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
 7. not used.
 
 [PV and Battery] Management commands 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
 [PV and Battery]: ./PVandBattery.md
 
-16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
+16. Set battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
 17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 18. Access battery manager uint32 values. alt_pwm_accum_charge_time
 19. Set daynight i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).

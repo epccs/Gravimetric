@@ -178,12 +178,12 @@ void setup(void)
     TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL,&loop_state); // 18 sec 
+        i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_EVENING_DEBOUNCE+RW_WRITE_BIT,18000UL,&loop_state); // 18 sec
     }
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL,&loop_state);
+        i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_MORNING_DEBOUNCE+RW_WRITE_BIT,18000UL,&loop_state);
     }
 
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
@@ -192,12 +192,12 @@ void setup(void)
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_int_access_cmd(EVENING_THRESHOLD,40,&loop_state);
+        i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD+RW_WRITE_BIT,40,&loop_state);
     }
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_int_access_cmd(MORNING_THRESHOLD,80,&loop_state);
+        i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD+RW_WRITE_BIT,80,&loop_state);
     }
 
     // register daynight callbacks

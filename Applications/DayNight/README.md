@@ -174,3 +174,5 @@ Day: Charge the battry
 {"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"10014"}
 {"state":"0x4","mor_threshold":"80","eve_threshold":"40","adc_alt_v":"0","mor_debounce":"18000","eve_debounce":"18000","dn_timer":"15014"}
 ```
+
+The state is unknown until the application receives an event update.

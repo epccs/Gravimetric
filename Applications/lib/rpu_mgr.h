@@ -38,9 +38,6 @@ float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, 
 
 // values used for i2c_ul_access_cmd
 #define CHARGE_BATTERY_PWM 20
-#define EVENING_DEBOUNCE 52
-#define MORNING_DEBOUNCE 53
-#define DAYNIGHT_TIMER 54
 
 // values used for i2c_ul_rwoff_access_cmd
 #define SHUTDOWN_UL_CMD 6
@@ -51,15 +48,26 @@ float i2c_float_access_cmd(uint8_t command, uint8_t select, float *update_with, 
 #define SHUTDOWN_STARTED_AT 4
 #define SHUTDOWN_HALT_CHK_AT 5
 #define SHUTDOWN_WEARLVL_DONE_AT 6
-
-// values used for i2c_int_access_cmd
-#define CHARGE_BATTERY_LOW 18
-#define CHARGE_BATTERY_HIGH 19
-#define MORNING_THRESHOLD 21
-#define EVENING_THRESHOLD 22
+#define DAYNIGHT_UL_CMD 21
+#define DAYNIGHT_MORNING_DEBOUNCE 0
+#define DAYNIGHT_EVENING_DEBOUNCE 1
+#define DAYNIGHT_ELAPSED_TIMER 2
+#define DAYNIGHT_ELAPSED_NIGHT 3
+#define DAYNIGHT_ELAPSED_DAY 4
+#define DAYNIGHT_ALT_MTI_NIGHT 5 /* (accumulation of ALT_I readings every 10mSec / 10**6) at night event */
+#define DAYNIGHT_PWR_MTI_NIGHT 6 /* (accumulation of PWR_I readings every 10mSec / 10**6) at night event */
+#define DAYNIGHT_ALT_MTI_DAY 7 /* (accumulation of ALT_I readings every 10mSec / 10**6) at day event */
+#define DAYNIGHT_PWR_MTI_DAY 8 /* (accumulation of PWR_I readings every 10mSec / 10**6) at day event */
 
 // values used for i2c_int_rwoff_access_cmd
 #define SHUTDOWN_INT_CMD 5
 #define SHUTDOWN_HALT_CURR_OFFSET 0
+#define DAYNIGHT_INT_CMD 20
+#define DAYNIGHT_MORNING_THRESHOLD 0
+#define DAYNIGHT_EVENING_THRESHOLD 1
+
+// values used for i2c_int_access_cmd
+#define CHARGE_BATTERY_LOW 18
+#define CHARGE_BATTERY_HIGH 19
 
 #endif // Rpu_Mgr_h

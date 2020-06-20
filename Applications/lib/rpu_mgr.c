@@ -65,9 +65,9 @@ uint8_t i2c_address_; // master address this slave
 // shutdown_halt_curr_limit
 #define INT_RW_ARRY_CMD_SIZE 4
 
-// set daynight callback address 49, state cmd 1, day evnt 2, night evnt 3.
-// e.g., manager cmd 23 is used to set daynight state machine callbacks. 
-#define DAYNIGHT_CALLBK_CMD {0x17,0x31,0x1,0x2,0x3}
+// set daynight callback address 49, report daynight_state cmd 1, day evnt 2, night evnt 3.
+// e.g., manager cmd 19 is used to set daynight state machine callbacks. 
+#define DAYNIGHT_CALLBK_CMD {0x13,0x31,0x1,0x2,0x3}
 #define DAYNIGHT_CALLBK_CMD_SIZE 5
 
 // set battery callback address 49, state cmd 16
@@ -345,12 +345,9 @@ void i2c_shutdown_cmd(uint8_t my_callback_addr, uint8_t up)
 
 // management commands to access managers unsigned long prameters e.g.,
 // 20 .. CHARGE_BATTERY_PWM 
-// 52 .. EVENING_DEBOUNCE 
-// 53 .. MORNING_DEBOUNCE 
-// 54 .. DAYNIGHT_TIMER
 unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with, TWI0_LOOP_STATE_t *loop_state)
 {
-    if ( ((command<52) || (command>54)) && (command != 20) ) 
+    if ( (command != 20) ) 
     {
         mgr_twiErrorCode = 6;
         *loop_state = TWI0_LOOP_STATE_DONE;
@@ -399,35 +396,15 @@ unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with, TWI0
 }
 
 // management commands that take r/w+offset byte and use it to access an array of unsigned long prameters's e.g.,
-//  6 .. SHUTDOWN_UL_CMD and [SHUTDOWN_TTL_OFFSET, SHUTDOWN_DELAY_OFFSET, SHUTDOWN_WEARLEVEL_OFFSET]
+//  6 .. SHUTDOWN_UL_CMD and SHUTDOWN_[TTL_OFFSET|DELAY_OFFSET|WEARLEVEL_OFFSET|...WEARLVL_DONE_AT]
+// 21 .. DAYNIGHT_UL_CMD and DAYNIGHT_[MORNING_DEBOUNCE|EVENING_DEBOUNCE|...PWR_MTI_DAY]
 unsigned long i2c_ul_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, unsigned long update_with, TWI0_LOOP_STATE_t *loop_state)
 {
-    if ( (command != SHUTDOWN_UL_CMD) ) 
+    if ( !((command == SHUTDOWN_UL_CMD) | (command == DAYNIGHT_UL_CMD)) ) 
     {
         mgr_twiErrorCode = 6;
         *loop_state = TWI0_LOOP_STATE_DONE;
         return 0;
-    }
-
-    uint8_t offset = rw_offset & 0x7F;
-    if ( (command == SHUTDOWN_UL_CMD)) 
-    {
-        switch (offset)
-        {
-        case SHUTDOWN_TTL_OFFSET:
-        case SHUTDOWN_DELAY_OFFSET:
-        case SHUTDOWN_WEARLEVEL_OFFSET:
-        case SHUTDOWN_KRUNTIME:
-        case SHUTDOWN_STARTED_AT:
-        case SHUTDOWN_HALT_CHK_AT:
-        case SHUTDOWN_WEARLVL_DONE_AT:
-            break;
-        
-        default:
-            mgr_twiErrorCode = 6;
-            *loop_state = TWI0_LOOP_STATE_DONE;
-            return 0;
-        }
     }
 
     unsigned long value = 0;
@@ -478,12 +455,10 @@ unsigned long i2c_ul_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, unsign
 // management commands that take an int to update and return an int e.g. 
 // 18 .. CHARGE_BATTERY_LOW
 // 19 .. CHARGE_BATTERY_HIGH 
-// 21 .. MORNING_THRESHOLD daynight threshold prameter
-// 22 .. EVENING_THRESHOLD daynight threshold prameter
 // 32 .. takes a ADC_CH_MGR_enum and returns the 10 bit adc reading (ALT_I | ALT_V | PWR_I | PWR_V)
 int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop_state)
 {
-    if ( (command != 32) && (((command<18) || (command>22)) || (command==20)) ) 
+    if ( (command != 32) && ((command<18) || (command>19)) ) 
     {
         mgr_twiErrorCode = 6;
         *loop_state = TWI0_LOOP_STATE_DONE;
@@ -536,16 +511,10 @@ int i2c_int_access_cmd(uint8_t command, int update_with, TWI0_LOOP_STATE_t *loop
 
 // management commands that take r/w+offset byte and use it to access an array of int's  e.g.,
 //  5 .. SHUTDOWN_INT_CMD and SHUTDOWN_HALT_CURR_OFFSET
+// 20 .. DAYNIGHT_INT_CMD and DAYNIGHT_[MORNING_THRESHOLD|EVENING_THRESHOLD]
 int i2c_int_rwoff_access_cmd(uint8_t command, uint8_t rw_offset, int update_with, TWI0_LOOP_STATE_t *loop_state)
 {
-    if ( (command != SHUTDOWN_INT_CMD) ) 
-    {
-        mgr_twiErrorCode = 6;
-        *loop_state = TWI0_LOOP_STATE_DONE;
-        return 0;
-    }
-
-    if ( (command == SHUTDOWN_INT_CMD) && ((rw_offset & 0x7F) != SHUTDOWN_HALT_CURR_OFFSET) ) 
+    if ( !((command == SHUTDOWN_INT_CMD) | (command == DAYNIGHT_INT_CMD)) ) 
     {
         mgr_twiErrorCode = 6;
         *loop_state = TWI0_LOOP_STATE_DONE;
