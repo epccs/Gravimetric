@@ -268,9 +268,12 @@ void check_uart(void)
 
                     // start the bootloader
                     ioWrite(MCU_IO_MGR_nSS, LOGIC_LEVEL_LOW);   // nSS goes through a open collector buffer to nRESET
-                    battery_state_callback_cmd = 0; // turn off i2c battery manager callback but keep battery manager running 
-                    shutdown_state_callback_cmd = 0; // turn off i2c host shutdown callback but do not DOWN the host 
+                    bm_callback_address = 0;
+                    bm_callback_route = 0; // turn off i2c battery manager callback
+                    shutdown_callback_address = 0;
+                    shutdown_callback_route = 0; // turn off i2c host shutdown callback
                     daynight_callback_address = 0;
+                    daynight_callback_route = 0;
                     target_reset_started_at = milliseconds();
                     my_mcu_is_target_and_i_have_it_reset = 1;
                     return; 

@@ -14,8 +14,9 @@ extern BATTERYMGR_STATE_t bm_state;
 
 extern unsigned long alt_pwm_accum_charge_time;
 
-extern uint8_t enable_bm_callback_address; // enable bm and set callback address, zero will disable and stop sending events to application
-extern uint8_t battery_state_callback_cmd; // command number to use with bm event updates, zero will prevent sending events to application but bm will run.
+extern uint8_t bm_callback_address; // callback address of the application (i2c slave)
+extern uint8_t bm_callback_route; // routing number to use when sending the battery manager state update 
+extern uint8_t bm_enable; // enable battery manager
 
 extern void check_battery_manager(void);
 

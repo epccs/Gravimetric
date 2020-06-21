@@ -52,7 +52,7 @@ unsigned long shutdown_halt_chk_at;
 unsigned long shutdown_wearleveling_done_at; 
 
 uint8_t shutdown_callback_address;
-uint8_t shutdown_state_callback_cmd;
+uint8_t shutdown_callback_route;
 TWI0_LOOP_STATE_t loop_state;
 
 uint8_t fail_wip;
@@ -86,10 +86,10 @@ void check_if_host_should_be_on(void)
                 ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
                 shutdown_kRuntime = milliseconds();
                 shutdown_state = HOSTSHUTDOWN_STATE_HALT;
-                if (shutdown_callback_address && shutdown_state_callback_cmd)
+                if (shutdown_callback_address && shutdown_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                    i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
                 }
             }
         }
@@ -105,25 +105,25 @@ void check_if_host_should_be_on(void)
         ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_LOW);
         shutdown_kRuntime = milliseconds();
         shutdown_state = HOSTSHUTDOWN_STATE_HALT;
-        if (shutdown_callback_address && shutdown_state_callback_cmd)
+        if (shutdown_callback_address && shutdown_callback_route)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+            i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
         }
         break;
 
     case HOSTSHUTDOWN_STATE_HALT: // a manual or software halt is starting
         if (kRuntime > 200UL) // hold the shutdown pin low for 200mSec
         {
-            resume_bm_enable = enable_bm_callback_address;
-            enable_bm_callback_address = 0;
+            resume_bm_enable = bm_enable;
+            bm_enable = 0;
             shutdown_started_at = milliseconds(); // save the time at which shutdown started
             shutdown_kRuntime = milliseconds(); // start timer again for TTL
             shutdown_state = HOSTSHUTDOWN_STATE_CURR_CHK;
-            if (shutdown_callback_address && shutdown_state_callback_cmd)
+            if (shutdown_callback_address && shutdown_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
             }
         }
         break;
@@ -133,10 +133,10 @@ void check_if_host_should_be_on(void)
         {
             shutdown_halt_chk_at = milliseconds(); // save time when current on PWR_I was bellow the expected level
             shutdown_state = HOSTSHUTDOWN_STATE_AT_HALT_CURR;
-            if (shutdown_callback_address && shutdown_state_callback_cmd)
+            if (shutdown_callback_address && shutdown_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
             }
         }
         else 
@@ -144,10 +144,10 @@ void check_if_host_should_be_on(void)
                 if (kRuntime > shutdown_ttl_limit) // time out
                 {
                     shutdown_state = HOSTSHUTDOWN_STATE_HALTTIMEOUT_RESET_APP;
-                    if (shutdown_callback_address && shutdown_state_callback_cmd)
+                    if (shutdown_callback_address && shutdown_callback_route)
                     {
                         if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                        i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                        i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
                     }
                 }
             }
@@ -158,20 +158,20 @@ void check_if_host_should_be_on(void)
         //          hold the appliction in reset and try again?
         //          HOSTSHUTDOWN_STATE_AT_HALT_CURR will power off anyway.
         shutdown_state = HOSTSHUTDOWN_STATE_FAIL;
-        if (shutdown_callback_address && shutdown_state_callback_cmd)
+        if (shutdown_callback_address && shutdown_callback_route)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+            i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
         }
         break;
 
     case HOSTSHUTDOWN_STATE_AT_HALT_CURR: // PWR_I is bellow the expected level, it is differnt for each model of R-Pi
         shutdown_kRuntime = milliseconds(); // start timer for delay after we are at halt current
         shutdown_state = HOSTSHUTDOWN_STATE_DELAY;
-        if (shutdown_callback_address && shutdown_state_callback_cmd)
+        if (shutdown_callback_address && shutdown_callback_route)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+            i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
         }
         break;
 
@@ -179,10 +179,10 @@ void check_if_host_should_be_on(void)
         if (kRuntime > shutdown_delay_limit) // delay
         {
             shutdown_state = HOSTSHUTDOWN_STATE_WEARLEVELING;
-            if (shutdown_callback_address && shutdown_state_callback_cmd)
+            if (shutdown_callback_address && shutdown_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
             }
         }
         break;
@@ -198,11 +198,11 @@ void check_if_host_should_be_on(void)
                 ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
                 ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up on old AVR Mega parts
                 shutdown_wearleveling_done_at = milliseconds();
-                enable_bm_callback_address = resume_bm_enable; // restore battery manager enable
-                if (shutdown_callback_address && shutdown_state_callback_cmd)
+                bm_enable = resume_bm_enable; // restore battery manager enable
+                if (shutdown_callback_address && shutdown_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                    i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
                 }
             }
         }
@@ -219,10 +219,10 @@ void check_if_host_should_be_on(void)
             if (kRuntime > 2000UL) 
             {
                 shutdown_state = HOSTSHUTDOWN_STATE_RESTART;
-                if (shutdown_callback_address && shutdown_state_callback_cmd)
+                if (shutdown_callback_address && shutdown_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                    i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
                 }
             }
         }
@@ -242,10 +242,10 @@ void check_if_host_should_be_on(void)
                 ioWrite(MCU_IO_PIPWR_EN, LOGIC_LEVEL_HIGH); // power up the SBC
                 ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT);
                 ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // lockout manual shutdown switch
-                if (shutdown_callback_address && shutdown_state_callback_cmd)
+                if (shutdown_callback_address && shutdown_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                    i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
                 }
             }
         }
@@ -261,10 +261,10 @@ void check_if_host_should_be_on(void)
             shutdown_state = HOSTSHUTDOWN_STATE_UP;
             ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
             ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable manual shutdown switch (with weak pull up)
-            if (shutdown_callback_address && shutdown_state_callback_cmd)
+            if (shutdown_callback_address && shutdown_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(shutdown_callback_address, shutdown_state_callback_cmd, shutdown_state, &loop_state); // update application
+                i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
             }
         }
         break;

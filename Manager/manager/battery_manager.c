@@ -48,15 +48,16 @@ BATTERYMGR_STATE_t bm_state;
 unsigned long alt_pwm_started_at; // pwm on time
 unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pwm was done (e.g., approx LA absorption time)
 
-uint8_t enable_bm_callback_address;
-uint8_t battery_state_callback_cmd;
+uint8_t bm_callback_address;
+uint8_t bm_callback_route;
+uint8_t bm_enable;
 TWI0_LOOP_STATE_t loop_state;
 unsigned long ontime;
 
 uint8_t fail_wip;
 
 // battery manager: controls ALT_EN pin PB3 to charge a battery connected on the power input
-// enable_bm_callback_address must be set to start charging
+// bm_enable must be set to start charging
 // to do: pwm with a 2 second period, pwm ratio is from battery_high_limit at 25% to battery_low_limit at 75%
 void check_battery_manager(void)
 {
@@ -70,8 +71,8 @@ void check_battery_manager(void)
     if (bat_limit_loaded > BAT_LIM_DEFAULT) return;
 
     // disable if not day or callback is zero
-    // callback also needs battery_state_callback_cmd set or state machine will run without sending updates to application
-    if (enable_bm_callback_address && (daynight_state == DAYNIGHT_STATE_DAY) ) 
+    // callback also needs bm_callback_route set or state machine will run without sending updates to application
+    if (bm_enable && (daynight_state == DAYNIGHT_STATE_DAY) ) 
     {
         int battery = adcAtomic(ADC_CH_PWR_V);
         int pwm_range = ( (battery_high_limit - battery_low_limit)>>1 ); // half the diff between high and low limit
@@ -83,10 +84,10 @@ void check_battery_manager(void)
             alt_pwm_started_at = milliseconds();
             ontime = 0;
             bm_state = BATTERYMGR_STATE_PWM_MODE;
-            if (battery_state_callback_cmd)
+            if (bm_callback_address && bm_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
             }
             break;
 
@@ -96,10 +97,10 @@ void check_battery_manager(void)
                 // rest is over
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
                 bm_state = BATTERYMGR_STATE_CC_MODE;
-                if (battery_state_callback_cmd)
+                if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                    i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                 }
             }
             break;
@@ -114,10 +115,10 @@ void check_battery_manager(void)
                 alt_pwm_started_at = milliseconds();
                 ontime = 0;
                 bm_state = BATTERYMGR_STATE_PWM_MODE;
-                if (battery_state_callback_cmd)
+                if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                    i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                 }
                 break;
             }
@@ -128,10 +129,10 @@ void check_battery_manager(void)
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 bm_state = BATTERYMGR_STATE_CC_REST;
                 alt_pwm_started_at += ALT_REST_PERIOD;
-                if (battery_state_callback_cmd)
+                if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                    i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                 }
             }
             break;
@@ -142,10 +143,10 @@ void check_battery_manager(void)
             {
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 bm_state = BATTERYMGR_STATE_DONE; // charge is done
-                if (battery_state_callback_cmd)
+                if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                    i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                 }
                 break;
             }
@@ -171,10 +172,10 @@ void check_battery_manager(void)
                     else
                     {
                         bm_state = BATTERYMGR_STATE_CC_REST;
-                        if (battery_state_callback_cmd)
+                        if (bm_callback_address && bm_callback_route)
                         {
                             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                            i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                            i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                         }
                     }
                     
@@ -195,10 +196,10 @@ void check_battery_manager(void)
                 alt_pwm_started_at = milliseconds();
                 ontime = 0;
                 bm_state = BATTERYMGR_STATE_PWM_MODE;
-                if (battery_state_callback_cmd)
+                if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                    i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                 }
             }
             break;
@@ -209,17 +210,18 @@ void check_battery_manager(void)
             {
             case 0: // turn off alternat power input and report failure
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
-                if (battery_state_callback_cmd)
+                if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                    i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                 }
                 fail_wip = 1;
                 break;
 
                 case 1: // turn off the alternat power control state machine
-                    battery_state_callback_cmd = 0;
-                    enable_bm_callback_address =0;
+                    // bm_callback_route = 0;
+                    // bm_callback_address =0;
+                    bm_enable = 0;
                     fail_wip = 0;
                     break;
 
@@ -238,10 +240,10 @@ void check_battery_manager(void)
         {
             ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
             bm_state = BATTERYMGR_STATE_DONE;
-            if (enable_bm_callback_address && battery_state_callback_cmd)
+            if (bm_callback_address && bm_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                i2c_callback(enable_bm_callback_address, battery_state_callback_cmd, bm_state, &loop_state); // update application
+                i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
             }
             return;
         }

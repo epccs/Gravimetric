@@ -231,7 +231,7 @@ void fnArduinMode(uint8_t* i2cBuffer)
 void fnHostShutdwnMgr(uint8_t* i2cBuffer)
 {
     shutdown_callback_address = i2cBuffer[1]; // non-zero is the i2c slave address used for callback
-    shutdown_state_callback_cmd = i2cBuffer[2]; // however the callback will only happen if this value is > zero
+    shutdown_callback_route = i2cBuffer[2]; // however the callback will only happen if this value is > zero
     if (i2cBuffer[3]) // bring host UP
     {
         if (shutdown_state == HOSTSHUTDOWN_STATE_DOWN)  // host must be down to bring up
@@ -399,10 +399,15 @@ void fnHostShutdwnULAccess(uint8_t* i2cBuffer)
 
 // I2C command to enable battery manager and set a i2c callback address for bm_state when command command byte is > zero.
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
+// I2C: byte[0] = 16, 
+//      byte[1] = the callback address to use,
+//      byte[2] = callback cmd value to use (the receiving slave will use the value to route the event value),
+//      byte[3] = used to enable = 1..255 / disable = 0 the battery manager.
 void fnBatteryMgr(uint8_t* i2cBuffer)
 { 
-    enable_bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
-    battery_state_callback_cmd = i2cBuffer[2]; // callback will only happen if this value is > zero
+    bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
+    bm_callback_route = i2cBuffer[2]; // callback route value
+    bm_enable = i2cBuffer[3]; // allow the battery manager to operate
 }
 
 // I2C command to access battery manager uint16 values.
@@ -530,9 +535,10 @@ void fnBatteryULAccess(uint8_t* i2cBuffer)
 void fnDayNightMgr(uint8_t* i2cBuffer)
 { 
     daynight_callback_address = i2cBuffer[1];
-    daynight_state_callback_cmd = i2cBuffer[2];
+    daynight_callback_route = i2cBuffer[2];
     day_work_callback_cmd = i2cBuffer[3];
     night_work_callback_cmd = i2cBuffer[4];
+    daynight_state_callback_poke = 1; // don't poke me... oh you must have reset.
 }
 
 // I2C command to access daynight manager uint16 values.
