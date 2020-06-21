@@ -144,7 +144,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
         }
         else
         {
-            printf_P(PSTR("\"%lu\","),local_copy);
+            printf_P(PSTR("\"%lu\""),local_copy);
         }
         command_done = 24;
     }

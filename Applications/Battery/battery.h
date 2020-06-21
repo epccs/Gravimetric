@@ -16,5 +16,6 @@ extern void EnableBatMngCntl(void);
 extern void ReportBatMngCntl(unsigned long serial_print_delay_milsec);
 extern void BatMngLowLimit(void);
 extern void BatMngHighLimit(void);
+extern void BatMngHostLimit(void);
 
 #endif // Battery_H 

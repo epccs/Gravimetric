@@ -93,9 +93,17 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_int_access_cmd(CHARGE_BATTERY_LOW,0,&loop_state);
+            local_copy = i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_LOW,0,&loop_state);
         }
-        printf_P(PSTR("\"bat_low_lim\":\"%u\","),local_copy);
+        printf_P(PSTR("\"bat_low_lim\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%u\","),local_copy);
+        }
         command_done = 13;
     }
     else if ( (command_done == 13) ) 
@@ -104,12 +112,40 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_int_access_cmd(CHARGE_BATTERY_HIGH,0,&loop_state);
+            local_copy = i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HIGH,0,&loop_state);
         }
-        printf_P(PSTR("\"bat_high_lim\":\"%u\","),local_copy);
+        printf_P(PSTR("\"bat_high_lim\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%u\","),local_copy);
+        }
         command_done = 14;
     }
     else if ( (command_done == 14) ) 
+    {
+        int local_copy = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            local_copy = i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HOST,0,&loop_state);
+        }
+        printf_P(PSTR("\"bat_host_lim\":"));
+        if (mgr_twiErrorCode)
+        {
+            printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
+        }
+        else
+        {
+            printf_P(PSTR("\"%u\","),local_copy);
+        }
+        command_done = 15;
+    }
+
+    else if ( (command_done == 15) ) 
     {
         int adc_reads = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
@@ -118,9 +154,9 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             adc_reads = i2c_get_adc_from_manager(ADC_CH_MGR_PWR_V,&loop_state);
         }
         printf_P(PSTR("\"adc_pwr_v\":\"%u\","),adc_reads);
-        command_done = 15;
+        command_done = 16;
     }
-    else if ( (command_done == 15) ) 
+    else if ( (command_done == 16) ) 
     {
         int adc_reads = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
@@ -129,15 +165,15 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             adc_reads = i2c_get_adc_from_manager(ADC_CH_MGR_ALT_V,&loop_state);
         }
         printf_P(PSTR("\"adc_alt_v\":\"%u\","),adc_reads);
-        command_done = 16;
+        command_done = 17;
     }
-    else if ( (command_done == 16) ) 
+    else if ( (command_done == 17) ) 
     {
         unsigned long local_copy = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_access_cmd(CHARGE_BATTERY_PWM,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(BATTERY_UL_CMD,BATTERY_CHARGE_PWM,0,&loop_state);
         }
         printf_P(PSTR("\"pwm_timer\":"));  // alt_pwm_accum_charge_time
         if (mgr_twiErrorCode)
@@ -148,24 +184,24 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         {
             printf_P(PSTR("\"%lu\","),local_copy);
         }
-        command_done = 17;
+        command_done = 18;
     }
-    else if ( (command_done == 17) ) 
+    else if ( (command_done == 18) ) 
     {
         unsigned long local_copy = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_access_cmd(DAYNIGHT_TIMER,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_ELAPSED_TIMER,0,&loop_state);
         }
-        printf_P(PSTR("\"dn_timer\":")); // elapsed_time_since_dayTmrStarted
+        printf_P(PSTR("\"dn_timer\":")); // elapsed time since last daynight event
         if (mgr_twiErrorCode)
         {
             printf_P(PSTR("\"err%d\","),mgr_twiErrorCode);
         }
         else
         {
-            printf_P(PSTR("\"%lu\","),local_copy);
+            printf_P(PSTR("\"%lu\""),local_copy);
         }
         command_done = 24;
     }
@@ -216,18 +252,17 @@ void BatMngLowLimit(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, the old value is returned, but not needed
-            i2c_int_access_cmd(CHARGE_BATTERY_LOW,int_to_send,&loop_state);
+            i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_LOW+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
     }
     if ( (command_done == 12) ) 
     {
-        int int_to_send = 0;
         int int_to_get = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            int_to_get = i2c_int_access_cmd(CHARGE_BATTERY_LOW,int_to_send,&loop_state);
+            int_to_get = i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_LOW,0,&loop_state);
         }
         printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
         initCommandBuffer();
@@ -266,21 +301,70 @@ void BatMngHighLimit(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, the old value is returned, but not needed
-            i2c_int_access_cmd(CHARGE_BATTERY_HIGH,int_to_send,&loop_state);
+            i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HIGH+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
     }
     if ( (command_done == 12) ) 
     {
-        int int_to_send = 0;
         int int_to_get = 0;
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            int_to_get = i2c_int_access_cmd(CHARGE_BATTERY_HIGH,int_to_send,&loop_state);
+            int_to_get = i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HIGH,0,&loop_state);
         }
         printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
         initCommandBuffer();
         return;
     }
 }
+
+// /0/bmhost? [value]
+// set battery manager battery_host_limit
+void BatMngHostLimit(void)
+{
+    if ( (command_done == 10) )
+    {
+        // if got argument[0] check its rage (it is used with 10 bit ADC)
+        if (arg_count == 1)
+        {
+            if ( ( !( isdigit(arg[0][0]) ) ) || (atoi(arg[0]) < 0) || (atoi(arg[0]) >= (1<<10) ) )
+            {
+                printf_P(PSTR("{\"err\":\"BMHostLimMax 1023\"}\r\n"));
+                initCommandBuffer();
+                return;
+            }
+            command_done = 11;
+        }
+        else
+        {
+            command_done = 12;
+        }
+        printf_P(PSTR("{\"bat_host_lim\":"));
+    }
+    if ( (command_done == 11) ) 
+    {
+        int int_to_send = 0;
+        if (arg_count == 1) int_to_send = atoi(arg[0]);
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            // update the manager, the old value is returned, but not needed
+            i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HOST+RW_WRITE_BIT,int_to_send,&loop_state);
+        }
+        command_done = 12;
+    }
+    if ( (command_done == 12) ) 
+    {
+        int int_to_get = 0;
+        TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
+        while (loop_state != TWI0_LOOP_STATE_DONE)
+        {
+            int_to_get = i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HOST,0,&loop_state);
+        }
+        printf_P(PSTR("\"%u\"}\r\n"),int_to_get);
+        initCommandBuffer();
+        return;
+    }
+}
+

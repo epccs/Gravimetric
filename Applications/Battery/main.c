@@ -93,6 +93,10 @@ void ProcessCmd()
     {
         BatMngHighLimit(); // set battery manager battery_high_limit
     }
+    if ( (strcmp_P( command, PSTR("/bmhost?")) == 0) && ( (arg_count == 0) || (arg_count == 1)) )
+    {
+        BatMngHostLimit(); // set battery manager battery_host_limit
+    }
 }
 
 // these functions can be registered as callbacks 
@@ -182,26 +186,26 @@ void setup(void)
     TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL,&loop_state); // 18 sec is used if it is valid
+        i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_EVENING_DEBOUNCE+RW_WRITE_BIT,18000UL,&loop_state); // 18 sec
     }
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL,&loop_state);
+        i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_MORNING_DEBOUNCE+RW_WRITE_BIT,18000UL,&loop_state);
     }
 
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
     // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
-    // manager uses int bellow and analogRead(ALT_V) to check threshold. 
+    // manager uses int bellow and adc from ALT_V divider to check threshold. 
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_int_access_cmd(EVENING_THRESHOLD,40,&loop_state);
+        i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD+RW_WRITE_BIT,40,&loop_state);
     }
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_int_access_cmd(MORNING_THRESHOLD,80,&loop_state);
+        i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD+RW_WRITE_BIT,80,&loop_state);
     }
 
     // register manager callbacks

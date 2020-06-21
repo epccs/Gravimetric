@@ -132,7 +132,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL_OFFSET,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL,0,&loop_state);
         }
         printf_P(PSTR("\"hs_ttl\":"));
         if (mgr_twiErrorCode)
@@ -151,7 +151,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY_OFFSET,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY,0,&loop_state);
         }
         printf_P(PSTR("\"hs_delay\":"));
         if (mgr_twiErrorCode)
@@ -171,7 +171,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL_OFFSET,0,&loop_state);
+            local_copy = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL,0,&loop_state);
         }
         printf_P(PSTR("\"hs_wearlv\":"));
         if (mgr_twiErrorCode)
@@ -299,7 +299,7 @@ void ShutdownTTLimit(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, disregard the old value
-            i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL_OFFSET+RW_WRITE_BIT,ul_to_send,&loop_state);
+            i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
     }
@@ -309,7 +309,7 @@ void ShutdownTTLimit(void)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            ul_to_get = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL_OFFSET+RW_READ_BIT,0,&loop_state);
+            ul_to_get = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL+RW_READ_BIT,0,&loop_state);
         }
         printf_P(PSTR("\"%lu\"}\r\n"),ul_to_get);
         initCommandBuffer();
@@ -348,7 +348,7 @@ void ShutdownDelayLimit(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, disregard the old value
-            i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY_OFFSET+RW_WRITE_BIT,ul_to_send,&loop_state);
+            i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
     }
@@ -358,7 +358,7 @@ void ShutdownDelayLimit(void)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            ul_to_get = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY_OFFSET+RW_READ_BIT,0,&loop_state);
+            ul_to_get = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY+RW_READ_BIT,0,&loop_state);
         }
         printf_P(PSTR("\"%lu\"}\r\n"),ul_to_get);
         initCommandBuffer();
@@ -397,7 +397,7 @@ void ShutdownWearlevelingLimit(void)
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
             // update the manager, disregard the old value
-            i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL_OFFSET+RW_WRITE_BIT,ul_to_send,&loop_state);
+            i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
     }
@@ -407,7 +407,7 @@ void ShutdownWearlevelingLimit(void)
         TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
         while (loop_state != TWI0_LOOP_STATE_DONE)
         {
-            ul_to_get = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL_OFFSET+RW_READ_BIT,0,&loop_state);
+            ul_to_get = i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL+RW_READ_BIT,0,&loop_state);
         }
         printf_P(PSTR("\"%lu\"}\r\n"),ul_to_get);
         initCommandBuffer();

@@ -6,8 +6,8 @@
 (done) pwm mode high time/low time needs to be locked at the start of a period, it has problems otherwise.
 (done) add cli to change battery_low_limit and battery_high_limit
 (done) batmgr_state name change to bm_state
+(done) add a battery_host_limit to halt the host and turn off its power.
 alt_pwm_accum_charge_time is not accumulating.
-add a battery_halt_limit to halt the host and turn off its power.
 change the low and high limit to be the PWM range
 ```
 
@@ -107,9 +107,9 @@ Reports battery manager control values.
 
 ``` 
 /1/bmcntl?
-{"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"238","pwm_timer":"0","dn_timer":"12984815"}
-{"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"238","pwm_timer":"0","dn_timer":"12989814"}
-{"bm_state":"0x2","bat_chg_low":"374","bat_chg_high":"398","adc_pwr_v":"356","adc_alt_v":"237","pwm_timer":"0","dn_timer":"12994812"}
+{"bm_state":"0x0","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"387","adc_alt_v":"0","pwm_timer":"0","dn_timer":"13810335"}
+{"bm_state":"0x0","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"386","adc_alt_v":"0","pwm_timer":"0","dn_timer":"13815335"}
+{"bm_state":"0x0","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"387","adc_alt_v":"0","pwm_timer":"0","dn_timer":"13820334"}
 ``` 
 
 The non-calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V during the above reading.
@@ -128,9 +128,9 @@ This will togle the battery manager enable
 This will set the battery manager low limit used with 10 bit ADC.
 
 ``` 
-/1/bmlowlim?
+/1/bmlow?
 {"bat_low_lim":"374"}
-/1/bmlowlim? 373
+/1/bmlow? 373
 {"bat_low_lim":"373"}
 ```
 
@@ -139,8 +139,20 @@ This will set the battery manager low limit used with 10 bit ADC.
 This will set the battery manager high limit used with 10 bit ADC.
 
 ``` 
-/1/bmhighlim?
+/1/bmhigh?
 {"bat_high_lim":"398"}
-/1/bmhighlim? 399
+/1/bmhigh? 399
 {"bat_high_lim":"399"}
+```
+
+
+##  /0/bmhost? \[0..1023\]
+
+This will set the battery manager host limit used with 10 bit ADC to shutdown the host when the battery is bellow.
+
+``` 
+/1/bmhost?
+{"bat_host_lim":"307"}
+/1/bmhost? 308
+{"bat_host_lim":"308"}
 ```
