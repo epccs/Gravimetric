@@ -70,10 +70,10 @@ uint8_t i2c_address_; // master address this slave
 #define DAYNIGHT_CALLBK_CMD {0x13,0x31,0x1,0x2,0x3}
 #define DAYNIGHT_CALLBK_CMD_SIZE 5
 
-// set battery callback address 49, state cmd 16
+// set battery callback address 49, state cmd 16, enable 
 // e.g., manager cmd 16 is used to set battery state machine callbacks. 
-#define BATTERY_CALLBK_CMD {0x10,0x31,0x4}
-#define BATTERY_CALLBK_CMD_SIZE 3
+#define BATTERY_CALLBK_CMD {0x10,0x31,0x4,0x1}
+#define BATTERY_CALLBK_CMD_SIZE 4
 
 // set host shutdown callback address 49, state cmd 4
 // e.g., manager cmd 4 is used to set host shutdown state machine callbacks. 
@@ -291,13 +291,16 @@ void i2c_daynight_cmd(uint8_t my_callback_addr)
 // enable battery callback from manager
 // 16 .. cmd plus two bytes 
 //       byte 1 is the slave address for manager to send envents
-//       byte 2 is command to receive bm_state changes
-void i2c_battery_cmd(uint8_t my_callback_addr)
+//       byte 2 is route to receive bm_state changes
+//       byte 3 is battery manager enable 1..255, disable is 0
+void i2c_battery_cmd(uint8_t my_callback_addr, uint8_t my_callback_route, uint8_t enable)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[BATTERY_CALLBK_CMD_SIZE] = BATTERY_CALLBK_CMD;
     uint8_t length = BATTERY_CALLBK_CMD_SIZE;
-    txBuffer[1] = my_callback_addr; // a slave callback address of zero will disable battery charge control, and end callbacks
+    txBuffer[1] = my_callback_addr;
+    txBuffer[2] = my_callback_route;
+    txBuffer[3] = enable; // enable the state machine
     mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (mgr_twiErrorCode)
     {
@@ -341,59 +344,6 @@ void i2c_shutdown_cmd(uint8_t my_callback_addr, uint8_t up)
         return;
     }
 }
-
-
-/* management commands to access managers unsigned long prameters e.g.,
-unsigned long i2c_ul_access_cmd(uint8_t command, unsigned long update_with, TWI0_LOOP_STATE_t *loop_state)
-{
-    if ( (command != 20) ) 
-    {
-        mgr_twiErrorCode = 6;
-        *loop_state = TWI0_LOOP_STATE_DONE;
-        return 0;
-    }
-    unsigned long value = 0;
-    if (*loop_state == TWI0_LOOP_STATE_INIT)
-    {
-        i2c_address_ = I2C_ADDR_OF_BUS_MGR; //0x29
-        bytes_to_write_ = ULONGINT_CMD_SIZE;
-        txBuffer_[0] = command; // replace the command byte
-        txBuffer_[1] = (uint8_t)((update_with & 0xFF000000UL)>>24);
-        txBuffer_[2] = (uint8_t)((update_with & 0xFF0000UL)>>16);
-        txBuffer_[3] = (uint8_t)((update_with & 0xFF00UL)>>8);
-        txBuffer_[4] = (uint8_t)(update_with & 0xFFUL);
-        txBuffer_[5] = 0;
-        bytes_to_read_ = ULONGINT_CMD_SIZE;
-        rxBuffer_[0] = 0;
-        rxBuffer_[1] = 0;
-        rxBuffer_[2] = 0;
-        rxBuffer_[3] = 0;
-        rxBuffer_[4] = 0;
-        rxBuffer_[5] = 0;
-        *loop_state = TWI0_LOOP_STATE_ASYNC_WRT; // set write state
-    }
-    else 
-    {
-        twi0_masterWriteRead(i2c_address_, txBuffer_, bytes_to_write_, rxBuffer_, bytes_to_read_, loop_state);
-        if( (*loop_state == TWI0_LOOP_STATE_DONE) )
-        {
-            mgr_twiErrorCode = twi0_masterAsyncWrite_status();
-            if(mgr_twiErrorCode)
-            {
-                value = 0; // UL does not have NaN
-            }
-            else
-            {
-                value = ((unsigned long)(rxBuffer_[1]))<<24;
-                value += ((unsigned long)(rxBuffer_[2]))<<16;
-                value += ((unsigned long)(rxBuffer_[3]))<<8;
-                value +=  (unsigned long)rxBuffer_[4];
-            }
-        }
-    }
-    return value;
-}
-*/
 
 // management commands that take r/w+offset byte and use it to access an array of unsigned long prameters's e.g.,
 //  6 .. SHUTDOWN_UL_CMD and SHUTDOWN_[TTL_OFFSET|DELAY_OFFSET|WEARLEVEL_OFFSET|...WEARLVL_DONE_AT]

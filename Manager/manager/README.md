@@ -54,9 +54,11 @@
 (done) add to cmd 21 accumulate_pwr_mega_ti_at_night at offset 6 
 (done) add to cmd 21 accumulate_alt_mega_ti_at_day at offset 7 
 (done) add to cmd 21 accumulate_pwr_mega_ti_at_day at offset 8 
-(wip) cmd 18 with alt_pwm_accum_charge_time is not accumulating
-cmd 16 (bm enable), add a byte to enable/disable
-halt the host at battery_halt_limit
+(done) cmd 16 (bm enable), add a byte to enable/disable
+(done) daynight state machine over loads i2c when reporting fail state
+(done) battery_manager should do pwm over range battery_low_limit to battery_high_limit
+(done) cmd 18 with alt_pwm_accum_charge_time is not accumulating
+battery manager (in BATTERYMGR_STATE_CC_MODE) should halt the host if it is UP and battery < battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 Cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery..
 ```

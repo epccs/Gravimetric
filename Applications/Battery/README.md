@@ -7,8 +7,9 @@
 (done) add cli to change battery_low_limit and battery_high_limit
 (done) batmgr_state name change to bm_state
 (done) add a battery_host_limit to halt the host and turn off its power.
-alt_pwm_accum_charge_time is not accumulating.
-change the low and high limit to be the PWM range
+(done) alt_pwm_accum_charge_time was not accumulating.
+(done) changed the low and high limit to be the PWM range
+battery_host_limit does not yet cause shutdown
 ```
 
 
@@ -121,7 +122,15 @@ This will togle the battery manager enable
 ``` 
 /1/bm
 {"bat_en":"ON"}
+/1/bmcntl?
+{"bm_state":"0x4","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"386","adc_alt_v":"258","pwm_timer":"6023","dn_timer":"47679"}
+{"bm_state":"0x3","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"385","adc_alt_v":"258","pwm_timer":"8891","dn_timer":"52676"}
+{"bm_state":"0x4","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"386","adc_alt_v":"258","pwm_timer":"10803","dn_timer":"57676"}
+{"bm_state":"0x3","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"385","adc_alt_v":"258","pwm_timer":"13671","dn_timer":"62675"}
+{"bm_state":"0x4","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"386","adc_alt_v":"258","pwm_timer":"15583","dn_timer":"67674"}
 ```
+State 0x3 is charging is OFF and 0x4 is charging is ON.
+
 
 ##  /0/bmlowlim? \[0..1023\]
 

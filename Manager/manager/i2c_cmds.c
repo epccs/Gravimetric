@@ -408,6 +408,7 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
     bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
     bm_callback_route = i2cBuffer[2]; // callback route value
     bm_enable = i2cBuffer[3]; // allow the battery manager to operate
+    bm_callback_poke = 1; // don't poke me... oh you must have reset.
 }
 
 // I2C command to access battery manager uint16 values.
@@ -538,7 +539,7 @@ void fnDayNightMgr(uint8_t* i2cBuffer)
     daynight_callback_route = i2cBuffer[2];
     day_work_callback_cmd = i2cBuffer[3];
     night_work_callback_cmd = i2cBuffer[4];
-    daynight_state_callback_poke = 1; // don't poke me... oh you must have reset.
+    daynight_callback_poke = 1; // don't poke me... oh you must have reset.
 }
 
 // I2C command to access daynight manager uint16 values.

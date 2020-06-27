@@ -63,9 +63,10 @@ unsigned long accumulate_pwr_mega_ti_at_day;
 
 uint8_t daynight_callback_address;
 uint8_t daynight_callback_route;
-uint8_t daynight_state_callback_poke;
+uint8_t daynight_callback_poke;
 uint8_t day_work_callback_cmd;
 uint8_t night_work_callback_cmd;
+uint8_t daynight_fail_reported;
 TWI0_LOOP_STATE_t loop_state;
 
 /* check for day-night state durring program looping  
@@ -98,15 +99,19 @@ void check_daynight(void)
     if (daynight_values_loaded > DAYNIGHT_VALUES_DEFAULT) return;
 
     // poke, is used to update the application after it has been reset and restart daynight if it failed
-    if (daynight_state_callback_poke)
+    if (daynight_callback_poke)
     {
         if (daynight_callback_address && daynight_callback_route)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
             i2c_callback(daynight_callback_address, daynight_callback_route, daynight_state, &loop_state); // update application
         }
-        daynight_state_callback_poke = 0;
-        if (daynight_state == DAYNIGHT_STATE_FAIL) daynight_state = DAYNIGHT_STATE_START; // restart if daynight had failed
+        daynight_callback_poke = 0;
+        if (daynight_state == DAYNIGHT_STATE_FAIL) 
+        {
+            daynight_state = DAYNIGHT_STATE_START; // restart if daynight had failed
+            daynight_fail_reported = 0;
+        }
         return;
     }
 
@@ -160,6 +165,7 @@ void check_daynight(void)
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
                 i2c_callback(daynight_callback_address, daynight_callback_route, daynight_state, &loop_state); // update remote
             }
+            daynight_fail_reported = 0;
             daynight_timer = milliseconds();
         }
         break;
@@ -262,16 +268,20 @@ void check_daynight(void)
         return;
         break;
     case DAYNIGHT_STATE_FAIL: 
-        daynight_state = DAYNIGHT_STATE_FAIL;
-        if (daynight_callback_address && daynight_callback_route)
+        if (daynight_fail_reported);
         {
-            if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(daynight_callback_address, daynight_callback_route, daynight_state, &loop_state); // update remote
+            if (daynight_callback_address && daynight_callback_route)
+            {
+                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                i2c_callback(daynight_callback_address, daynight_callback_route, daynight_state, &loop_state); // update remote
+            }
+            daynight_fail_reported = 1;
         }
         break;
 
     default:
         daynight_state = DAYNIGHT_STATE_FAIL;
+        daynight_fail_reported = 0;
         break;
     }
 }

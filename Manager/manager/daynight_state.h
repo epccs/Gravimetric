@@ -22,7 +22,7 @@ extern unsigned long accumulate_alt_mega_ti_at_day; // accumulated timed ALT_I r
 extern unsigned long accumulate_pwr_mega_ti_at_day; // accumulated timed PWR_I readings (amp hour) recorded at day work event
 extern uint8_t daynight_callback_address; // set callback address for daynight state machine, zero will stop sending events to application
 extern uint8_t daynight_callback_route; // command number to use with daynight event updates.
-extern uint8_t daynight_state_callback_poke; // don't poke me... oh you reset or I am hung in the fail mode.
+extern uint8_t daynight_callback_poke; // don't poke me... oh you reset or I am hung in the fail mode.
 extern uint8_t day_work_callback_cmd; // command number to use when day event occures, e.g., turn off lights, water garden, power SBC...
 extern uint8_t night_work_callback_cmd; // command number to use when night event occures, e.g., your app can turn on lights and power off the SBC.
 

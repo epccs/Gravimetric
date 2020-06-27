@@ -50,9 +50,11 @@ unsigned long alt_pwm_accum_charge_time; // on time accumulation during which pw
 
 uint8_t bm_callback_address;
 uint8_t bm_callback_route;
+uint8_t bm_callback_poke;
 uint8_t bm_enable;
 TWI0_LOOP_STATE_t loop_state;
 unsigned long ontime;
+unsigned long next_ontime;
 
 uint8_t fail_wip;
 
@@ -70,12 +72,38 @@ void check_battery_manager(void)
     // if battery limits are changing skip this state machine
     if (bat_limit_loaded > BAT_LIM_DEFAULT) return;
 
-    // disable if not day or callback is zero
-    // callback also needs bm_callback_route set or state machine will run without sending updates to application
-    if (bm_enable && (daynight_state == DAYNIGHT_STATE_DAY) ) 
+    // if not day then reset bm_state to START
+    if (daynight_state != DAYNIGHT_STATE_DAY)
+    {
+        if ((bm_state > BATTERYMGR_STATE_START) && (bm_state < BATTERYMGR_STATE_FAIL)) // exclude START and FAIL
+        {
+            ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
+            bm_state = BATTERYMGR_STATE_START;
+            if (bm_callback_address && bm_callback_route)
+            {
+                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
+            }
+        }
+        return;
+    }
+
+    // poke, is used to update the application after it has been reset and restart bm if it has failed
+    if (bm_callback_poke)
+    {
+        if (bm_callback_address && bm_callback_route)
+        {
+            if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+            i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
+        }
+        bm_callback_poke = 0;
+        if (bm_state == BATTERYMGR_STATE_FAIL) bm_state = BATTERYMGR_STATE_START; // restart if bm had failed
+        return;
+    }
+
+    if (bm_enable) // also daynight_state == DAY
     {
         int battery = adcAtomic(ADC_CH_PWR_V);
-        int pwm_range = ( (battery_high_limit - battery_low_limit)>>1 ); // half the diff between high and low limit
         unsigned long kRuntime = elapsed(&alt_pwm_started_at);
         switch (bm_state)
         {
@@ -83,7 +111,8 @@ void check_battery_manager(void)
             ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW); // start a pwm period, but with out alternat enabled
             alt_pwm_started_at = milliseconds();
             ontime = 0;
-            bm_state = BATTERYMGR_STATE_PWM_MODE;
+            next_ontime = 0;
+            bm_state = BATTERYMGR_STATE_PWM_MODE_OFF;
             if (bm_callback_address && bm_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -106,15 +135,21 @@ void check_battery_manager(void)
             break;
 
         case BATTERYMGR_STATE_CC_MODE:
-            // Fail if battery is to low, WIP
+            // Fail if battery is to low and host is UP start host shutdown process
+            if (battery < battery_host_limit)
+            {
+                // if host is UP...
+                break;
+            }
 
-            // when battery is above half way between high and low limit pwm operates with 2 sec intervals
-            if (battery > (battery_low_limit + pwm_range ) )
+            // when battery is above low limit pwm operates with 2 sec intervals
+            if (battery > battery_low_limit)
             { 
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH); // start a pwm period
                 alt_pwm_started_at = milliseconds();
                 ontime = 0;
-                bm_state = BATTERYMGR_STATE_PWM_MODE;
+                next_ontime = 0;
+                bm_state = BATTERYMGR_STATE_PWM_MODE_OFF;
                 if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -137,11 +172,17 @@ void check_battery_manager(void)
             }
             break;
 
-        case BATTERYMGR_STATE_PWM_MODE:
+        case BATTERYMGR_STATE_PWM_MODE_OFF:
+
+            // check if on control is enabled and end the on_time if it is enabled
+            if (ioRead(MCU_IO_ALT_EN))
+            {
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
+            }
+
             // when battery is at or above the high limit it is done
             if (battery >= battery_high_limit)
             {
-                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 bm_state = BATTERYMGR_STATE_DONE; // charge is done
                 if (bm_callback_address && bm_callback_route)
                 {
@@ -151,51 +192,79 @@ void check_battery_manager(void)
                 break;
             }
 
-            // each 2 sec PWM interval is fixed when ontime is calculated
             if (ontime)
-            { 
-                // end of on_time
-                if (ioRead(MCU_IO_ALT_EN) && (kRuntime > ontime))
+            {
+                if (kRuntime > (ALT_PWM_PERIOD - ontime)) // > offtime
                 {
-                    ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
-                    alt_pwm_accum_charge_time += kRuntime; // accumulate PWM charge time
-                }
+                    bm_state = BATTERYMGR_STATE_PWM_MODE_ON;
 
-                // new pwm period
-                if (kRuntime > ALT_PWM_PERIOD)
-                {
-                    if (battery > (battery_low_limit + pwm_range ) )
+                    // this is best place to measure the battery value for next PWM cycle
+                    next_ontime =  ( (ALT_PWM_PERIOD*battery_high_limit - ALT_PWM_PERIOD*battery) / (battery_high_limit - battery_low_limit) );
+
+                    if (bm_callback_address && bm_callback_route)
                     {
-                        alt_pwm_started_at += ALT_PWM_PERIOD;
-                        ontime = 0;
+                        if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                        i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
                     }
-                    else
-                    {
-                        bm_state = BATTERYMGR_STATE_CC_REST;
-                        if (bm_callback_address && bm_callback_route)
-                        {
-                            if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                            i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
-                        }
-                    }
-                    
                 }
             }
             else
             {
-                ontime = ALT_PWM_PERIOD * ( (battery_high_limit - battery) / pwm_range );
+                if ( (next_ontime >= 200) && (next_ontime <= (ALT_PWM_PERIOD - 200)) )
+                {
+                    ontime = next_ontime;
+                }
+                else
+                {
+                    if (next_ontime < 200) ontime = 200; // to small
+                    if (next_ontime > (ALT_PWM_PERIOD - 200)) ontime = (ALT_PWM_PERIOD - 200); // to big
+                }
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
             }
             break;
 
+
+        case BATTERYMGR_STATE_PWM_MODE_ON:
+            // check if on control is disabled and start the on_time if it is disabled
+            if (!ioRead(MCU_IO_ALT_EN))
+            {
+                ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
+            }
+
+            // new pwm period
+            if (kRuntime > ALT_PWM_PERIOD)
+            {
+                if (battery > battery_low_limit)
+                {
+                    alt_pwm_accum_charge_time += ontime; // ccumulate the ontime
+                    alt_pwm_started_at += ALT_PWM_PERIOD;
+                    ontime = 0; // next_ontime will be moved to ontime during PWM_MODE_OFF
+                    bm_state = BATTERYMGR_STATE_PWM_MODE_OFF;
+                    if (bm_callback_address && bm_callback_route)
+                    {
+                        if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                        i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
+                    }
+                }
+                else
+                {
+                    bm_state = BATTERYMGR_STATE_CC_REST;
+                    if (bm_callback_address && bm_callback_route)
+                    {
+                        if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                        i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
+                    }
+                }
+            }
+            break;
+
         case BATTERYMGR_STATE_DONE:
-            // if the battery has went bellow the PWM range start it in PWM mode
-            if (battery <= (battery_low_limit + pwm_range) )
+            // only if the battery is less than the low limit start it again
+            if (battery <= battery_low_limit )
             {
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
                 alt_pwm_started_at = milliseconds();
-                ontime = 0;
-                bm_state = BATTERYMGR_STATE_PWM_MODE;
+                bm_state = BATTERYMGR_STATE_CC_REST;
                 if (bm_callback_address && bm_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
@@ -234,23 +303,18 @@ void check_battery_manager(void)
             break;
         }
     }
-    else // not day or not enabled
+    else // not bm_enable
     {
-        if (bm_state < BATTERYMGR_STATE_DONE) // fail is above done
+        if ((bm_state > BATTERYMGR_STATE_START) && (bm_state < BATTERYMGR_STATE_FAIL)) // exclude START and FAIL
         {
             ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_LOW);
-            bm_state = BATTERYMGR_STATE_DONE;
+            bm_state = BATTERYMGR_STATE_START;
             if (bm_callback_address && bm_callback_route)
             {
                 if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
                 i2c_callback(bm_callback_address, bm_callback_route, bm_state, &loop_state); // update application
             }
-            return;
         }
-        else
-        {
-            // done or fail, so do nothing
-            return;
-        }
+        return;
     }
 }

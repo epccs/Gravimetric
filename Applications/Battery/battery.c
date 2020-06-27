@@ -21,6 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <ctype.h>
 #include "../lib/parse.h"
 #include "../lib/rpu_mgr.h"
+#include "../lib/rpu_mgr_callback.h"
 #include "../lib/timers_bsd.h"
 #include "../Adc/references.h"
 #include "../DayNight/day_night.h"
@@ -29,7 +30,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 
 static unsigned long battery_serial_print_started_at;
 volatile BATTERYMGR_STATE_t bm_state; // battery manager state
-uint8_t bm_callback_addr; 
+uint8_t bm_enable; 
 
 // /0/bm
 // enable the battery manager and the callback where it can tell me what it is doing.
@@ -37,22 +38,22 @@ void EnableBatMngCntl(void)
 {
     if ( (command_done == 10) )
     {
-        if (bm_callback_addr) 
+        if (bm_enable) 
         {
-            bm_callback_addr = 0; // zero will disable battery manager
+            bm_enable = 0; // zero will disable battery manager
         }
         else
         {
-            bm_callback_addr = I2C0_APP_ADDR;
+            bm_enable = 1;
         }
         
-        i2c_battery_cmd(bm_callback_addr);
+        i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,bm_enable);
         printf_P(PSTR("{\"bat_en\":"));
         command_done = 11;
     }
     else if ( (command_done == 11) )
     {
-        if (bm_callback_addr)
+        if (bm_enable)
         {
             printf_P(PSTR("\"ON\""));
         }

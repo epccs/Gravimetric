@@ -212,6 +212,7 @@ void setup(void)
     // then enable the manager as i2c master to send updates to the application
     register_manager_callbacks();
     i2c_daynight_cmd(I2C0_APP_ADDR); // this will also cause a callback (poke) to be generated that updates daynight_state
+    i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,0); // this will setup callback but but bm will be off.
 }
 
 void blink_mgr_status(void)
