@@ -217,6 +217,20 @@ void setup(void)
 
 void blink_mgr_status(void)
 {
+    // bm_state bypass, routes PWM to blink the status LED
+    if ((bm_state == BATTERYMGR_STATE_PWM_MODE_ON) || (bm_state == BATTERYMGR_STATE_PWM_MODE_OFF))
+    {
+        if (bm_state == BATTERYMGR_STATE_PWM_MODE_ON)
+        {
+            ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_HIGH);
+        }
+        else
+        {
+            ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+        }
+        return;
+    }
+
     unsigned long kRuntime = elapsed(&blink_started_at);
 
     // normal, all is fine

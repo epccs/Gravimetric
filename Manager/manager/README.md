@@ -58,9 +58,9 @@
 (done) daynight state machine over loads i2c when reporting fail state
 (done) battery_manager should do pwm over range battery_low_limit to battery_high_limit
 (done) cmd 18 with alt_pwm_accum_charge_time is not accumulating
-battery manager (in BATTERYMGR_STATE_CC_MODE) should halt the host if it is UP and battery < battery_halt_limit
+(done) battery manager (in BATTERYMGR_STATE_CC_MODE) should halt the host if it is UP and battery < battery_halt_limit
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
-Cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery..
+cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
 ```
 
 
@@ -71,12 +71,12 @@ This firmware is for the board manager.
 
 ## Overview
 
-The manager operates the multi-drop serial so that the host can bootload a single application controller or communicate with all of the connected application controllers. It can sense voltage and current on both the input and auxiliary input, turn on battery charging, turn off SBC power, operate SBC shutdown switch, and other related functions. The software is a work in progress and needs testing.
+The manager operates the multi-drop serial so that the host can bootload an application controller (point-to-point) or communicate with the connected application controllers (point-to-multipoint). It can sense voltage and current on both the input and auxiliary input as well as control the auxiliary input and SBC power output. It operates a simple battery manager state machine for charging. Also, it operates an SBC shutdown state machine from the manual switch or commands from the SBC or application as well as from the battery manager. A simple day-night state machine is also operated when the auxiliary power input is connected to a solar panel. The software is a work in progress and so is its testing.
 
 
 ## Multi-Drop Serial
 
-In normal mode, the RX and TX signals (each a twisted pair) are connected through transceivers to the application microcontroller UART (RX and TX pins) while the DTR pair is connected to the manager UART and is used to set the system-wide multi-drop bus state.
+In normal mode, the RX and TX signals (each a twisted pair) are connected through transceivers to the application microcontroller UART (RX and TX pins) while the DTR pair is connected to the manager UART and is used to set the system-wide serial bus state (e.g., point-to-point or point-to-multipoint).
 
 During lockout mode, the application controller RX and TX serial lines are disconnected by way of the transceivers control lines that are connected to the manager. Use LOCKOUT_DELAY to set the time in mSec.
 

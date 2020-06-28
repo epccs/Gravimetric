@@ -40,6 +40,7 @@ SOFTWARE.
 #include "../lib/io_enum_bsd.h"
 #include "i2c_callback.h"
 #include "daynight_state.h"
+#include "host_shutdown_manager.h"
 #include "battery_limits.h"
 #include "battery_manager.h"
 
@@ -135,12 +136,17 @@ void check_battery_manager(void)
             break;
 
         case BATTERYMGR_STATE_CC_MODE:
-            // Fail if battery is to low and host is UP start host shutdown process
+            // if the battery goes to low and host is UP start the software shutdown process
             if (battery < battery_host_limit)
             {
-                // if host is UP...
+                if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
+                {
+                    shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
+                }
                 break;
             }
+
+            // if the battery goes even lower perhaps the application can be held in reset and the manager could sleep.
 
             // when battery is above low limit pwm operates with 2 sec intervals
             if (battery > battery_low_limit)
