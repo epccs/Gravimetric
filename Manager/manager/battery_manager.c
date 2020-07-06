@@ -153,8 +153,8 @@ void check_battery_manager(void)
             { 
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH); // start a pwm period
                 alt_pwm_started_at = milliseconds();
-                ontime = 0;
-                next_ontime = 0;
+                ontime = (ALT_PWM_PERIOD - 200); // with max ontime duty
+                next_ontime = (ALT_PWM_PERIOD - 200); // replaced befor changing bm_state to PWM_MODE_ON but max duty is more correct than zero
                 bm_state = BATTERYMGR_STATE_PWM_MODE_OFF;
                 if (bm_callback_address && bm_callback_route)
                 {
