@@ -21,6 +21,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 #include <ctype.h>
 #include "../lib/parse.h"
 #include "../lib/rpu_mgr.h"
+#include "../lib/rpu_mgr_callback.h"
 #include "../lib/timers_bsd.h"
 #include "../Adc/references.h"
 #include "../DayNight/day_night.h"
@@ -29,7 +30,7 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 
 static unsigned long hs_serial_print_started_at;
 volatile HOSTSHUTDOWN_STATE_t hs_state;
-uint8_t hs_up;
+uint8_t hs_bring_up;
 
 // /0/hs
 // enable the host shutdown and set the callback so it can tell me what it is doing.
@@ -37,22 +38,28 @@ void EnableShutdownCntl(void)
 {
     if ( (command_done == 10) )
     {
-        if (hs_up) // is UP
+        switch (hs_state)
         {
-            hs_up = 0; // take the host DOWN
-        }
-        else // is DOWN
-        {
-            hs_up = 1; // bring the host UP
+        case HOSTSHUTDOWN_STATE_UP:
+            hs_bring_up = 0; // take the host DOWN
+            break;
+        case HOSTSHUTDOWN_STATE_DOWN:
+            hs_bring_up = 1; // bring the host UP
+            break;
+
+        default:
+            printf_P(PSTR("{\"hs_en\":\"BUSY\"}\r\n"));
+            initCommandBuffer();
+            return;  // "one entry point and one exit point" is a weak idiom, I'm in the check preconditions and exit early camp
         }
         
-        i2c_shutdown_cmd(I2C0_APP_ADDR, hs_up);
+        i2c_shutdown_cmd(I2C0_APP_ADDR, CB_ROUTE_HS_STATE, hs_bring_up);
         printf_P(PSTR("{\"hs_en\":"));
         command_done = 11;
     }
     else if ( (command_done == 11) )
     {
-        if (hs_up)
+        if (hs_bring_up)
         {
             printf_P(PSTR("\"UP\""));
         }

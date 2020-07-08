@@ -125,12 +125,13 @@ void battery_state_event(uint8_t batmgr_state_from_mgr)
     bm_state = (BATTERYMGR_STATE_t)batmgr_state_from_mgr;
 }
 
+// the i2c_daynight_cmd (and ilk) will send the manager the info it needs to operate these callbacks (e.g., slave addr and route)
 void register_manager_callbacks(void)
 {
     twi0_registerOnDayNightStateCallback(daynight_state_event);
     twi0_registerOnDayWorkCallback(day_work_event);
     twi0_registerOnNightWorkCallback(night_work_event);
-    twi0_registerOnBatMgrStateCallback(battery_state_event); // register but not enabled in setup (done in battery.c)
+    twi0_registerOnBatMgrStateCallback(battery_state_event);
 }
 
 void setup(void) 

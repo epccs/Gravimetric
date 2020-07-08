@@ -6,6 +6,7 @@
 (done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
 (done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the values.
 (done) hs_timer was not available from manager.
+(done) set up i2c callback poke for shutdown (byte[3] = bring host UP[1], take host DOWN[0], poke[2..254].)
 ```
 
 
@@ -100,7 +101,7 @@ This will toggle the host shutdown control.
 {"hs_en":"UP"}
 ```
 
-It reprots UP but does not callback the sd_state. 
+Its report is based on toggling the hs_state that was poked by way of callback from the manager after setup, e.g. after an application reset. 
 
 
 ##  /0/hscntl?

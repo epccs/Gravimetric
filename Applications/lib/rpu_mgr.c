@@ -263,9 +263,9 @@ uint8_t i2c_read_status(void)
 // enable daynight callbacks from manager
 // 19 .. cmd plus four bytes 
 //       byte 1 is the slave address for manager to send envents
-//       byte 2 is command to receive daynight_state changes
-//       byte 3 is command to receive day work event
-//       byte 4 is command to receive night work event 
+//       byte 2 is route to receive daynight_state changes
+//       byte 3 is route to receive day work event
+//       byte 4 is route to receive night work event 
 void i2c_daynight_cmd(uint8_t my_callback_addr)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
@@ -320,15 +320,17 @@ void i2c_battery_cmd(uint8_t my_callback_addr, uint8_t my_callback_route, uint8_
 // host shutdown callback from manager
 // 4 .. cmd plus two bytes 
 //      byte 1 is the slave address for manager to send envents
-//      byte 2 is command to receive hs_state changes
-//      byte 3 will bring host UP[1..255] or take host DOWN[0].
-void i2c_shutdown_cmd(uint8_t my_callback_addr, uint8_t up)
+//      byte 2 is route to receive hs_state changes
+//      byte 3 is cntl and will bring host UP[1], take host DOWN[0], poke[2..254].
+// the manager may not like poke, but is how to find the hs_state without changing it.
+void i2c_shutdown_cmd(uint8_t my_callback_addr, uint8_t my_callback_route, uint8_t cntl)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[HOSTSHUTDOWN_CALLBK_CMD_SIZE] = HOSTSHUTDOWN_CALLBK_CMD;
     uint8_t length = HOSTSHUTDOWN_CALLBK_CMD_SIZE;
     txBuffer[1] = my_callback_addr; // a slave callback address of zero will shutdown host, and end callbacks
-    txBuffer[3] = up;
+    txBuffer[2] = my_callback_route; // CB_ROUTE_HS_STATE
+    txBuffer[3] = cntl;
     mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (mgr_twiErrorCode)
     {

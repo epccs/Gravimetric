@@ -28,6 +28,8 @@ extern unsigned long shutdown_wearleveling_done_at; // when current on PWR_I got
 
 extern uint8_t shutdown_callback_address; // set callback address, zero will stop sending events to application
 extern uint8_t shutdown_callback_route; // route to use with shutdown event updates.
+extern uint8_t shutdown_callback_poke; // don't poke me... oh you reset or...
+extern uint8_t shutdown_bringuphost; // buffer for i2c cmd to bring host UP/DOWN
 
 extern void check_if_host_should_be_on(void);
 

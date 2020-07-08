@@ -60,6 +60,7 @@
 (done) cmd 18 with alt_pwm_accum_charge_time is not accumulating
 (done) battery manager (in BATTERYMGR_STATE_CC_MODE) should halt the host if it is UP and battery < battery_halt_limit
 (done) PWM at battery low limit is a discontinuity (should transition from 100% to 90% then to 10% continuous).
+(done) set up i2c callback poke for shutdown (byte[3] = bring host UP[1], take host DOWN[0], poke[2..254].)
 enable_sbc_power, digitalWrite(PIPWR_EN,HIGH), disable commands do not turn off SBC power at this time 
 cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
 ```

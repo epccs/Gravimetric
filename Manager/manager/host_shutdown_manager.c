@@ -53,6 +53,8 @@ unsigned long shutdown_wearleveling_done_at;
 
 uint8_t shutdown_callback_address;
 uint8_t shutdown_callback_route;
+uint8_t shutdown_callback_poke;
+uint8_t shutdown_bringuphost;
 TWI0_LOOP_STATE_t loop_state;
 
 uint8_t fail_wip;
@@ -72,6 +74,50 @@ void check_if_host_should_be_on(void)
 
     // if host_shutdown limits are changing skip this state machine
     if (shutdown_limit_loaded > HOSTSHUTDOWN_LIM_DEFAULT) return;
+
+    // poke, is used to update the application after it has been reset
+    if (shutdown_callback_poke)
+    {
+        if (shutdown_callback_address && shutdown_callback_route)
+        {
+            if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+            i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
+        }
+        shutdown_callback_poke = 0;
+        return;
+    }
+
+    if (shutdown_bringuphost == HOSTSHUTDOWN_STATE_RESTART) // bring host UP
+    {
+        shutdown_bringuphost = 0; // run once
+        if (shutdown_state == HOSTSHUTDOWN_STATE_DOWN)  // host must be down to bring up
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_RESTART;
+            ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
+            ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up
+            if (shutdown_callback_address && shutdown_callback_route)
+            {
+                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
+            }
+            return;
+        }
+    }
+
+    if (shutdown_bringuphost == HOSTSHUTDOWN_STATE_SW_HALT) // take host DOWN
+    {
+        shutdown_bringuphost = 0; // run once
+        if (shutdown_state == HOSTSHUTDOWN_STATE_UP) // host must be up to take down
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
+            if (shutdown_callback_address && shutdown_callback_route)
+            {
+                if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
+                i2c_callback(shutdown_callback_address, shutdown_callback_route, shutdown_state, &loop_state); // update application
+            }
+            return;
+        }
+    }
 
     int pwr_i = adcAtomic(ADC_CH_PWR_I);
     unsigned long kRuntime = elapsed(&shutdown_kRuntime);

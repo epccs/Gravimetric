@@ -151,13 +151,14 @@ void host_shutdown_state_event(uint8_t hs_state_from_mgr)
     hs_state = (HOSTSHUTDOWN_STATE_t)hs_state_from_mgr;
 }
 
+// the i2c_daynight_cmd (and ilk) will send the manager the info it needs to operate these callbacks (e.g., slave addr and route)
 void register_manager_callbacks(void)
 {
     twi0_registerOnDayNightStateCallback(daynight_state_event);
     twi0_registerOnDayWorkCallback(day_work_event);
     twi0_registerOnNightWorkCallback(night_work_event);
-    twi0_registerOnBatMgrStateCallback(battery_state_event); // registered but not enabled in setup (done in battery.c)
-    twi0_registerOnHostShutdownStateCallback(host_shutdown_state_event); // registered but not enabled in setup (done in shutdown.c)
+    twi0_registerOnBatMgrStateCallback(battery_state_event); 
+    twi0_registerOnHostShutdownStateCallback(host_shutdown_state_event); 
 }
 
 void setup(void) 
@@ -213,39 +214,55 @@ void setup(void)
     TWI0_LOOP_STATE_t loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_ul_access_cmd(EVENING_DEBOUNCE,18000UL,&loop_state); // 18 sec is used if it is valid
+        i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_EVENING_DEBOUNCE+RW_WRITE_BIT,18000UL,&loop_state); // 18 sec
     }
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_ul_access_cmd(MORNING_DEBOUNCE,18000UL,&loop_state);
+        i2c_ul_rwoff_access_cmd(DAYNIGHT_UL_CMD,DAYNIGHT_MORNING_DEBOUNCE+RW_WRITE_BIT,18000UL,&loop_state);
     }
 
     // ALT_V reading of analogRead(ALT_V)*5.0/1024.0*(11/1) where 40 is about 2.1V
     // 80 is about 4.3V, 160 is about 8.6V, 320 is about 17.18V
-    // manager uses int bellow and analogRead(ALT_V) to check threshold. 
+    // manager uses int bellow and adc from ALT_V divider to check threshold. 
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_int_access_cmd(EVENING_THRESHOLD,40,&loop_state);
+        i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD+RW_WRITE_BIT,40,&loop_state);
     }
     loop_state = TWI0_LOOP_STATE_INIT;
     while (loop_state != TWI0_LOOP_STATE_DONE)
     {
-        i2c_int_access_cmd(MORNING_THRESHOLD,80,&loop_state);
+        i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD+RW_WRITE_BIT,80,&loop_state);
     }
 
     // register manager callbacks
     // then enable the manager as i2c master to send updates to the application
     register_manager_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR); // set the managers day night state machine callback to use my slave address
+    i2c_daynight_cmd(I2C0_APP_ADDR); // this will also cause a callback (poke) to be generated that updates daynight_state
+    i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,0); // this will setup callback and turn off the bm deamon.
+    i2c_shutdown_cmd(I2C0_APP_ADDR,CB_ROUTE_HS_STATE,2); // this will setup callback and poke the manager to get hs_state.
 
-    // the host is likely DOWN and hs_state is not yet getting callbacks so I guess init it for now
+    // the host is likely DOWN at power up, and hs_state is not yet getting callbacks so I guess init it for now
     hs_state = HOSTSHUTDOWN_STATE_DOWN;
 }
 
 void blink_mgr_status(void)
 {
+    // bm_state bypass, routes PWM to blink the status LED
+    if ((bm_state == BATTERYMGR_STATE_PWM_MODE_ON) || (bm_state == BATTERYMGR_STATE_PWM_MODE_OFF))
+    {
+        if (bm_state == BATTERYMGR_STATE_PWM_MODE_ON)
+        {
+            ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_HIGH);
+        }
+        else
+        {
+            ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+        }
+        return;
+    }
+
     unsigned long kRuntime = elapsed(&blink_started_at);
 
     // normal, all is fine
