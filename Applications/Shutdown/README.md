@@ -4,9 +4,9 @@
 
 ```
 (done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
-(done) sd_state is stuck on CURR_CHK (sd_state = 3) when going DOWN. Was loading uninitialized EEPROM into the values.
+(done) hs_state is stuck on CURR_CHK (hs_state = 3) when going DOWN. Was loading uninitialized EEPROM into the values.
 (done) hs_timer was not available from manager.
-(done) set up i2c callback poke for shutdown (byte[3] = bring host UP[1], take host DOWN[0], poke[2..254].)
+blink only if hs_state is UP (9) or DOWN (0)
 ```
 
 
@@ -101,7 +101,7 @@ This will toggle the host shutdown control.
 {"hs_en":"UP"}
 ```
 
-Its report is based on toggling the hs_state that was poked by way of callback from the manager after setup, e.g. after an application reset. 
+Its report is based on toggling of the hs_state returned after setup set callback and poked the manager. 
 
 
 ##  /0/hscntl?
@@ -110,27 +110,26 @@ Report host shutdown control values.
 
 ``` 
 /1/hscntl?
-{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"35","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
-{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"26","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"1"}
+{"hs_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"35","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"hs_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"26","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"1"}
 /1/hs
 {"hs_en":"UP"}
 /1/hscntl?
-{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"37","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"10983"}
-{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"15982"}
+{"hs_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"37","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"10983"}
+{"hs_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"15982"}
 ...
-{"sd_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"24","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"55972"}
-{"sd_state":"0x0","hs_halt_curr":"63","adc_pwr_i":"36","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"hs_state":"0xB","hs_halt_curr":"63","adc_pwr_i":"24","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"55972"}
+{"hs_state":"0x0","hs_halt_curr":"63","adc_pwr_i":"36","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 /1/hs
 {"hs_en":"DOWN"}
 /1/hscntl?
-{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"1229"}
-{"sd_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"6229"}
-{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
-{"sd_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
-...
+{"hs_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"23","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"1229"}
+{"hs_state":"0x6","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"6229"}
+{"hs_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"22","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
+{"hs_state":"0x9","hs_halt_curr":"63","adc_pwr_i":"38","hs_ttl":"60000","hs_delay":"10000","hs_wearlv":"100","hs_timer":"0"}
 ``` 
 
-sd_state: 0x0 is UP, 0x6 is DELAY, 0x9 is DOWN, 0xB is RESTART_DLY.
+hs_state: 0x0 is UP, 0x6 is DELAY, 0x9 is DOWN, 0xB is RESTART_DLY.
 
 
 ##  /0/hshaltcurr? \[0..1023\]

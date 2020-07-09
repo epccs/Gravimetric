@@ -395,12 +395,20 @@ void fnHostShutdwnULAccess(uint8_t* i2cBuffer)
 // I2C: byte[0] = 16, 
 //      byte[1] = the callback address to use,
 //      byte[2] = callback cmd value to use (the receiving slave will use the value to route the event value),
-//      byte[3] = used to enable = 1..255 / disable = 0 the battery manager.
+//      byte[3] = enable bm [1], disable bm [0], poke bm [2..254].
 void fnBatteryMgr(uint8_t* i2cBuffer)
 { 
     bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
     bm_callback_route = i2cBuffer[2]; // callback route value
     bm_enable = i2cBuffer[3]; // allow the battery manager to operate
+    if (i2cBuffer[3] == 1) 
+    {
+        bm_enable = 1; // enable battery manager
+    }
+    if (i2cBuffer[3] == 0)
+    {
+        bm_enable = 0; // disable battery manager
+    }
     bm_callback_poke = 1; // don't poke me... oh you must have reset.
 }
 

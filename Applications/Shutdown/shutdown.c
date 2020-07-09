@@ -92,7 +92,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
     }
     if ( (command_done == 11) )
     {
-        printf_P(PSTR("{\"sd_state\":\"0x%X\","),hs_state); // print a hex value
+        printf_P(PSTR("{\"hs_state\":\"0x%X\","),hs_state); // print a hex value
         command_done = 12;
     }
     else if ( (command_done == 12) ) 

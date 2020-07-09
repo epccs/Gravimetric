@@ -239,8 +239,8 @@ void setup(void)
     // register manager callbacks
     // then enable the manager as i2c master to send updates to the application
     register_manager_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR); // this will also cause a callback (poke) to be generated that updates daynight_state
-    i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,0); // this will setup callback and turn off the bm deamon.
+    i2c_daynight_cmd(I2C0_APP_ADDR); // this will setup callbacks and poke manager to get daynight_state.
+    i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,2); // this will setup callback and poke the manager to get bm_state.
     i2c_shutdown_cmd(I2C0_APP_ADDR,CB_ROUTE_HS_STATE,2); // this will setup callback and poke the manager to get hs_state.
 
     // the host is likely DOWN at power up, and hs_state is not yet getting callbacks so I guess init it for now

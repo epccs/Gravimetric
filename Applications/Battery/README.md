@@ -102,6 +102,7 @@ identify
 {"id":{"name":"Battery","desc":"Gravimetric (17341^1) Board /w ATmega324pb","avr-gcc":"5.4.0"}}
 ```
 
+
 ##  /0/bmcntl?
 
 Reports battery manager control values. 
@@ -114,6 +115,7 @@ Reports battery manager control values.
 ``` 
 
 The non-calibrated default battery_low_limit is 374, and battery_high_limit is 398. The battery and alternat input have 12.8V during the above reading.
+
 
 ##  /0/bm
 
@@ -129,7 +131,8 @@ This will togle the battery manager enable
 {"bm_state":"0x3","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"385","adc_alt_v":"258","pwm_timer":"13671","dn_timer":"62675"}
 {"bm_state":"0x4","bat_low_lim":"374","bat_high_lim":"397","bat_host_lim":"307","adc_pwr_v":"386","adc_alt_v":"258","pwm_timer":"15583","dn_timer":"67674"}
 ```
-State 0x3 is charging is OFF and 0x4 is charging is ON.
+
+Its report is based on toggling of the bm_state returned after setup set callbacks and poked the manager. State 0x3 is charging is OFF and 0x4 is charging is ON.
 
 
 ##  /0/bmlowlim? \[0..1023\]
@@ -142,6 +145,7 @@ This will set the battery manager low limit used with 10 bit ADC.
 /1/bmlow? 373
 {"bat_low_lim":"373"}
 ```
+
 
 ##  /0/bmhighlim? \[0..1023\]
 
