@@ -38,6 +38,7 @@ SOFTWARE.
 #include "../lib/adc_bsd.h"
 #include "../lib/twi0_bsd.h"
 #include "../lib/io_enum_bsd.h"
+#include "rpubus_manager_state.h"
 #include "i2c_callback.h"
 #include "daynight_state.h"
 #include "host_shutdown_manager.h"
@@ -73,6 +74,18 @@ void check_battery_manager(void)
     // if battery limits are changing skip this state machine
     if (bat_limit_loaded > BAT_LIM_DEFAULT) return;
 
+    // if the battery goes to low and host is UP I should start the host shutdown process
+    if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
+    {
+        if (adcAtomic(ADC_CH_PWR_V) < battery_host_limit)
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
+        }
+        status_byt |= (1<<BAT_LOW_HOST_SHUTDOWN);
+    }
+
+   // ToDo? if the battery goes even lower perhaps the application can be held in reset and the manager can sleep.
+
     // if not day then reset bm_state to START
     if (daynight_state != DAYNIGHT_STATE_DAY)
     {
@@ -102,19 +115,7 @@ void check_battery_manager(void)
         return;
     }
 
-    // if the battery goes to low and host is UP I should start the host shutdown process
-    if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
-    {
-        if (adcAtomic(ADC_CH_PWR_V) < battery_host_limit)
-        {
-            shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
-        }
-        // set low battery bit in status
-    }
-
-    // ToDo? if the battery goes even lower perhaps the application can be held in reset and the manager can sleep.
-
-    if (bm_enable) // also daynight_state == DAY
+     if (bm_enable) // also daynight_state == DAY
     {
         int battery = adcAtomic(ADC_CH_PWR_V);
         unsigned long kRuntime = elapsed(&alt_pwm_started_at);
@@ -229,7 +230,6 @@ void check_battery_manager(void)
                 ioWrite(MCU_IO_ALT_EN, LOGIC_LEVEL_HIGH);
             }
             break;
-
 
         case BATTERYMGR_STATE_PWM_MODE_ON:
             // check if on control is disabled and start the on_time if it is disabled

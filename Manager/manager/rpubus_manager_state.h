@@ -48,6 +48,7 @@ extern uint8_t transceiver_state;
 #define DTR_I2C_TRANSMIT_FAIL 1
 #define DTR_READBACK_NOT_MATCH 2
 #define HOST_LOCKOUT_STATUS 3
+#define BAT_LOW_HOST_SHUTDOWN 4
 
 volatile extern uint8_t status_byt;
 

@@ -67,10 +67,10 @@
 (done) host will have power if manager is in rest, so make that the default at power up (do not use manual swithc)
 (done) board needs hack to allow manual switch to be locked out by the manager
 (done) lockout the manual shutdown switch for some time so the host can finish booting, this needs above board hack. 
-add low battery bit to status and set it when the host shutdown process is triggered.
+(done) add low battery bit to status and set it when the host shutdown process is triggered.
+if the battery is in range (BAT[12|24]_LIMIT_HIGH_MAX to BAT[12|24]_LIMIT_HOST_MIN) then set bm_enable durring setup e.g., at manager power up
 cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
 ??? if the battery goes lower than battery_host_limit-(battery_host_limit>>4) perhaps the manager can hold application in reset and sleep.
-
 ```
 
 

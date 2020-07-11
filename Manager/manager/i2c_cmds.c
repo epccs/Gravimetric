@@ -111,7 +111,7 @@ void transmit_i2c_event(void)
     // respond with an echo of the last message sent
     uint8_t return_code = twi0_fillSlaveTxBuffer(i2c0Buffer, i2c0BufferLength);
     if (return_code != 0)
-        status_byt &= (1<<DTR_I2C_TRANSMIT_FAIL);
+        status_byt |= (1<<DTR_I2C_TRANSMIT_FAIL);
 }
 
 /********* MULTI-POINT MODE ***********
@@ -178,12 +178,12 @@ void fnMgrAddrQuietly(uint8_t* i2cBuffer)
 void fnStatus(uint8_t* i2cBuffer)
 {
     uint8_t tmp_status = i2cBuffer[1];
-    i2cBuffer[1] = status_byt & 0x0F; // bits 0..3
+    i2cBuffer[1] = status_byt & 0x1F; // bits 0..4
 
     // if update bit 7 is set then change the status bits and related things
     if (tmp_status & 0x80)
     {
-        status_byt = i2cBuffer[1] & 0x0F; // set bits 0..3
+        status_byt = i2cBuffer[1] & 0x1F; // set bits 0..4
     }
 }
 

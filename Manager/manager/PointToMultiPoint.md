@@ -82,7 +82,7 @@ status bits:
 1. twi slave transmit fail
 2. DTR readback not match
 3. host lockout
-4. not used.
+4. low battery host shutdown has been sent on header pin 31 (BCM6)
 5. not used.
 6. not used.
 7. Update bit, if set change the other bits.
