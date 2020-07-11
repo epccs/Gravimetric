@@ -62,8 +62,15 @@
 (done) PWM at battery low limit is a discontinuity (should transition from 100% to 90% then to 10% continuous).
 (done) set up i2c callback poke for shutdown (byte[3] = bring host UP[1], take host DOWN[0], poke[2..254].)
 (done) set up i2c callback poke for bm (byte[3] = enable bm [1], disable bm [0], poke bm [2..254].)
-(test) sbc power cntl, ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH), /hs command should turn off SBC power
+(done) sbc power cntl, ioWrite(MCU_IO_PIPWR_EN,LOGIC_LEVEL_HIGH), /hs command should turn off SBC power
+(done) bm daemon will now see low bat if is not charging
+(done) host will have power if manager is in rest, so make that the default at power up (do not use manual swithc)
+(done) board needs hack to allow manual switch to be locked out by the manager
+(done) lockout the manual shutdown switch for some time so the host can finish booting, this needs above board hack. 
+add low battery bit to status and set it when the host shutdown process is triggered.
 cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
+??? if the battery goes lower than battery_host_limit-(battery_host_limit>>4) perhaps the manager can hold application in reset and sleep.
+
 ```
 
 

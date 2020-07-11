@@ -4,12 +4,28 @@ Some lessons I learned doing Gravimetric.
 
 # Table Of Contents:
 
+1. ^1 Move Resistor So Manager Can Lockout Manual Switch
 1. ^1 I2C Use Of Invalid Values
 1. ^1 Reflow Disaster
 1. ^0 N-CH Cutoff
 1. ^0 Power Protection 
 1. ^0 Manager Should Do More
 1. ^0 Alternat Power Diode
+
+
+## ^1 Move Resistor So Manager Can Lockout Manual Switch
+
+Move resistor (R237) so that it limits current to the switch from a strong pull that can override a manual operation. A weak pull up is used to allow the switch to control shutdown.
+
+![MoveR237](./Gravimetric^1,Move_R237.png "Move R237")
+
+![R237LayoutRef](./Gravimetric^1,Gravimetric^1,R237_LayoutRef.png "R237 LayoutRef")
+
+I see how to do this one in a drawing. 
+
+![R237Rework](./Gravimetric^1,Rework_R237.jpg "R237 Rework")
+
+That went Ok I guess, need to add some hot glue to keep it in place.
 
 
 ## ^1 I2C Use Of Invalid Values

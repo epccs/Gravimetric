@@ -87,6 +87,11 @@ The idea is to base flow measurements on a known standard, and then have that be
 ![Tank](./Setup/gravimetric_tank_trailer_mounted.jpg)
 
 
+# Time Base Calibration
+
+Capture the 1PPS of the GPS receiver for some time to measure the time base (oscillator). It has been reported that an RTC can be measured to within 0.5ppm in 61 seconds. RTC typically run at 32kHz and were probably clocking the capture timer directly if that is possible (TBD).
+
+
 # Networking
 
 If your printers lock up unexpectedly, it may be because they were port scanned, and an overflow crashed the printer software; it is a clue about being owned. Do not throughout the printer; it is your friend because it tells the truth.

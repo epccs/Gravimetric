@@ -249,6 +249,13 @@ void setup(void)
 
 void blink_mgr_status(void)
 {
+    // hs_status lights out if state between UP and DOWN, e.g. when current needs to be stable
+    if ( ((hs_state > HOSTSHUTDOWN_STATE_UP) && (hs_state < HOSTSHUTDOWN_STATE_DOWN)) )
+    {
+        ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+        return;
+    }
+
     // bm_state bypass, routes PWM to blink the status LED
     if ((bm_state == BATTERYMGR_STATE_PWM_MODE_ON) || (bm_state == BATTERYMGR_STATE_PWM_MODE_OFF))
     {
@@ -296,6 +303,13 @@ void blink_mgr_status(void)
 
 void blink_daynight_state(void)
 {
+    // hs_status lights out if state between UP and DOWN, e.g. when current needs to be stable
+    if ( ((hs_state > HOSTSHUTDOWN_STATE_UP) && (hs_state < HOSTSHUTDOWN_STATE_DOWN)) )
+    {
+        ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_LOW);
+        return;
+    }
+
     unsigned long kRuntime = elapsed(&daynight_status_blink_started_at);
     switch (daynight_state)
     {

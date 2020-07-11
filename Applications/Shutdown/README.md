@@ -6,7 +6,7 @@
 (done) /hs does not UP the HOST, call EnableShutdownCntl not EnableBatMngCntl.
 (done) hs_state is stuck on CURR_CHK (hs_state = 3) when going DOWN. Was loading uninitialized EEPROM into the values.
 (done) hs_timer was not available from manager.
-blink only if hs_state is UP (9) or DOWN (0)
+(done) blink only if hs_state is outside the range between DOWN (0) and UP (9).
 ```
 
 

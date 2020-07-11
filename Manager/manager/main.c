@@ -164,13 +164,13 @@ void setup(void)
         LoadCalFromEEPROM( (ADC_ENUM_t) cal_index);
     }
 
-    // DOWN the host, an R-Pi will not have started booting yet
-    // so I can overide the default state (which is UP).
-    // Push the shutdown button for two sec to start the R-Pi host
-    // MCU_IO_PIPWR_EN is set at top of this (setup()) function
-    ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
-    ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up so I can manualy start the SBC
-    shutdown_state = HOSTSHUTDOWN_STATE_DOWN;
+    // The manager's default is to power up the host when power is applied even if it is held in reset.
+    // The goal now is to lockout the shutdown switch for some amount of time to match what the hs daemon does.
+    ioDir(MCU_IO_PIPWR_EN, DIRECTION_INPUT);
+    ioWrite(MCU_IO_PIPWR_EN, LOGIC_LEVEL_HIGH); // power up the SBC (a pull up does this when in reset e.g., hi-z)
+    ioDir(MCU_IO_SHUTDOWN, DIRECTION_OUTPUT); 
+    ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // lockout manual shutdown switch
+    shutdown_state = HOSTSHUTDOWN_STATE_RESTART_DLY;
 
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 

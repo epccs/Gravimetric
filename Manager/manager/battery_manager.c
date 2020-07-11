@@ -102,6 +102,18 @@ void check_battery_manager(void)
         return;
     }
 
+    // if the battery goes to low and host is UP I should start the host shutdown process
+    if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
+    {
+        if (adcAtomic(ADC_CH_PWR_V) < battery_host_limit)
+        {
+            shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
+        }
+        // set low battery bit in status
+    }
+
+    // ToDo? if the battery goes even lower perhaps the application can be held in reset and the manager can sleep.
+
     if (bm_enable) // also daynight_state == DAY
     {
         int battery = adcAtomic(ADC_CH_PWR_V);
@@ -136,17 +148,6 @@ void check_battery_manager(void)
             break;
 
         case BATTERYMGR_STATE_CC_MODE:
-            // if the battery goes to low and host is UP start the software shutdown process
-            if (battery < battery_host_limit)
-            {
-                if (shutdown_state == HOSTSHUTDOWN_STATE_UP)
-                {
-                    shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
-                }
-                break;
-            }
-
-            // if the battery goes even lower perhaps the application can be held in reset and the manager could sleep.
 
             // when battery is above low limit pwm operates with 2 sec intervals
             if (battery > battery_low_limit)
