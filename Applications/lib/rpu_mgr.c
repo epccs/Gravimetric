@@ -260,17 +260,20 @@ uint8_t i2c_read_status(void)
     }
 }
 
-// enable daynight callbacks from manager
+// setup callbacks and poke manager to get daynight_state, day_event, night_event.
 // 19 .. cmd plus four bytes 
 //       byte 1 is the slave address for manager to send envents
 //       byte 2 is route to receive daynight_state changes
 //       byte 3 is route to receive day work event
 //       byte 4 is route to receive night work event 
-void i2c_daynight_cmd(uint8_t my_callback_addr)
+void i2c_daynight_cmd(uint8_t dn_callback_addr, uint8_t dn_callback_route, uint8_t d_callback_route, uint8_t n_callback_route)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[DAYNIGHT_CALLBK_CMD_SIZE] = DAYNIGHT_CALLBK_CMD;
-    txBuffer[1] = my_callback_addr;
+    txBuffer[1] = dn_callback_addr;
+    txBuffer[2] = dn_callback_route;
+    txBuffer[3] = d_callback_route;
+    txBuffer[4] = n_callback_route;
     uint8_t length = DAYNIGHT_CALLBK_CMD_SIZE;
     mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (mgr_twiErrorCode)
@@ -288,19 +291,19 @@ void i2c_daynight_cmd(uint8_t my_callback_addr)
     }
 }
 
-// enable battery callback from manager
+// setup callback and poke the manager to get bm_state (battery manager).
 // 16 .. cmd plus two bytes 
 //       byte 1 is the slave address for manager to send envents
 //       byte 2 is route to receive bm_state changes
-//       byte 3 is battery manager enable 1..255, disable is 0
-void i2c_battery_cmd(uint8_t my_callback_addr, uint8_t my_callback_route, uint8_t enable)
+//       byte 3 is battery manager enable[1], disable[0], poke[2..254].
+void i2c_battery_cmd(uint8_t bm_callback_addr, uint8_t bm_callback_route, uint8_t bm_enable)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[BATTERY_CALLBK_CMD_SIZE] = BATTERY_CALLBK_CMD;
     uint8_t length = BATTERY_CALLBK_CMD_SIZE;
-    txBuffer[1] = my_callback_addr;
-    txBuffer[2] = my_callback_route;
-    txBuffer[3] = enable; // enable the state machine
+    txBuffer[1] = bm_callback_addr;
+    txBuffer[2] = bm_callback_route;
+    txBuffer[3] = bm_enable; // enable the state machine
     mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (mgr_twiErrorCode)
     {
@@ -317,20 +320,20 @@ void i2c_battery_cmd(uint8_t my_callback_addr, uint8_t my_callback_route, uint8_
     }
 }
 
-// host shutdown callback from manager
+// setup callback and poke the manager to get hs_state (host shutdown).
 // 4 .. cmd plus two bytes 
 //      byte 1 is the slave address for manager to send envents
 //      byte 2 is route to receive hs_state changes
 //      byte 3 is cntl and will bring host UP[1], take host DOWN[0], poke[2..254].
 // the manager may not like poke, but is how to find the hs_state without changing it.
-void i2c_shutdown_cmd(uint8_t my_callback_addr, uint8_t my_callback_route, uint8_t cntl)
+void i2c_shutdown_cmd(uint8_t hs_callback_addr, uint8_t hs_callback_route, uint8_t hs_cntl)
 { 
     uint8_t i2c_address = I2C_ADDR_OF_BUS_MGR;
     uint8_t txBuffer[HOSTSHUTDOWN_CALLBK_CMD_SIZE] = HOSTSHUTDOWN_CALLBK_CMD;
     uint8_t length = HOSTSHUTDOWN_CALLBK_CMD_SIZE;
-    txBuffer[1] = my_callback_addr; // a slave callback address of zero will shutdown host, and end callbacks
-    txBuffer[2] = my_callback_route; // CB_ROUTE_HS_STATE
-    txBuffer[3] = cntl;
+    txBuffer[1] = hs_callback_addr; // a slave callback address of zero will shutdown host, and end callbacks
+    txBuffer[2] = hs_callback_route; // CB_ROUTE_HS_STATE
+    txBuffer[3] = hs_cntl;
     mgr_twiErrorCode = twi0_masterBlockingWrite(i2c_address, txBuffer, length, TWI0_PROTOCALL_REPEATEDSTART); 
     if (mgr_twiErrorCode)
     {

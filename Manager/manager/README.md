@@ -68,10 +68,15 @@
 (done) board needs hack to allow manual switch to be locked out by the manager
 (done) lockout the manual shutdown switch for some time so the host can finish booting, this needs above board hack. 
 (done) add low battery bit to status and set it when the host shutdown process is triggered.
-if the battery is in range (BAT[12|24]_LIMIT_HIGH_MAX to BAT[12|24]_LIMIT_HOST_MIN) then set bm_enable durring setup e.g., at manager power up
-cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
-??? if the battery goes lower than battery_host_limit-(battery_host_limit>>4) perhaps the manager can hold application in reset and sleep.
+(done) set bm_enable durring setup, it will not operate unless the ALT input has power
+(done) status battery low bit should not be set unless voltage is low (oops) 
+(npf) init status for daynight is stuck. The applicaion was change to show START state better.
+bm is not enabled if powered with both alt and pwr, but is with only pwr, so it must be... hmm
+(test) cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
+(???) if eeprom value set and the battery goes lower than _host_limit-(_host_limit>>4) manager can hold application in reset and sleep.
 ```
+
+??? - need to do testing and debug, then see if there is room.
 
 
 # Manager

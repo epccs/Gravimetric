@@ -80,8 +80,8 @@ void check_battery_manager(void)
         if (adcAtomic(ADC_CH_PWR_V) < battery_host_limit)
         {
             shutdown_state = HOSTSHUTDOWN_STATE_SW_HALT;
+            status_byt |= (1<<BAT_LOW_HOST_SHUTDOWN);
         }
-        status_byt |= (1<<BAT_LOW_HOST_SHUTDOWN);
     }
 
    // ToDo? if the battery goes even lower perhaps the application can be held in reset and the manager can sleep.

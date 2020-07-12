@@ -94,7 +94,8 @@ void night_work_event(uint8_t data)
     night_work_flag = 1;
 }
 
-void register_daynight_callbacks(void)
+// daemon like state machines on the manager send i2c events to the application
+void register_application_callbacks(void)
 {
     twi0_registerOnDayNightStateCallback(daynight_state_event);
     twi0_registerOnDayWorkCallback(day_work_event);
@@ -200,10 +201,10 @@ void setup(void)
         i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD+RW_WRITE_BIT,80,&loop_state);
     }
 
-    // register daynight callbacks
-    // then enable the manager as i2c master to send updates
-    register_daynight_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR); // this will also cause a callback (poke) to be generated that updates daynight_state
+    // register applicaiton's i2c callbacks
+    // then register the callback address and routes with the manager so it can keep the app up to date 
+    register_application_callbacks();
+    i2c_daynight_cmd(I2C0_APP_ADDR,CB_ROUTE_DN_STATE,CB_ROUTE_DN_DAYWK,CB_ROUTE_DN_NIGHTWK); 
 }
 
 void blink_mgr_status(void)
@@ -245,14 +246,6 @@ void blink_daynight_state(void)
     switch (daynight_state)
     {
     case DAYNIGHT_STATE_START:
-    case DAYNIGHT_STATE_DAY:
-    case DAYNIGHT_STATE_DAYWORK:
-        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
-        break;
-    case DAYNIGHT_STATE_NIGHTWORK:
-    case DAYNIGHT_STATE_NIGHT:
-        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_LOW);
-        break;
     case DAYNIGHT_STATE_EVENING_DEBOUNCE:
     case DAYNIGHT_STATE_MORNING_DEBOUNCE:
         if (kRuntime > (DAYNIGHT_BLINK/2) )
@@ -262,6 +255,14 @@ void blink_daynight_state(void)
             // set for next toggle 
             daynight_status_blink_started_at += DAYNIGHT_BLINK/2;
         }
+        break;
+    case DAYNIGHT_STATE_DAY:
+    case DAYNIGHT_STATE_DAYWORK:
+        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_HIGH);
+        break;
+    case DAYNIGHT_STATE_NIGHTWORK:
+    case DAYNIGHT_STATE_NIGHT:
+        ioWrite(MCU_IO_CS1_EN, LOGIC_LEVEL_LOW);
         break;
     case DAYNIGHT_STATE_FAIL:
         if (kRuntime > (DAYNIGHT_BLINK/8) )

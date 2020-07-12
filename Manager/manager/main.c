@@ -172,6 +172,10 @@ void setup(void)
     ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // lockout manual shutdown switch
     shutdown_state = HOSTSHUTDOWN_STATE_RESTART_DLY;
 
+    // enable the battery manager, it will run if the AUX input has power (after daynight_state changes to DAY)
+    // note if power is applied to PWR input first then daynight_state will start as NIGHT, and have to debounce befor going to DAY.
+    bm_enable = 1;
+
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 
     // problem is if a foreign host has the bus this would be bad

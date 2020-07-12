@@ -110,7 +110,7 @@ void blink_on_activate(void)
     
     unsigned long kRuntime = elapsed(&blink_started_at);
     
-    // Remote will start with the lockout bit set so don't blink for that
+    // Manager starts with the lockout bit set so don't blink for that
     if (!(status_byt & ~(1<<HOST_LOCKOUT_STATUS) )) 
     {
         // blink half as fast when host is foreign
