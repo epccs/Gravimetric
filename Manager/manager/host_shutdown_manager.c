@@ -161,8 +161,6 @@ void check_if_host_should_be_on(void)
     case HOSTSHUTDOWN_STATE_HALT: // a manual or software halt is starting
         if (kRuntime > 200UL) // hold the shutdown pin low for 200mSec
         {
-            resume_bm_enable = bm_enable;
-            bm_enable = 0;
             shutdown_started_at = milliseconds(); // save the time at which shutdown started
             shutdown_kRuntime = milliseconds(); // start timer again for TTL
             shutdown_state = HOSTSHUTDOWN_STATE_CURR_CHK;
@@ -244,7 +242,6 @@ void check_if_host_should_be_on(void)
                 ioDir(MCU_IO_SHUTDOWN, DIRECTION_INPUT);
                 ioWrite(MCU_IO_SHUTDOWN, LOGIC_LEVEL_HIGH); // enable pull up on old AVR Mega parts
                 shutdown_wearleveling_done_at = milliseconds();
-                bm_enable = resume_bm_enable; // restore battery manager enable
                 if (shutdown_callback_address && shutdown_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;

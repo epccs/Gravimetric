@@ -124,6 +124,26 @@ void night_work(void)
     }
 }
 
+void abort_safe(void)
+{
+    // make sure pins are safe befor waiting on UART 
+    ioDir(MCU_IO_CS0_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS1_EN,DIRECTION_INPUT);
+    ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_LOW);
+    // flush the UART befor halt
+    uart0_flush();
+    _delay_ms(20); // wait for last byte to send
+    uart0_init(0, 0); // disable UART hardware 
+    // turn off interrupts and then spin loop a LED toggle 
+    cli();
+    while(1) 
+    {
+        _delay_ms(100); 
+        ioToggle(MCU_IO_CS0_EN);
+    }
+}
+
 void setup(void) 
 {
     // STATUS_LED
@@ -204,7 +224,12 @@ void setup(void)
     // register applicaiton's i2c callbacks
     // then register the callback address and routes with the manager so it can keep the app up to date 
     register_application_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR,CB_ROUTE_DN_STATE,CB_ROUTE_DN_DAYWK,CB_ROUTE_DN_NIGHTWK); 
+    i2c_daynight_cmd(I2C0_APP_ADDR,CB_ROUTE_DN_STATE,CB_ROUTE_DN_DAYWK,CB_ROUTE_DN_NIGHTWK);
+    if (mgr_twiErrorCode)
+    {
+        printf_P(PSTR("\"%c\"daynight_error %d\r\n"),rpu_addr,mgr_twiErrorCode);
+        abort_safe();
+    }
 }
 
 void blink_mgr_status(void)

@@ -174,7 +174,7 @@ void setup(void)
 
     // enable the battery manager, it will run if the AUX input has power (after daynight_state changes to DAY)
     // note if power is applied to PWR input first then daynight_state will start as NIGHT, and have to debounce befor going to DAY.
-    bm_enable = 1;
+    bm_enable = 0x80;
 
 #if defined(DISCONNECT_AT_PWRUP)
     // at power up send a byte on the DTR pair to unlock the bus 

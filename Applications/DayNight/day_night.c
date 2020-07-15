@@ -41,6 +41,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
         daynight_serial_print_started_at = milliseconds();
         printf_P(PSTR("{\"state\":\"0x%X\","),daynight_state); // print a hex value
         command_done = 12;
+        return;
     }
     else if ( (command_done == 12) ) 
     {
@@ -60,6 +61,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),local_copy);
         }
         command_done = 13;
+        return;
     }
     else if ( (command_done == 13) ) 
     {
@@ -79,6 +81,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),local_copy);
         }
         command_done = 14;
+        return;
     }
     else if ( (command_done == 14) ) 
     {
@@ -90,6 +93,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
         }
         printf_P(PSTR("\"adc_alt_v\":\"%u\","),adc_reads);
         command_done = 15;
+        return;
     }
     else if ( (command_done == 15) ) 
     {
@@ -109,6 +113,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\","),local_copy);
         }
         command_done = 16;
+        return;
     }
     else if ( (command_done == 16) ) 
     {
@@ -128,6 +133,7 @@ void dnReport(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\","),local_copy);
         }
         command_done = 17;
+        return;
     }
     else if ( (command_done == 17) ) 
     {
@@ -147,11 +153,13 @@ void dnReport(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\""),local_copy);
         }
         command_done = 24;
+        return;
     }
     else if ( (command_done == 24) ) 
     {
         printf_P(PSTR("}\r\n"));
         command_done = 25;
+        return;
     }
     else if ( (command_done == 25) ) 
     {
@@ -185,6 +193,7 @@ void dnMorningThreshold(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"mor_threshold\":"));
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -197,6 +206,7 @@ void dnMorningThreshold(void)
             i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_MORNING_THRESHOLD+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {
@@ -234,6 +244,7 @@ void dnEveningThreshold(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"eve_threshold\":"));
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -246,6 +257,7 @@ void dnEveningThreshold(void)
             i2c_int_rwoff_access_cmd(DAYNIGHT_INT_CMD,DAYNIGHT_EVENING_THRESHOLD+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {

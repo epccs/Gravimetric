@@ -6,7 +6,7 @@
 1. access status bits.
 2. access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. access arduino_mode.
-4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
+4. set Host Shutdown i2c callback (set shutdown_callback_address and shutdown_callback_route).
 5. access shutdown_halt_curr_limit (uint16). 
 6. access shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit|kRuntime|started_at|halt_chk_at|wearleveling_done_at]
 7. not used.
@@ -268,7 +268,7 @@ At this time, the point to point mode persists, I will sort out more details whe
 // The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
 // I2C: byte[0] = 4, 
 //      byte[1] = shutdown_callback_address, 
-//      byte[2] = shutdown_state_callback_cmd,
+//      byte[2] = shutdown_callback_route,
 //      byte[3] = bring host UP[1..255] / take host DOWN[0].
 ```
 

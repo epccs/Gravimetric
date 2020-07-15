@@ -122,7 +122,8 @@ void night_work_event(uint8_t data)
 
 void battery_state_event(uint8_t batmgr_state_from_mgr)
 {
-    bm_state = (BATTERYMGR_STATE_t)batmgr_state_from_mgr;
+    bm_state = (BATTERYMGR_STATE_t)(0x7F & batmgr_state_from_mgr); // mask away bm_enable bit (8)
+    bm_enable = 0x80 & batmgr_state_from_mgr; // keep bm_enable bit (8)
 }
 
 // daemon like state machines on the manager send i2c events to the application
@@ -132,6 +133,26 @@ void register_application_callbacks(void)
     twi0_registerOnDayWorkCallback(day_work_event);
     twi0_registerOnNightWorkCallback(night_work_event);
     twi0_registerOnBatMgrStateCallback(battery_state_event);
+}
+
+void abort_safe(void)
+{
+    // make sure pins are safe befor waiting on UART 
+    ioDir(MCU_IO_CS0_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS1_EN,DIRECTION_INPUT);
+    ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_LOW);
+    // flush the UART befor halt
+    uart0_flush();
+    _delay_ms(20); // wait for last byte to send
+    uart0_init(0, 0); // disable UART hardware 
+    // turn off interrupts and then spin loop a LED toggle 
+    cli();
+    while(1) 
+    {
+        _delay_ms(100); 
+        ioToggle(MCU_IO_CS0_EN);
+    }
 }
 
 void setup(void) 
@@ -212,8 +233,19 @@ void setup(void)
     // register applicaiton's i2c callbacks
     // then register the callback address and routes with the manager so it can keep the app up to date 
     register_application_callbacks();
-    i2c_daynight_cmd(I2C0_APP_ADDR,CB_ROUTE_DN_STATE,CB_ROUTE_DN_DAYWK,CB_ROUTE_DN_NIGHTWK); 
+    i2c_daynight_cmd(I2C0_APP_ADDR,CB_ROUTE_DN_STATE,CB_ROUTE_DN_DAYWK,CB_ROUTE_DN_NIGHTWK);
+    if (mgr_twiErrorCode)
+    {
+        printf_P(PSTR("\"%c\"daynight_error %d\r\n"),rpu_addr,mgr_twiErrorCode);
+        abort_safe();
+    }
+    _delay_ms(50); // multi-master needs more debuging
     i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,2); 
+    if (mgr_twiErrorCode)
+    {
+        printf_P(PSTR("\"%c\"battery_error %d\r\n"),rpu_addr,mgr_twiErrorCode);
+        abort_safe();
+    }
 }
 
 void blink_mgr_status(void)

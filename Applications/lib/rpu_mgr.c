@@ -65,19 +65,17 @@ uint8_t i2c_address_; // master address this slave
 // shutdown_halt_curr_limit
 #define INT_RW_ARRY_CMD_SIZE 4
 
-// set daynight callback address 49, report daynight_state cmd 1, day evnt 2, night evnt 3.
-// e.g., manager cmd 19 is used to set daynight state machine callbacks. 
+// set daynight callback address 49 with cmd 19 on routes 1, 2, 3 (always poke)
+// e.g., reports daynight_state on route 1, day evnt on route 2, night evnt on route 3.
 #define DAYNIGHT_CALLBK_CMD {0x13,0x31,0x1,0x2,0x3}
 #define DAYNIGHT_CALLBK_CMD_SIZE 5
 
-// set battery callback address 49, state cmd 16, enable 
-// e.g., manager cmd 16 is used to set battery state machine callbacks. 
-#define BATTERY_CALLBK_CMD {0x10,0x31,0x4,0x1}
+// set battery manager callback address 49 with cmd 16 on route 4 with poke
+#define BATTERY_CALLBK_CMD {0x10,0x31,0x4,0x2}
 #define BATTERY_CALLBK_CMD_SIZE 4
 
-// set host shutdown callback address 49, state cmd 4
-// e.g., manager cmd 4 is used to set host shutdown state machine callbacks. 
-#define HOSTSHUTDOWN_CALLBK_CMD {0x4,0x31,0x5,0x0}
+// set host shutdown callback address 49 with cmd 4 on route 5 with poke
+#define HOSTSHUTDOWN_CALLBK_CMD {0x4,0x31,0x5,0x2}
 #define HOSTSHUTDOWN_CALLBK_CMD_SIZE 4
 
 // commands 32 will have the manger do an 

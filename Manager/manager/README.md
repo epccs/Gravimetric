@@ -71,7 +71,10 @@
 (done) set bm_enable durring setup, it will not operate unless the ALT input has power
 (done) status battery low bit should not be set unless voltage is low (oops) 
 (npf) init status for daynight is stuck. The applicaion was change to show START state better.
-bm is not enabled if powered with both alt and pwr, but is with only pwr, so it must be... hmm
+(done) bm loops on FAIL state rather than changing to START
+(done) bm_enable is not reported but I can infer it has been enabled based on bm_state.
+(doc) bm_enable reports on bit 8 of bm state machine updates 
+(done) at power up app was getting bm_state 5 rather than 3 (i2c was setting bm_enable to 2 and bm daemon as adding state and enable to get 5).
 (test) cmd 18 offset 0 is alt_pwm_accum_charge_time, an approximation for absorption time, it needs to be check with a battery.
 (???) if eeprom value set and the battery goes lower than _host_limit-(_host_limit>>4) manager can hold application in reset and sleep.
 ```
@@ -188,7 +191,7 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 1. Access status bits.
 2. Access the multi-drop bootload address that will be sent when DTR/RTS toggles.
 3. Access arduino_mode.
-4. Set host shutdown i2c callback (set shutdown_callback_address and shutdown_state_callback_cmd).
+4. Set host shutdown i2c callback (set shutdown_callback_address and shutdown_callback_route).
 5. Access shutdown manager uint16 values. shutdown_halt_curr_limit
 6. Access shutdown manager uint32 values. shutdown_[halt_ttl_limit|delay_limit|wearleveling_limit]
 7. not used.
@@ -197,10 +200,10 @@ There are two TWI interfaces one acts as an I2C slave and is used to connect wit
 
 [PV and Battery]: ./PVandBattery.md
 
-16. Set battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
+16. Set battery manager bm_callback_address (i2c) and bm_callback_route.
 17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 18. Access battery manager uint32 values. alt_pwm_accum_charge_time
-19. Set daynight i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
+19. Set daynight_callback_address and routs [daynight|day_work|night_work]_callback_route.
 20. Access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
 21. Access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|...]
 22. not used.

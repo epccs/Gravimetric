@@ -141,9 +141,10 @@ void night_work_event(uint8_t data)
     night_work_flag = 1;
 }
 
-void battery_state_event(uint8_t batmgr_state_from_mgr)
+void battery_state_event(uint8_t bm_state_from_mgr)
 {
-    bm_state = (BATTERYMGR_STATE_t)batmgr_state_from_mgr;
+    bm_state = (BATTERYMGR_STATE_t)(0x7F & bm_state_from_mgr); // mask away bm_enable bit (8)
+    bm_enable = 0x80 & bm_state_from_mgr; // keep bm_enable bit (8)
 }
 
 void host_shutdown_state_event(uint8_t hs_state_from_mgr)
@@ -159,6 +160,26 @@ void register_application_callbacks(void)
     twi0_registerOnNightWorkCallback(night_work_event);
     twi0_registerOnBatMgrStateCallback(battery_state_event); 
     twi0_registerOnHostShutdownStateCallback(host_shutdown_state_event); 
+}
+
+void abort_safe(void)
+{
+    // make sure pins are safe befor waiting on UART 
+    ioDir(MCU_IO_CS0_EN,DIRECTION_OUTPUT);
+    ioWrite(MCU_IO_CS0_EN,LOGIC_LEVEL_LOW);
+    ioDir(MCU_IO_CS1_EN,DIRECTION_INPUT);
+    ioWrite(MCU_IO_CS1_EN,LOGIC_LEVEL_LOW);
+    // flush the UART befor halt
+    uart0_flush();
+    _delay_ms(20); // wait for last byte to send
+    uart0_init(0, 0); // disable UART hardware 
+    // turn off interrupts and then spin loop a LED toggle 
+    cli();
+    while(1) 
+    {
+        _delay_ms(100); 
+        ioToggle(MCU_IO_CS0_EN);
+    }
 }
 
 void setup(void) 
@@ -240,8 +261,25 @@ void setup(void)
     // then register the callback address and routes with the manager so it can keep the app up to date 
     register_application_callbacks();
     i2c_daynight_cmd(I2C0_APP_ADDR,CB_ROUTE_DN_STATE,CB_ROUTE_DN_DAYWK,CB_ROUTE_DN_NIGHTWK);
-    i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,2); 
+    if (mgr_twiErrorCode)
+    {
+        printf_P(PSTR("\"%c\"daynight_error %d\r\n"),rpu_addr,mgr_twiErrorCode);
+        abort_safe();
+    }
+    _delay_ms(50); // multi-master needs more debuging
+    i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,2);
+    if (mgr_twiErrorCode)
+    {
+        printf_P(PSTR("\"%c\"battery_error %d\r\n"),rpu_addr,mgr_twiErrorCode);
+        abort_safe();
+    }
+    _delay_ms(50); // multi-master needs more debuging
     i2c_shutdown_cmd(I2C0_APP_ADDR,CB_ROUTE_HS_STATE,2);
+    if (mgr_twiErrorCode)
+    {
+        printf_P(PSTR("\"%c\"shutdown_error %d\r\n"),rpu_addr,mgr_twiErrorCode);
+        abort_safe();
+    }
 
     // the host is likely DOWN at power up, and hs_state is not yet getting callbacks so I guess init it for now
     hs_state = HOSTSHUTDOWN_STATE_DOWN;

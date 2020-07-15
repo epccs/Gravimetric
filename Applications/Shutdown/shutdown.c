@@ -56,6 +56,7 @@ void EnableShutdownCntl(void)
         i2c_shutdown_cmd(I2C0_APP_ADDR, CB_ROUTE_HS_STATE, hs_bring_up);
         printf_P(PSTR("{\"hs_en\":"));
         command_done = 11;
+        return;
     }
     else if ( (command_done == 11) )
     {
@@ -68,6 +69,7 @@ void EnableShutdownCntl(void)
             printf_P(PSTR("\"DOWN\""));
         }
         command_done = 12;
+        return;
     }
     else if ( (command_done == 12) )
     {
@@ -89,11 +91,13 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
     {
         hs_serial_print_started_at = milliseconds();
         command_done = 11;
+        return;
     }
     if ( (command_done == 11) )
     {
         printf_P(PSTR("{\"hs_state\":\"0x%X\","),hs_state); // print a hex value
         command_done = 12;
+        return;
     }
     else if ( (command_done == 12) ) 
     {
@@ -113,6 +117,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),local_copy);
         }
         command_done = 13;
+        return;
     }
     else if ( (command_done == 13) ) 
     {
@@ -132,6 +137,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),adc_reads);
         }
         command_done = 14;
+        return;
     }
     else if ( (command_done == 14) ) 
     {
@@ -151,6 +157,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\","),local_copy);
         }
         command_done = 15;
+        return;
     }
     else if ( (command_done == 15) ) 
     {
@@ -170,6 +177,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\","),local_copy);
         }
         command_done = 16;
+        return;
     }
 
     else if ( (command_done == 16) ) 
@@ -190,6 +198,7 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\","),local_copy);
         }
         command_done = 17;
+        return;
     }
     else if ( (command_done == 17) ) 
     {
@@ -209,11 +218,13 @@ void ReportShutdownCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\""),local_copy);
         }
         command_done = 24;
+        return;
     }
     else if ( (command_done == 24) ) 
     {
         printf_P(PSTR("}\r\n"));
         command_done = 25;
+        return;
     }
     else if ( (command_done == 25) ) 
     {
@@ -260,6 +271,7 @@ void ShutdownHaltCurrLimit(void)
             i2c_int_rwoff_access_cmd(SHUTDOWN_INT_CMD,SHUTDOWN_HALT_CURR_OFFSET+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {
@@ -297,6 +309,7 @@ void ShutdownTTLimit(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"hs_ttl\":")); // shutdown_ttl_limit on manager
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -309,6 +322,7 @@ void ShutdownTTLimit(void)
             i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_TTL+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {
@@ -346,6 +360,7 @@ void ShutdownDelayLimit(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"hs_delay\":")); // shutdown_delay_limit on manager
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -358,6 +373,7 @@ void ShutdownDelayLimit(void)
             i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_DELAY+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {
@@ -395,6 +411,7 @@ void ShutdownWearlevelingLimit(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"hs_wearlv\":")); // shutdown_wearleveling_limit on manager
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -407,6 +424,7 @@ void ShutdownWearlevelingLimit(void)
             i2c_ul_rwoff_access_cmd(SHUTDOWN_UL_CMD,SHUTDOWN_WEARLEVEL+RW_WRITE_BIT,ul_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {

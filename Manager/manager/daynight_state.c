@@ -64,8 +64,8 @@ unsigned long accumulate_pwr_mega_ti_at_day;
 uint8_t daynight_callback_address;
 uint8_t daynight_callback_route;
 uint8_t daynight_callback_poke;
-uint8_t day_work_callback_cmd;
-uint8_t night_work_callback_cmd;
+uint8_t day_work_callback_route;
+uint8_t night_work_callback_route;
 uint8_t daynight_fail_reported;
 TWI0_LOOP_STATE_t loop_state;
 
@@ -178,7 +178,7 @@ void check_daynight(void)
                 if (daynight_callback_address && daynight_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    // remote daynight_state gets DAYNIGHT_STATE_NIGHT while DAYNIGHT_NIGHTWORK_STATE is used to operate night_work_callback_cmd
+                    // remote daynight_state gets DAYNIGHT_STATE_NIGHT while DAYNIGHT_NIGHTWORK_STATE is used to operate night_work_callback_route
                     i2c_callback(daynight_callback_address, daynight_callback_route, DAYNIGHT_STATE_NIGHT, &loop_state); // update remote
                 }
                 daynight_timer = milliseconds();
@@ -197,10 +197,10 @@ void check_daynight(void)
         break;
     case DAYNIGHT_STATE_NIGHTWORK:
         daynight_state = DAYNIGHT_STATE_NIGHT;
-        if (daynight_callback_address && night_work_callback_cmd)
+        if (daynight_callback_address && night_work_callback_route)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(daynight_callback_address, night_work_callback_cmd, DAYNIGHT_STATE_NIGHTWORK, &loop_state); // night_work_callback remote
+            i2c_callback(daynight_callback_address, night_work_callback_route, DAYNIGHT_STATE_NIGHTWORK, &loop_state); // night_work_callback remote
         }
         accumulate_alt_mega_ti_at_night = accumulate_alt_mega_ti;
         accumulate_pwr_mega_ti_at_night = accumulate_pwr_mega_ti;
@@ -237,7 +237,7 @@ void check_daynight(void)
                 if (daynight_callback_address && daynight_callback_route)
                 {
                     if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-                    // remote daynight_state gets DAYNIGHT_STATE_DAY while DAYNIGHT_STATE_DAYWORK is used to operate day_work_callback_cmd
+                    // remote daynight_state gets DAYNIGHT_STATE_DAY while DAYNIGHT_STATE_DAYWORK is used to operate day_work_callback_route
                     i2c_callback(daynight_callback_address, daynight_callback_route, DAYNIGHT_STATE_DAY, &loop_state); // update remote
                 }
                 daynight_timer = milliseconds();
@@ -256,10 +256,10 @@ void check_daynight(void)
         break;
     case DAYNIGHT_STATE_DAYWORK:
         daynight_state = DAYNIGHT_STATE_DAY; // update local
-        if (daynight_callback_address && day_work_callback_cmd)
+        if (daynight_callback_address && day_work_callback_route)
         {
             if (loop_state == TWI0_LOOP_STATE_RAW) loop_state = TWI0_LOOP_STATE_INIT;
-            i2c_callback(daynight_callback_address, day_work_callback_cmd, DAYNIGHT_STATE_DAYWORK, &loop_state); // day_work_callback remote
+            i2c_callback(daynight_callback_address, day_work_callback_route, DAYNIGHT_STATE_DAYWORK, &loop_state); // day_work_callback remote
         }
         alt_pwm_accum_charge_time = 0; // clear charge time
         accumulate_alt_mega_ti_at_day = accumulate_alt_mega_ti;

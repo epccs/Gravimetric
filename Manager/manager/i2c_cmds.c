@@ -400,10 +400,9 @@ void fnBatteryMgr(uint8_t* i2cBuffer)
 { 
     bm_callback_address = i2cBuffer[1]; // non-zero will turn on power manager and is the callback address used (the i2c slave address)
     bm_callback_route = i2cBuffer[2]; // callback route value
-    bm_enable = i2cBuffer[3]; // allow the battery manager to operate
     if (i2cBuffer[3] == 1) 
     {
-        bm_enable = 1; // enable battery manager
+        bm_enable = 0x80; // enable battery manager
     }
     if (i2cBuffer[3] == 0)
     {
@@ -531,15 +530,15 @@ void fnBatteryULAccess(uint8_t* i2cBuffer)
 // The day-night statemachine acts as an i2c master and addresses the application MCU as a slave to send update events.
 // I2C: byte[0] = 19, 
 //      byte[1] = sets the i2c slave address that the daynight state machine will access
-//      byte[2] = sets the comand number used to send daynight_state updates
-//      byte[3] = sets the comand number used to send day_work events
-//      byte[4] = sets the comand number used to send night_work events
+//      byte[2] = sets the route number used to send daynight_state updates
+//      byte[3] = sets the route number used to send day_work events
+//      byte[4] = sets the route number used to send night_work events
 void fnDayNightMgr(uint8_t* i2cBuffer)
 { 
     daynight_callback_address = i2cBuffer[1];
     daynight_callback_route = i2cBuffer[2];
-    day_work_callback_cmd = i2cBuffer[3];
-    night_work_callback_cmd = i2cBuffer[4];
+    day_work_callback_route = i2cBuffer[3];
+    night_work_callback_route = i2cBuffer[4];
     daynight_callback_poke = 1; // don't poke me... oh you must have reset.
 }
 

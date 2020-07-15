@@ -30,7 +30,8 @@ https://en.wikipedia.org/wiki/BSD_licenses#0-clause_license_(%22Zero_Clause_BSD%
 
 static unsigned long battery_serial_print_started_at;
 volatile BATTERYMGR_STATE_t bm_state; // battery manager state
-uint8_t bm_enable; 
+volatile uint8_t bm_enable;
+volatile uint8_t bm_enable_out; 
 
 // /0/bm
 // enable the battery manager and the callback where it can tell me what it is doing.
@@ -40,16 +41,17 @@ void EnableBatMngCntl(void)
     {
         if (bm_enable) 
         {
-            bm_enable = 0; // zero will disable battery manager
+            bm_enable_out = 0; // zero will disable battery manager
         }
         else
         {
-            bm_enable = 1;
+            bm_enable_out = 1;
         }
         
-        i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,bm_enable);
+        i2c_battery_cmd(I2C0_APP_ADDR,CB_ROUTE_BM_STATE,bm_enable_out);
         printf_P(PSTR("{\"bat_en\":"));
         command_done = 11;
+        return;
     }
     else if ( (command_done == 11) )
     {
@@ -62,6 +64,7 @@ void EnableBatMngCntl(void)
             printf_P(PSTR("\"OFF\""));
         }
         command_done = 12;
+        return;
     }
     else if ( (command_done == 12) )
     {
@@ -87,6 +90,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
     {
         printf_P(PSTR("{\"bm_state\":\"0x%X\","),bm_state); // print a hex value
         command_done = 12;
+        return;
     }
     else if ( (command_done == 12) ) 
     {
@@ -106,6 +110,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),local_copy);
         }
         command_done = 13;
+        return;
     }
     else if ( (command_done == 13) ) 
     {
@@ -125,6 +130,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),local_copy);
         }
         command_done = 14;
+        return;
     }
     else if ( (command_done == 14) ) 
     {
@@ -144,6 +150,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%u\","),local_copy);
         }
         command_done = 15;
+        return;
     }
 
     else if ( (command_done == 15) ) 
@@ -156,6 +163,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         }
         printf_P(PSTR("\"adc_pwr_v\":\"%u\","),adc_reads);
         command_done = 16;
+        return;
     }
     else if ( (command_done == 16) ) 
     {
@@ -167,6 +175,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
         }
         printf_P(PSTR("\"adc_alt_v\":\"%u\","),adc_reads);
         command_done = 17;
+        return;
     }
     else if ( (command_done == 17) ) 
     {
@@ -186,6 +195,7 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\","),local_copy);
         }
         command_done = 18;
+        return;
     }
     else if ( (command_done == 18) ) 
     {
@@ -205,11 +215,13 @@ void ReportBatMngCntl(unsigned long serial_print_delay_milsec)
             printf_P(PSTR("\"%lu\""),local_copy);
         }
         command_done = 24;
+        return;
     }
     else if ( (command_done == 24) ) 
     {
         printf_P(PSTR("}\r\n"));
         command_done = 25;
+        return;
     }
     else if ( (command_done == 25) ) 
     {
@@ -244,6 +256,7 @@ void BatMngLowLimit(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"bat_low_lim\":"));
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -256,6 +269,7 @@ void BatMngLowLimit(void)
             i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_LOW+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {
@@ -293,6 +307,7 @@ void BatMngHighLimit(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"bat_high_lim\":"));
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -305,6 +320,7 @@ void BatMngHighLimit(void)
             i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HIGH+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {
@@ -342,6 +358,7 @@ void BatMngHostLimit(void)
             command_done = 12;
         }
         printf_P(PSTR("{\"bat_host_lim\":"));
+        return;
     }
     if ( (command_done == 11) ) 
     {
@@ -354,6 +371,7 @@ void BatMngHostLimit(void)
             i2c_int_rwoff_access_cmd(BATTERY_INT_CMD,BATTERY_HOST+RW_WRITE_BIT,int_to_send,&loop_state);
         }
         command_done = 12;
+        return;
     }
     if ( (command_done == 12) ) 
     {

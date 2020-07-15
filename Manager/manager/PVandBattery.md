@@ -2,10 +2,10 @@
 
 16..31 (Ox10..0x1F | 0b00010000..0b00011111)
 
-16. Battery manager, enable with callback address (i2c), and and comand number to send state callback value to.
+16. Set battery manager bm_callback_address (i2c) and bm_callback_route.
 17. Access battery manager uint16 values. battery_[high_limit|low_limit|host_limit]
 18. Access battery manager uint32 values. alt_pwm_accum_charge_time
-19. Set daynight i2c callbacks (set callback address, report daynight_state cmd, day event cmd, night event cmd).
+19. Set daynight_callback_address and routs [daynight|day_work|night_work]_callback_route.
 20. Access daynight manager uint16 values. daynight_[morning_threshold|evening_threshold]
 21. Access daynight manager uint32 values. daynight_[morning_debounce|evening_debounce|...]
 22. not used.
@@ -13,7 +13,16 @@
 
 ## Cmd 16 from a controller /w i2c-debug to enable battery manager
 
-Enable the battery manager. The first byte is a callback address (e.g., the slave address to use). The second byte is used as a routing number for the application to receive the battery manager state machine events. The last byte is used to enable = 1..255 / disable = 0 the battery manager. 
+``` C
+// I2C command to enable battery manager and set a i2c callback address for bm_state when command command byte is > zero.
+// The manager operates as an i2c master and addresses the application MCU as a slave to update when events occur.
+// I2C: byte[0] = 16, 
+//      byte[1] = the callback address to use,
+//      byte[2] = callback cmd value to use (the receiving slave will use the value to route the event value),
+//      byte[3] = enable bm [1], disable bm [0], poke bm [2..254].
+``` 
+
+Enable the battery manager. The first byte is a callback address (e.g., the slave address to use). The second byte is used as a routing number for the application to receive the battery manager state machine events. The last byte is used to enable [1], disable [0], or poke [2..254] the battery manager. 
 
 ``` 
 # I am using the bootload interface 
@@ -105,11 +114,19 @@ picocom -b 38400 /dev/ttyUSB0
 This is not yet working.
 
 
-## Cmd 19 from a controller /w i2c-debug to set daynight manager i2c callbacks (4 x uint8_t).
+## Cmd 19 from a controller /w i2c-debug to set daynight manager i2c callback and routes.
 
-Send four bytes to enable i2c callback for: daynight_state event, day event, night event. 
+``` C
+// I2C command to set i2c callback address and three commands for daynight_state, day_work, and night_work events.
+// The day-night statemachine acts as an i2c master and addresses the application MCU as a slave to send update events.
+// I2C: byte[0] = 19, 
+//      byte[1] = sets the i2c slave address that the daynight state machine will access
+//      byte[2] = sets the route number used to send daynight_state updates
+//      byte[3] = sets the route number used to send day_work events
+//      byte[4] = sets the route number used to send night_work events
+``` 
 
-Address (0x31) is the i2c slave address that will receive the events. The daynight_state event (0x1) is the command byte used when daynight_state changes. The day (0x2) and night (0x3) event command is called so user functions can run functions.  The i2c slave needs to be implemented for the callbacks to operate, the manager will keep trying to master the i2c bus, but quit after an address NAK. 
+Address (0x31) is the i2c slave address that will receive the events. The daynight_state event (0x1) is the route byte used when daynight_state changes. The day (0x2) and night (0x3) event routes are called so user functions can run. 
 
 ``` 
 # I am using the bootload interface 
