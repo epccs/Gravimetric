@@ -12,8 +12,8 @@
 // PWR_I halt range: adc = PWR_I/((ref/1024.0)/(0.068*50.0))
 // half amp: 0.5/((4.5/1024.0)/(0.068*50.0)) 
 #define HOSTSHUTDOWN_LIM_HALTCURR_LIMIT_MAX 387
-// 70mA: 0.07/((4.5/1024.0)/(0.068*50.0)) 
-#define HOSTSHUTDOWN_LIM_HALTCURR_LIMIT_MIN 54
+// 13mA: 0.013/((4.5/1024.0)/(0.068*50.0)) 
+#define HOSTSHUTDOWN_LIM_HALTCURR_LIMIT_MIN 10
 
 // Halt timeout (e.g., Time To Live) milliseconds
 #define HOSTSHUTDOWN_LIM_HALT_TTL_MAX 1000000UL

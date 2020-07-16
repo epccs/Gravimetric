@@ -20,6 +20,15 @@ This shows the setup and method used for evaluation of Gravimetric.
 1. ^0 Mockup
 
 
+## ^1 Three Little Daemons
+
+Actually, they are three state machines running. The day-night daemon (again it's a state machine) tracks the status of the alternate power input which could go to a solar panel. The battery-manager (bm) charges during the DAY and disconnects at other day-night states. The bm has some charging modes and trips the host shutdown if the battery is low. The host shutdown daemon enables the manual switch 90 seconds after powerup or after bringing the host UP from shutdown. When a shutdown occurs by software or manual switch the current is monitored to be stable for 90 seconds and then a 40-second delay occurs before removing power. The 90-second wait can be skipped if the application will stop alternating current usage (blinking LEDs) to cause current usage to be stable.
+
+![Daemons](./17341^1_manager_with_hs_bm_daynight_daemons.jpg "Daemons")
+
+The daemons are done so that they can report state changes over I2C to the manager. This is done by changing the roles of the I2C devices, normally the application plays the role of boss, and sends things to the peon. But today the peon gets to become the new boss and send daemon events to the old demoted boss. Unfortunately, if the old boss tries to access things again the promoted peon can at times defecate on his ostentation (a bug I have not tied to fix, it seems appropriate for the times).
+
+
 ## ^1 I2C Multi-Master
 
 I2C has been overhauled at this time. The master now has non-blocking functions, and that can help open deadlocks. Some programs (i2c-debug and adc) are currently using a static loop state enumeration to allow software execution to return to the main loop while waiting for the TWI hardware. 

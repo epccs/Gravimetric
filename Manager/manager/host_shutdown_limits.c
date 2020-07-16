@@ -173,10 +173,10 @@ uint8_t LoadShtDwnLimitsFromEEPROM()
     else
     {
         // default values are for a Raspberry Pi Zero, 12V8 LA battery, and 5V referance
-        shutdown_halt_curr_limit = 63; // a halt R-Pi Z and applicaion has less than 90mA on PWR_I with 12V8: 0.09/((5.0/1024.0)/(0.068*50.0))
-        shutdown_ttl_limit = 60000UL; // the R-Pi Z can take some time to halt 60 seconds is default.
-        shutdown_delay_limit = 10000UL; // give the SD card 10 seconds to do wearleveling.
-        shutdown_wearleveling_limit = 100UL; // if PWR_I is stable for .1 seconds, accept that to mean wearleveling is done, note this is not proof it is more like hope.
+        shutdown_halt_curr_limit = 30; // a halt R-Pi Z and applicaion has less than 43mA on PWR_I with 12V8: 0.043/((5.0/1024.0)/(0.068*50.0))
+        shutdown_ttl_limit = 90000UL; // the R-Pi Z can take some time to halt or startup 60 seconds is default.
+        shutdown_delay_limit = 40000UL; // give the SD card 40 seconds to do wearleveling.
+        shutdown_wearleveling_limit = 1000UL; // if PWR_I is stable for 1 seconds, accept that to mean wearleveling is done, note this is not proof it is more like hope.
         shutdown_limit_loaded = HOSTSHUTDOWN_LIM_DEFAULT;
         return 0;
     }
