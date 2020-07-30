@@ -25,6 +25,16 @@ Another option is to build a scale with load cells and an IC like the NAU7802 or
 
 For development I will input data from another serial device (e.g., USBuart or a ICSP /w an R-Pi).
 
+If the scale has is a mechanical oscillation, it might be possible to put a dashpot on the corners to dampen out the oscillations. The trick is not to have any parts of the damper touching the cylinder.
+
+https://en.wikipedia.org/wiki/Dashpot
+
+Also, fast-fill to 90% and then slow-fill with a weir on the slow fill end to the setpoint. The gradual fill and weir will reduce the disturbance on the scale.
+
+https://en.wikipedia.org/wiki/Weir
+
+Ther is always an overshoot, but if it is predictable, we can turn off the flow that much before the set-point.
+
 
 ## Partial Pulse
 
