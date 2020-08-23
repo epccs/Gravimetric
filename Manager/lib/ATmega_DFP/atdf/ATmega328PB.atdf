@@ -679,7 +679,7 @@
           <bitfield caption="USART Data register Empty Interrupt Enable" mask="0x20" name="UDRIE0"/>
           <bitfield caption="Receiver Enable" mask="0x10" name="RXEN0"/>
           <bitfield caption="Transmitter Enable" mask="0x08" name="TXEN0"/>
-          <bitfield caption="Character Size" mask="0x04" name="UCSZ02"/>
+          <bitfield caption="Character Size - together with UCSZ0 in UCSR0C" mask="0x04" name="UCSZ02"/>
           <bitfield caption="Receive Data Bit 8" mask="0x02" name="RXB80"/>
           <bitfield caption="Transmit Data Bit 8" mask="0x01" name="TXB80"/>
         </register>
@@ -687,7 +687,7 @@
           <bitfield caption="USART Mode Select" mask="0xC0" name="UMSEL0" values="COMM_USART_MODE_2BIT"/>
           <bitfield caption="Parity Mode Bits" mask="0x30" name="UPM0" values="COMM_UPM_PARITY_MODE"/>
           <bitfield caption="Stop Bit Select" mask="0x08" name="USBS0" values="COMM_STOP_BIT_SEL"/>
-          <bitfield caption="Character Size" mask="0x06" name="UCSZ0"/>
+          <bitfield caption="Character Size - together with UCSZ2 in UCSR0B" mask="0x06" name="UCSZ0"/>
           <bitfield caption="Clock Polarity" mask="0x01" name="UCPOL0"/>
         </register>
           <register caption="USART Control and Status Register D" name="UCSR0D" offset="0xC3" size="1">
@@ -715,7 +715,7 @@
           <bitfield caption="USART Data register Empty Interrupt Enable" mask="0x20" name="UDRIE1"/>
           <bitfield caption="Receiver Enable" mask="0x10" name="RXEN1"/>
           <bitfield caption="Transmitter Enable" mask="0x08" name="TXEN1"/>
-          <bitfield caption="Character Size" mask="0x04" name="UCSZ12"/>
+          <bitfield caption="Character Size - together with UCSZ0 in UCSR1C" mask="0x04" name="UCSZ12"/>
           <bitfield caption="Receive Data Bit 8" mask="0x02" name="RXB81"/>
           <bitfield caption="Transmit Data Bit 8" mask="0x01" name="TXB81"/>
         </register>
@@ -723,7 +723,7 @@
           <bitfield caption="USART Mode Select" mask="0xC0" name="UMSEL1" values="COMM_USART_MODE_2BIT"/>
           <bitfield caption="Parity Mode Bits" mask="0x30" name="UPM1" values="COMM_UPM_PARITY_MODE"/>
           <bitfield caption="Stop Bit Select" mask="0x08" name="USBS1" values="COMM_STOP_BIT_SEL"/>
-          <bitfield caption="Character Size" mask="0x06" name="UCSZ1"/>
+          <bitfield caption="Character Size - together with UCSZ12 in UCSR1B" mask="0x06" name="UCSZ1"/>
           <bitfield caption="Clock Polarity" mask="0x01" name="UCPOL1"/>
         </register>
         <register caption="USART Control and Status Register D" name="UCSR1D" offset="0xCB" size="1">
@@ -1216,14 +1216,10 @@
         </register>
       </register-group>
       <value-group caption="" name="COMM_SCK_RATE_3BIT">
-        <value caption="fosc/4" name="VAL_0x00" value="0x00"/>
-        <value caption="fosc/16" name="VAL_0x01" value="0x01"/>
-        <value caption="fosc/64" name="VAL_0x02" value="0x02"/>
-        <value caption="fosc/128" name="VAL_0x03" value="0x03"/>
-        <value caption="fosc/2" name="VAL_0x04" value="0x04"/>
-        <value caption="fosc/8" name="VAL_0x05" value="0x05"/>
-        <value caption="fosc/32" name="VAL_0x06" value="0x06"/>
-        <value caption="fosc/64" name="VAL_0x07" value="0x07"/>
+        <value caption="fosc/2 or fosc/4" name="VAL_0x00" value="0x00"/>
+        <value caption="fosc/8 or fosc/16" name="VAL_0x01" value="0x01"/>
+        <value caption="fosc/32 or fosc/64" name="VAL_0x02" value="0x02"/>
+        <value caption="fosc/64 or fosc/128" name="VAL_0x03" value="0x03"/>
       </value-group>
     </module>
     <module caption="" name="WDT">

@@ -79,6 +79,38 @@ void abort_safe(void)
         _delay_ms(100); 
         ioToggle(MCU_IO_CS0_EN);
     }
+    
+    /*sleep notes, not yet done
+    #include <avr/sleep.h>
+    #include <avr/wdt.h>
+    
+    for (i = 0; i < 20; i++) {             // all pins to one rail or the other
+        ioDir(i,DIRECTION_OUTPUT);
+        ioWrite(i,LOGIC_LEVEL_LOW);
+    }
+    ADCSRA = 0;                            // disable ADC for power saving
+    wdt_disable();                         // disable WDT for power saving
+    PRR = 0xEF;                            // power down all modules m328p
+    set_sleep_mode (SLEEP_MODE_PWR_DOWN);  // Deep sleep
+    sleep_enable();
+    sleep_bod_disable();                   // disable brownout detector during sleep
+    sleep_cpu();                           // now go to sleep
+    
+    while(1) {
+    }
+    
+    // or 
+    // Prepare the sleep in power down mode
+    SMCR |= (1<<SE) | (0<<SM2) | (1<<SM1) | (0<<SM0);
+    // Disable brown out detection in sleep
+    tmp = MCUCR | (1<<BODS) | (1<<BODSE);
+    MCUCR = tmp;
+    MCUCR = tmp & (~(1<<BODSE));
+    // delay_us(100); //note a delay will cause sleep to fail
+    // Enter sleep mode
+    #asm("sleep");
+    */
+    
 }
 
 int main(void)

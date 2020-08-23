@@ -1,10 +1,12 @@
-# Atmel Packs (Atmel.ATmega_DFP.1.3.300.atpack)
+# Atmel Packs
 
 downloaded from http://packs.download.atmel.com/
 
 Note: I have remove everything but the 324pb support
 
 # Usage
+
+example with the Atmel.ATmega_DFP.1.3.300.atpack
 
 avr-gcc -mmcu=atmega324pb -B ../Atmel.ATmega_DFP.1.3.300.atpack/gcc/dev/atmega324pb/ -I ../Atmel.ATmega_DFP.1.3.300.atpack/include/
 

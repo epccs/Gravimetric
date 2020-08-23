@@ -3,6 +3,9 @@
 
 #define TWI0_BUFFER_LENGTH 32
 
+// for m324pb the TW_STATUS_MASK does not work
+#define TW0_STATUS_MASK (_BV(TWS07)|_BV(TWS06)|_BV(TWS05)|_BV(TWS04)|_BV(TWS03))
+
 // Some SMBus devices (Raspberry Pi Zero) can not handle clock stretching.
 // An interleaving receive buffer allwows the callback to save a pointer
 // to the buffer and swap to another buffer in ISR thread.

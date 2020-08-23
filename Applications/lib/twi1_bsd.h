@@ -1,6 +1,9 @@
 #ifndef twi1_h
 #define twi1_h
 
+// for m324pb the TW_STATUS_MASK does not work, use same bit fields as TWSR0 since they did not define for TWSR1
+#define TW1_STATUS_MASK (_BV(TWS07)|_BV(TWS06)|_BV(TWS05)|_BV(TWS04)|_BV(TWS03))
+
 #define TWI1_BUFFER_LENGTH 32
 
 // Some SMBus devices (Raspberry Pi Zero) can not handle clock stretching.

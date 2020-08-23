@@ -148,7 +148,7 @@ FILE *uart0_init(uint32_t baudrate, uint8_t choices)
     {
         if (ubrr & 0x8000) 
         {
-            UCSR0A = (1<<U2X0);  //Double speed mode (bit in status register)
+            UCSR0A = (1<<U2X);  //Double speed mode (bit in status register)
             ubrr &= ~0x8000;
         }
         UCSR0B = (1<<RXCIE)|(1<<RXEN)|(1<<TXEN); // enable TX and RX

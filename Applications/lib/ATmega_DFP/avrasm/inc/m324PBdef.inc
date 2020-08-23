@@ -6,7 +6,7 @@
 ;* Number            : AVR000
 ;* File Name         : m324PBdef.inc
 ;* Title             : Register/Bit Definitions for the ATmega324PB
-;* Created           : 2018-11-27 09:12
+;* Created           : 2020-03-16 13:33
 ;* Version           : 1.00
 ;* Support e-mail    : avr@atmel.com
 ;* Target MCU        : ATmega324PB
@@ -1489,23 +1489,23 @@
 ; ***** DATA MEMORY DECLARATIONS *****************************************
 .equ	FLASHSTART	= 0x0000 ; Note: Word address
 .equ	FLASHEND	= 0x3FFF ; Note: Word address
-.equ	FLASHPAGESIZE	= 0x0040 ;
+.equ	FLASHPAGESIZE	= 0x0040 ; Note: Size in words
 
 .equ	BOOTSECTION1START	= 0x3F00 ; Note: Word address
 .equ	BOOTSECTION1END	= 0x3FFF ; Note: Word address
-.equ	BOOTSECTION1PAGESIZE	= 0x0040 ;
+.equ	BOOTSECTION1PAGESIZE	= 0x0040 ; Note: Size in words
 
 .equ	BOOTSECTION2START	= 0x3E00 ; Note: Word address
 .equ	BOOTSECTION2END	= 0x3FFF ; Note: Word address
-.equ	BOOTSECTION2PAGESIZE	= 0x0040 ;
+.equ	BOOTSECTION2PAGESIZE	= 0x0040 ; Note: Size in words
 
 .equ	BOOTSECTION3START	= 0x3C00 ; Note: Word address
 .equ	BOOTSECTION3END	= 0x3FFF ; Note: Word address
-.equ	BOOTSECTION3PAGESIZE	= 0x0040 ;
+.equ	BOOTSECTION3PAGESIZE	= 0x0040 ; Note: Size in words
 
 .equ	BOOTSECTION4START	= 0x3800 ; Note: Word address
 .equ	BOOTSECTION4END	= 0x3FFF ; Note: Word address
-.equ	BOOTSECTION4PAGESIZE	= 0x0040 ;
+.equ	BOOTSECTION4PAGESIZE	= 0x0040 ; Note: Size in words
 
 .equ	IOEND	= 0x00FF
 
@@ -1526,22 +1526,22 @@
 #pragma AVRPART MEMORY EEPROM 1024
 
 ; ***** BOOTLOADER DECLARATIONS ******************************************
-.equ	PAGESIZE	= 0x0040 ;
+.equ	PAGESIZE	= 0x0040 ; Note: Size in words
 
 .equ	FIRSTBOOTSTART	= 0x3F00 ; Note: Word address
-.equ	FIRSTBOOTPAGESIZE	= 0x0040 ;
+.equ	FIRSTBOOTPAGESIZE	= 0x0040 ; Note: Size in words
 .equ	FIRSTBOOTEND	= 0x0000 ; Note: Word address
 
 .equ	SECONDBOOTSTART	= 0x3E00 ; Note: Word address
-.equ	SECONDBOOTPAGESIZE	= 0x0040 ;
+.equ	SECONDBOOTPAGESIZE	= 0x0040 ; Note: Size in words
 .equ	SECONDBOOTEND	= 0x0000 ; Note: Word address
 
 .equ	THIRDBOOTSTART	= 0x3C00 ; Note: Word address
-.equ	THIRDBOOTPAGESIZE	= 0x0040 ;
+.equ	THIRDBOOTPAGESIZE	= 0x0040 ; Note: Size in words
 .equ	THIRDBOOTEND	= 0x0000 ; Note: Word address
 
 .equ	FOURTHBOOTSTART	= 0x3800 ; Note: Word address
-.equ	FOURTHBOOTPAGESIZE	= 0x0040 ;
+.equ	FOURTHBOOTPAGESIZE	= 0x0040 ; Note: Size in words
 .equ	FOURTHBOOTEND	= 0x0000 ; Note: Word address
 
 .equ	 SMALLBOOTSTART	= FIRSTBOOTSTART ;

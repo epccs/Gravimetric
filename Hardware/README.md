@@ -75,10 +75,11 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             WIP: 
             Todo: Design, Layout (#=done), BOM, Review*, Order Boards, Assembly, Testing, Evaluation.
             *during review the Design may change without changing the revision.
-            long term goal is to switch to the new AVR DA's
-            after devl and testing serial and I2C lib's for the DA's start this update
-            change m324pb to AVR128DA48 
-            change m328pb to AVR128DA32
+            long term goal is to switch to the new AVR DB's
+            after development and testing of serial and I2C lib's for the DA's then start this update (DA's and DB's have same serial and I2C)
+            change m324pb to AVR128DB48 (DB has pins to drive HF crystal)
+            smoked manager with an extern pwr RPUusb (same problem will happen with extern pwr R-Pi) 
+            change m328pb to AVR128DB32 (has dual power domains use primary for app and secondary for R-Pi)
 
         ^2  Done: Design, Layout (#=done), BOM,
             WIP: Review*, 
@@ -88,7 +89,7 @@ Bootloader options include [optiboot] and [xboot]. Serial bootloaders can not ch
             # Add note on schem near *manager* ISP port "remove alternat power befor programing with ISP"
             # Add test points on I2C0 nodes.
             # Shutdown switch resistor needs moved so manager can overide switch while host is doing power UP.
-            This version may not be ordered and built, but the layout will be done.
+            This version may not be ordered and built, but the layout was done.
 
         ^1  Done: Design, Layout, BOM, Review*, Order Boards, Assembly, 
             WIP: Testing,

@@ -6,7 +6,7 @@
 ;* Number            : AVR000
 ;* File Name         : m328PBdef.inc
 ;* Title             : Register/Bit Definitions for the ATmega328PB
-;* Created           : 2018-11-27 09:12
+;* Created           : 2019-12-20 07:11
 ;* Version           : 1.00
 ;* Support e-mail    : avr@atmel.com
 ;* Target MCU        : ATmega328PB
@@ -206,7 +206,7 @@
 ; UCSR0B - USART Control and Status Register B
 .equ	TXB80	= 0 ; Transmit Data Bit 8
 .equ	RXB80	= 1 ; Receive Data Bit 8
-.equ	UCSZ02	= 2 ; Character Size
+.equ	UCSZ02	= 2 ; Character Size - together with UCSZ0 in UCSR0C
 .equ	TXEN0	= 3 ; Transmitter Enable
 .equ	RXEN0	= 4 ; Receiver Enable
 .equ	UDRIE0	= 5 ; USART Data register Empty Interrupt Enable
@@ -215,8 +215,8 @@
 
 ; UCSR0C - USART Control and Status Register C
 .equ	UCPOL0	= 0 ; Clock Polarity
-.equ	UCSZ00	= 1 ; Character Size
-.equ	UCSZ01	= 2 ; Character Size
+.equ	UCSZ00	= 1 ; Character Size - together with UCSZ2 in UCSR0B
+.equ	UCSZ01	= 2 ; Character Size - together with UCSZ2 in UCSR0B
 .equ	USBS0	= 3 ; Stop Bit Select
 .equ	UPM00	= 4 ; Parity Mode Bits
 .equ	UPM01	= 5 ; Parity Mode Bits
@@ -268,7 +268,7 @@
 ; UCSR1B - USART Control and Status Register B
 .equ	TXB81	= 0 ; Transmit Data Bit 8
 .equ	RXB81	= 1 ; Receive Data Bit 8
-.equ	UCSZ12	= 2 ; Character Size
+.equ	UCSZ12	= 2 ; Character Size - together with UCSZ0 in UCSR1C
 .equ	TXEN1	= 3 ; Transmitter Enable
 .equ	RXEN1	= 4 ; Receiver Enable
 .equ	UDRIE1	= 5 ; USART Data register Empty Interrupt Enable
@@ -277,8 +277,8 @@
 
 ; UCSR1C - USART Control and Status Register C
 .equ	UCPOL1	= 0 ; Clock Polarity
-.equ	UCSZ10	= 1 ; Character Size
-.equ	UCSZ11	= 2 ; Character Size
+.equ	UCSZ10	= 1 ; Character Size - together with UCSZ12 in UCSR1B
+.equ	UCSZ11	= 2 ; Character Size - together with UCSZ12 in UCSR1B
 .equ	USBS1	= 3 ; Stop Bit Select
 .equ	UPM10	= 4 ; Parity Mode Bits
 .equ	UPM11	= 5 ; Parity Mode Bits

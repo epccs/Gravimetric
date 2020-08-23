@@ -42,13 +42,13 @@ void pre_main(void) {
     7e18:	94 bf       	out	0x34, r25	; 52
     7e1a:	c4 d0       	rcall	.+392    	; 0x7fa4 <appStart>
     7e1c:	82 e0       	ldi	r24, 0x02	; 2
-    7e1e:	80 93 c0 00 	sts	0x00C0, r24	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7e00c0>
+    7e1e:	80 93 c0 00 	sts	0x00C0, r24	; 0x8000c0 <__DATA_REGION_ORIGIN__+0x60>
     7e22:	88 e1       	ldi	r24, 0x18	; 24
-    7e24:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__TEXT_REGION_LENGTH__+0x7e00c1>
+    7e24:	80 93 c1 00 	sts	0x00C1, r24	; 0x8000c1 <__DATA_REGION_ORIGIN__+0x61>
     7e28:	86 e0       	ldi	r24, 0x06	; 6
-    7e2a:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__TEXT_REGION_LENGTH__+0x7e00c2>
+    7e2a:	80 93 c2 00 	sts	0x00C2, r24	; 0x8000c2 <__DATA_REGION_ORIGIN__+0x62>
     7e2e:	83 e3       	ldi	r24, 0x33	; 51
-    7e30:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__TEXT_REGION_LENGTH__+0x7e00c4>
+    7e30:	80 93 c4 00 	sts	0x00C4, r24	; 0x8000c4 <__DATA_REGION_ORIGIN__+0x64>
     7e34:	8f e0       	ldi	r24, 0x0F	; 15
     7e36:	a1 d0       	rcall	.+322    	; 0x7f7a <watchdogConfig>
     7e38:	c0 e0       	ldi	r28, 0x00	; 0
@@ -222,11 +222,11 @@ static void do_spm(uint16_t address, uint8_t command, uint16_t data) {
 void putch(char ch) {
 #ifndef SOFT_UART
   while (!(UART_SRA & _BV(UDRE0)));
-    7f54:	90 91 c0 00 	lds	r25, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7e00c0>
+    7f54:	90 91 c0 00 	lds	r25, 0x00C0	; 0x8000c0 <__DATA_REGION_ORIGIN__+0x60>
     7f58:	95 ff       	sbrs	r25, 5
     7f5a:	fc cf       	rjmp	.-8      	; 0x7f54 <putch>
   UART_UDR = ch;
-    7f5c:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7e00c6>
+    7f5c:	80 93 c6 00 	sts	0x00C6, r24	; 0x8000c6 <__DATA_REGION_ORIGIN__+0x66>
     7f60:	08 95       	ret
 
 00007f62 <getch>:
@@ -236,12 +236,12 @@ void putch(char ch) {
 );
 #else
   while(!(UART_SRA & _BV(RXC0)))
-    7f62:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7e00c0>
+    7f62:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__DATA_REGION_ORIGIN__+0x60>
     7f66:	87 ff       	sbrs	r24, 7
     7f68:	fc cf       	rjmp	.-8      	; 0x7f62 <getch>
     ;
   if (!(UART_SRA & _BV(FE0))) {
-    7f6a:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__TEXT_REGION_LENGTH__+0x7e00c0>
+    7f6a:	80 91 c0 00 	lds	r24, 0x00C0	; 0x8000c0 <__DATA_REGION_ORIGIN__+0x60>
     7f6e:	84 fd       	sbrc	r24, 4
     7f70:	01 c0       	rjmp	.+2      	; 0x7f74 <getch+0x12>
 }
@@ -257,7 +257,7 @@ void watchdogReset() {
   }
 
   ch = UART_UDR;
-    7f74:	80 91 c6 00 	lds	r24, 0x00C6	; 0x8000c6 <__TEXT_REGION_LENGTH__+0x7e00c6>
+    7f74:	80 91 c6 00 	lds	r24, 0x00C6	; 0x8000c6 <__DATA_REGION_ORIGIN__+0x66>
   LED_PIN |= _BV(LED);
 #endif
 #endif
@@ -282,18 +282,23 @@ void watchdogConfig(uint8_t x) {
     7f84:	08 95       	ret
 
 00007f86 <verifySpace>:
-void getNch(uint8_t count) {
   do getch(); while (--count);
   verifySpace();
 }
 
 void verifySpace() {
+  if (getch() != CRC_EOP) {
     7f86:	ed df       	rcall	.-38     	; 0x7f62 <getch>
     7f88:	80 32       	cpi	r24, 0x20	; 32
     7f8a:	19 f0       	breq	.+6      	; 0x7f92 <verifySpace+0xc>
+    watchdogConfig(WATCHDOG_16MS);    // shorten WD timeout
     7f8c:	88 e0       	ldi	r24, 0x08	; 8
     7f8e:	f5 df       	rcall	.-22     	; 0x7f7a <watchdogConfig>
     7f90:	ff cf       	rjmp	.-2      	; 0x7f90 <verifySpace+0xa>
+    while (1)			      // and busy-loop so that WD causes
+      ;				      //  a reset and app start.
+  }
+  putch(STK_INSYNC);
     7f92:	84 e1       	ldi	r24, 0x14	; 20
     7f94:	df cf       	rjmp	.-66     	; 0x7f54 <putch>
 
@@ -309,16 +314,16 @@ void getNch(uint8_t count) {
   do getch(); while (--count);
     7f9a:	e3 df       	rcall	.-58     	; 0x7f62 <getch>
     7f9c:	c1 50       	subi	r28, 0x01	; 1
+    7f9e:	e9 f7       	brne	.-6      	; 0x7f9a <getNch+0x4>
   verifySpace();
 }
-    7f9e:	e9 f7       	brne	.-6      	; 0x7f9a <getNch+0x4>
+    7fa0:	cf 91       	pop	r28
 }
 #endif
 
 void getNch(uint8_t count) {
   do getch(); while (--count);
   verifySpace();
-    7fa0:	cf 91       	pop	r28
     7fa2:	f1 cf       	rjmp	.-30     	; 0x7f86 <verifySpace>
 
 00007fa4 <appStart>:

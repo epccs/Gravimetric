@@ -148,7 +148,7 @@ void twi0_acknowledge(TWI_ACK_t ack)
 
 ISR(TWI0_vect)
 {
-    switch(TWSR0 & TW_STATUS_MASK) // TW_STATUS can be used for part with one TWI
+    switch(TWSR0 & TW0_STATUS_MASK) // TW_STATUS and TW_STATUS_MASK can be used for parts with one TWI
     {
         // Illegal start or stop condition
         case TW_BUS_ERROR:
