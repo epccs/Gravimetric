@@ -114,10 +114,10 @@ Measure the input current, wait for the power to be settled. Turn off the power.
 { "I_IN_MGR_AND_APP_FLAGS_SET_mA":[33.5,34.2,33.8,]}
 ```
 
-Add U3 to the board now.
-
 
 ## Install SMPS
+
+Add U3 to the board now.
 
 With U3 installed measure its output voltage and input current with the supply set at 12.8V and a 30mA current limit.
 

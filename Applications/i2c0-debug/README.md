@@ -8,6 +8,9 @@ The peripheral control software twi0_bsd.c depends on avr-libc and avr-gcc. It p
 
 On Gravimetric, I2C0 does not have user-accessible pins; it is connected to the manager. I2C1 is connected to the user access port.
 
+https://interrupt.memfault.com/blog/i2c-in-a-nutshell
+
+
 ## Firmware Upload 
 
 The manager needs to be told that it has a localhost and the address to bootload. I do this with some commands on the SMBus interface from an R-Pi.
