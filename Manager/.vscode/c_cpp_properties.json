@@ -1,15 +1,13 @@
 {
     "configurations": [
         {
-            "name": "AVR",
-            "intelliSenseMode": "clang-x64",
+            "name": "mega328pb",
+            "intelliSenseMode": "gcc-x64",
             "compilerPath": "/usr/bin/avr-gcc",
             "includePath": [
-                "${workspaceFolder}",
                 "${default}"
             ],
-            "forcedInclude": [ "${workspaceFolder}/lib/ATmega_DFP/include/avr/iom328pb.h" ],
-            "defines": ["__AVR_ATmega328PB__","F_CPU = 12000000UL"],
+            "defines": ["__AVR_DEV_LIB_NAME__=atmega328pb","__AVR_ARCH__=5","F_CPU = 12000000UL"],
             "cStandard": "c11",
             "cppStandard": "c++17",
             "browse": {

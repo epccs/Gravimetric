@@ -29,7 +29,7 @@ https://github.com/greiman/SdFat-beta/blob/master/src/DigitalIO/DigitalPin.h
 #include <avr/io.h>
 #include <util/atomic.h>
 
-#if defined(__AVR_ATmega328PB__)
+#if defined(_AVR_ATMEGA328PB_H_INCLUDED)
 
 // Direction is used to program the IO as an input or output
 typedef enum DIRECTION_enum {

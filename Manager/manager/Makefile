@@ -100,6 +100,12 @@ ree_linuxspi: ## with an R-Pi SPI port recover the saved eeprom
 	sudo avrdude -v -p $(MCU) -c linuxspi -P /dev/spidev0.0 -U eeprom:w:$(TARGET)_$(MCU)_eeprom.hex
 	rm $(TARGET)_$(MCU)_eeprom.hex
 
+hdrcode: ## copy header for VSCode to find run with sudo
+	@echo VSCode will not look outside or cross-origin for an include,  
+	@echo so I have to put the MCU header where it can find.
+	cp -u ../lib/ATmega_DFP/include/avr/iom328pb.h /usr/lib/avr/include/avr/ioatmega328pb.h
+	chmod u-x /usr/lib/avr/include/avr/ioatmega328pb.h
+
 # binutils (e.g. avr-size) is missing atmega328pb
 # object file from restricted source license need to be kept and distrubuted so they can be linked with
 # this allows others to modify the LGPL source and build objects that can link with the provided objects from the restricted source
@@ -113,3 +119,6 @@ clean: ## remove the image and related files
  
 %.lst: %.elf
 	$(OBJDUMP) -h -S $< > $@
+
+builtin: ## show list of builtin (hidden) defines, some may need to be added to VScode c_cpp_properties.json
+	$(CC) $(LDFLAGS) $(TARGET_ARCH) -E -dM - < /dev/null

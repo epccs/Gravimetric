@@ -76,7 +76,7 @@ const static struct Channel_Map adcMap[ADC_ENUM_END] = {
 #define INTERNAL_2V56 (1<<REFS1) | (1<<REFS0)
 #endif
 
-#if defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || (__AVR_ATmega168P__) || defined (__AVR_ATmega168__) || defined (__AVR_ATmega328PB__)
+#if defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328__) || (__AVR_ATmega168P__) || defined (__AVR_ATmega168__) || defined (_AVR_ATMEGA328PB_H_INCLUDED)
 #define ADREFSMASK (1<<REFS1) | (1<<REFS0)
 #define EXTERNAL_AREF 0
 #define EXTERNAL_AVCC (1<<REFS0)
